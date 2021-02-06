@@ -1,0 +1,34 @@
+Program name:
+  CDSfold
+
+Author:
+  Goro Terai
+
+  Computational Biology Research Center, 
+  The National Institute of 
+  Advanced Industrial Science and Technology (AIST), Japan.
+
+  E-mail: terai-goro AT aist.go.jp
+
+License:
+  The source cods contain functions obtained from the
+  Vienna RNA package (version 2.1.1) (see Reference below).
+  Please follow ./src/vienna/COPYING file,
+  which describes the copyright notice of the Vienna RNA package.
+
+  The other part of the source codes is provided as free software.
+  They are distributed in the hope that they will be useful
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  Permission is granted for research, educational, and commercial use
+  and modification so long as 
+  1) the package and any derived works are not
+     redistributed for any fee, other than media costs, 
+  2) proper credit is given to the author and the 
+     Computational Biology Research Center, AIST, Japan.
+
+Reference:
+  R. Lorenz, S. H. Bernhart, C. Honer Zu Siederdissen, H. Tafer, C. Flamm,
+  P. F. Stadler, and I. L. Hofacker. Viennarna package 2.0. Algorithms Mol
+  Biol., 6:26, Nov 2011.
