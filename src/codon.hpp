@@ -50,7 +50,7 @@ class codon {
         }
 
         vector<string> filterTable;
-        for (auto const & codon : table[c]) {
+        for (auto const & codon : table.at(c)) {
             if (exceptMap.find(codon) == exceptMap.end()) {
                 filterTable.push_back(codon);
             }
@@ -69,8 +69,8 @@ class codon {
         map<string, int> exceptMap;
         for (const auto& exceptCodon : exceptVector) {
             string convertedExceptCodon = exceptCodon;
-            map<string, string>::iterator itr;
-            if ((itr = expectedCodonOfCodon.find(exceptCodon)) != expectedCodonOfCodon.end()) {
+            map<string, string>::const_iterator itr;
+            if ((itr = codon::expectedCodonOfCodon.find(exceptCodon)) != codon::expectedCodonOfCodon.end()) {
                 convertedExceptCodon = itr->second;
             }
 
@@ -84,7 +84,7 @@ class codon {
 
         // 除外コドンを除いたコドンテーブルを作成
         vector<string> filterTable;
-        for (auto const & codon : extendedTable[c]) {
+        for (auto const & codon : extendedTable.at(c)) {
             if (exceptMap.find(codon) == exceptMap.end()) {
                 filterTable.push_back(codon);
             }
@@ -105,9 +105,9 @@ class codon {
     }
 
   private:
-    map<char, vector<string>> table;
-    map<char, vector<string>> extendedTable;
-    map<string, string> expectedCodonOfCodon;
+    static const map<char, vector<string>> table;
+    static const map<char, vector<string>> extendedTable;
+    static const map<string, string> expectedCodonOfCodon;
     char table_rev[5][5][5];
 
     vector<string> split(string &str, char delim) {
@@ -122,150 +122,154 @@ class codon {
     }
 };
 
+const map<string, string> codon::expectedCodonOfCodon{
+	{"UUA", "UVA"},
+	{"UUG", "UVG"},
+	{"CUU", "CWU"},
+	{"CUC", "CWC"},
+	{"CUA", "CVA"},
+	{"CUG", "CVG"},
+	{"CGU", "CYU"},
+	{"CGC", "CYC"},
+	{"CGA", "CXA"},
+	{"CGG", "CXG"},
+	{"AGA", "AXA"},
+	{"AGG", "AXG"},
+};
+
+const map<char, vector<string>> codon::table{
+	{'F', {
+		"UUU", "UUC"
+	}},
+	{'L', {
+		"UUA", "UUG", "CUU", "CUC", "CUA", "CUG"
+	}},
+	{'I', {
+		"AUU", "AUC", "AUA"
+	}},
+	{'M', {
+		"AUG"
+	}},
+	{'V', {
+		"GUU", "GUC", "GUA", "GUG"
+	}},
+	{'S', {
+		"UCU", "UCC", "UCA", "UCG", "AGU", "AGC"
+	}},
+	{'P', {
+		"CCU", "CCC", "CCA", "CCG"
+	}},
+	{'T', {
+		"ACU", "ACC", "ACA", "ACG"
+	}},
+	{'A', {
+		"GCU", "GCC", "GCA", "GCG"
+	}},
+	{'Y', {
+		"UAU", "UAC"
+	}},
+	{'*', {
+		"UAA", "UAG", "UGA"
+	}},
+	{'H', {
+		"CAU", "CAC"
+	}},
+	{'Q', {
+		"CAA", "CAG"
+	}},
+	{'N', {
+		"AAU", "AAC"
+	}},
+	{'K', {
+		"AAA", "AAG"
+	}},
+	{'D', {
+		"GAU", "GAC"
+	}},
+	{'E', {
+		"GAA", "GAG"
+	}},
+	{'C', {
+		"UGU", "UGC"
+	}},
+	{'W', {
+		"UGG"
+	}},
+	{'R', {
+		"CGU", "CGC", "CGA", "CGG", "AGA", "AGG"
+	}},
+	{'G', {
+		"GGU", "GGC", "GGA", "GGG"
+	}}
+};
+
+const map<char, vector<string>> codon::extendedTable{
+	{'F', {
+		"UUU", "UUC"
+	}},
+	{'L', {
+		"UVA", "UVG", "CWU", "CWC", "CVA", "CVG"
+	}},
+	{'I', {
+		"AUU", "AUC", "AUA"
+	}},
+	{'M', {
+		"AUG"
+	}},
+	{'V', {
+		"GUU", "GUC", "GUA", "GUG"
+	}},
+	{'S', {
+		"UCU", "UCC", "UCA", "UCG", "AGU", "AGC"
+	}},
+	{'P', {
+		"CCU", "CCC", "CCA", "CCG"
+	}},
+	{'T', {
+		"ACU", "ACC", "ACA", "ACG"
+	}},
+	{'A', {
+		"GCU", "GCC", "GCA", "GCG"
+	}},
+	{'Y', {
+		"UAU", "UAC"
+	}},
+	{'*', {
+		"UAA", "UAG", "UGA"
+	}},
+	{'H', {
+		"CAU", "CAC"
+	}},
+	{'Q', {
+		"CAA", "CAG"
+	}},
+	{'N', {
+		"AAU", "AAC"
+	}},
+	{'K', {
+		"AAA", "AAG"
+	}},
+	{'D', {
+		"GAU", "GAC"
+	}},
+	{'E', {
+		"GAA", "GAG"
+	}},
+	{'C', {
+		"UGU", "UGC"
+	}},
+	{'W', {
+		"UGG"
+	}},
+	{'R', {
+		"CYU", "CYC", "CXA", "CXG", "AXA", "AXG"
+	}},
+	{'G', {
+		"GGU", "GGC", "GGA", "GGG"
+	}}
+};
+
 codon::codon() {
-    expectedCodonOfCodon.insert(make_pair("UUA", "UVA"));
-    expectedCodonOfCodon.insert(make_pair("UUG", "UVG"));
-    expectedCodonOfCodon.insert(make_pair("CUU", "CWU"));
-    expectedCodonOfCodon.insert(make_pair("CUC", "CWC"));
-    expectedCodonOfCodon.insert(make_pair("CUA", "CVA"));
-    expectedCodonOfCodon.insert(make_pair("CUG", "CVG"));
-    expectedCodonOfCodon.insert(make_pair("CGU", "CYU"));
-    expectedCodonOfCodon.insert(make_pair("CGC", "CYC"));
-    expectedCodonOfCodon.insert(make_pair("CGA", "CXA"));
-    expectedCodonOfCodon.insert(make_pair("CGG", "CXG"));
-    expectedCodonOfCodon.insert(make_pair("AGA", "AXA"));
-    expectedCodonOfCodon.insert(make_pair("AGG", "AXG"));
-
-    table['F'].push_back("UUU");
-    table['F'].push_back("UUC");
-    table['L'].push_back("UUA");
-    table['L'].push_back("UUG");
-    table['L'].push_back("CUU");
-    table['L'].push_back("CUC");
-    table['L'].push_back("CUA");
-    table['L'].push_back("CUG");
-    table['I'].push_back("AUU");
-    table['I'].push_back("AUC");
-    table['I'].push_back("AUA");
-    table['M'].push_back("AUG");
-    table['V'].push_back("GUU");
-    table['V'].push_back("GUC");
-    table['V'].push_back("GUA");
-    table['V'].push_back("GUG");
-    table['S'].push_back("UCU");
-    table['S'].push_back("UCC");
-    table['S'].push_back("UCA");
-    table['S'].push_back("UCG");
-    table['S'].push_back("AGU");
-    table['S'].push_back("AGC");
-    table['P'].push_back("CCU");
-    table['P'].push_back("CCC");
-    table['P'].push_back("CCA");
-    table['P'].push_back("CCG");
-    table['T'].push_back("ACU");
-    table['T'].push_back("ACC");
-    table['T'].push_back("ACA");
-    table['T'].push_back("ACG");
-    table['A'].push_back("GCU");
-    table['A'].push_back("GCC");
-    table['A'].push_back("GCA");
-    table['A'].push_back("GCG");
-    table['Y'].push_back("UAU");
-    table['Y'].push_back("UAC");
-    table['*'].push_back("UAA");
-    table['*'].push_back("UAG");
-    table['*'].push_back("UGA");
-    table['H'].push_back("CAU");
-    table['H'].push_back("CAC");
-    table['Q'].push_back("CAA");
-    table['Q'].push_back("CAG");
-    table['N'].push_back("AAU");
-    table['N'].push_back("AAC");
-    table['K'].push_back("AAA");
-    table['K'].push_back("AAG");
-    table['D'].push_back("GAU");
-    table['D'].push_back("GAC");
-    table['E'].push_back("GAA");
-    table['E'].push_back("GAG");
-    table['C'].push_back("UGU");
-    table['C'].push_back("UGC");
-    table['W'].push_back("UGG");
-    table['R'].push_back("CGU");
-    table['R'].push_back("CGC");
-    table['R'].push_back("CGA");
-    table['R'].push_back("CGG");
-    table['R'].push_back("AGA");
-    table['R'].push_back("AGG");
-    table['G'].push_back("GGU");
-    table['G'].push_back("GGC");
-    table['G'].push_back("GGA");
-    table['G'].push_back("GGG");
-
-    extendedTable['F'].push_back("UUU");
-    extendedTable['F'].push_back("UUC");
-    extendedTable['L'].push_back("UVA");
-    extendedTable['L'].push_back("UVG");
-    extendedTable['L'].push_back("CWU");
-    extendedTable['L'].push_back("CWC");
-    extendedTable['L'].push_back("CVA");
-    extendedTable['L'].push_back("CVG");
-    extendedTable['I'].push_back("AUU");
-    extendedTable['I'].push_back("AUC");
-    extendedTable['I'].push_back("AUA");
-    extendedTable['M'].push_back("AUG");
-    extendedTable['V'].push_back("GUU");
-    extendedTable['V'].push_back("GUC");
-    extendedTable['V'].push_back("GUA");
-    extendedTable['V'].push_back("GUG");
-    extendedTable['S'].push_back("UCU");
-    extendedTable['S'].push_back("UCC");
-    extendedTable['S'].push_back("UCA");
-    extendedTable['S'].push_back("UCG");
-    extendedTable['S'].push_back("AGU");
-    extendedTable['S'].push_back("AGC");
-    extendedTable['P'].push_back("CCU");
-    extendedTable['P'].push_back("CCC");
-    extendedTable['P'].push_back("CCA");
-    extendedTable['P'].push_back("CCG");
-    extendedTable['T'].push_back("ACU");
-    extendedTable['T'].push_back("ACC");
-    extendedTable['T'].push_back("ACA");
-    extendedTable['T'].push_back("ACG");
-    extendedTable['A'].push_back("GCU");
-    extendedTable['A'].push_back("GCC");
-    extendedTable['A'].push_back("GCA");
-    extendedTable['A'].push_back("GCG");
-    extendedTable['Y'].push_back("UAU");
-    extendedTable['Y'].push_back("UAC");
-    extendedTable['*'].push_back("UAA");
-    extendedTable['*'].push_back("UAG");
-    extendedTable['*'].push_back("UGA");
-    extendedTable['H'].push_back("CAU");
-    extendedTable['H'].push_back("CAC");
-    extendedTable['Q'].push_back("CAA");
-    extendedTable['Q'].push_back("CAG");
-    extendedTable['N'].push_back("AAU");
-    extendedTable['N'].push_back("AAC");
-    extendedTable['K'].push_back("AAA");
-    extendedTable['K'].push_back("AAG");
-    extendedTable['D'].push_back("GAU");
-    extendedTable['D'].push_back("GAC");
-    extendedTable['E'].push_back("GAA");
-    extendedTable['E'].push_back("GAG");
-    extendedTable['C'].push_back("UGU");
-    extendedTable['C'].push_back("UGC");
-    extendedTable['W'].push_back("UGG");
-    extendedTable['R'].push_back("CYU");
-    extendedTable['R'].push_back("CYC");
-    extendedTable['R'].push_back("CXA");
-    extendedTable['R'].push_back("CXG");
-    extendedTable['R'].push_back("AXA");
-    extendedTable['R'].push_back("AXG");
-    extendedTable['G'].push_back("GGU");
-    extendedTable['G'].push_back("GGC");
-    extendedTable['G'].push_back("GGA");
-    extendedTable['G'].push_back("GGG");
-
     table_rev[4][4][4] = 'F';
     table_rev[4][4][2] = 'F';
     table_rev[4][4][1] = 'L';
