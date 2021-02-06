@@ -371,7 +371,7 @@ vector<vector<int>> getPossibleNucleotide(char *aaseq, int aalen, codon &codon_t
                 v[nucpos].push_back(n2i['Y']);
             } else {
                 bool flg_A, flg_C, flg_G, flg_U;
-                flg_A = flg_C = flg_G = flg_U = 0;
+                flg_A = flg_C = flg_G = flg_U = false;
 
                 for (unsigned int j = 0; j < codons.size(); j++) { // for each codon corresp. to each aa
                     char nuc = codons[j][k];
