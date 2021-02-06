@@ -102,7 +102,7 @@ fasta::fasta(const char *fname) { // DPマトリクスの動的メモリ確保
         // tmp_desc.erase(0);// this should be done?
 
     } else {
-        if (fname == NULL) {
+        if (fname == nullptr) {
             cerr << "Error: no input file" << endl;
         } else {
             cerr << "Error: cannot open file(" << fname << ")" << endl;

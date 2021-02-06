@@ -449,7 +449,7 @@ vector<int> createNucConstraint(const char *s, int &len, map<char, int> &n2i) {
     return v;
 }
 
-inline void InitRand() { srand((unsigned int)time(NULL)); }
+inline void InitRand() { srand((unsigned int)time(nullptr)); }
 
 void shuffleStr(vector<string>(*ary), int size) {
     for (int i = 0; i < size; i++) {

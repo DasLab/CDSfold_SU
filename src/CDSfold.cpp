@@ -315,7 +315,7 @@ int main(int argc, char *argv[]) {
             return 0;
         }
 
-        paramT *P = NULL;
+        paramT *P = nullptr;
         P = scale_parameters();
         update_fold_params();
 
