@@ -24,13 +24,13 @@ class FileManager {
 
     ~FileManager() {}
 
-    void saveSingleFastaFile(string name, string seq, string file) {
+    void saveSingleFastaFile(const string& name, const string& seq, const string& file) {
         ofstream ofs(file.c_str());
         ofs << ">" << name << endl;
         ofs << seq << endl;
     }
 
-    map<string, string> loadFastaFile(string file) {
+    map<string, string> loadFastaFile(const string& file) {
         string name = "";
         string base = "";
         map<string, string> fastaMap;

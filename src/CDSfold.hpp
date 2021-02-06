@@ -2131,7 +2131,7 @@ OUTLOOP:
 }
 
 void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predefE, const int (&BP_pair)[5][5],
-                paramT *P, char *aaseq, codon codon_table) {
+                paramT *P, char *aaseq, const codon& codon_table) {
     int nuclen = optseq.size() - 1;
     int aalen = (optseq.size() - 1) / 3;
     int size = getMatrixSize(nuclen, w);

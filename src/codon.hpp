@@ -67,7 +67,7 @@ class codon {
         char delim = ',';
         vector<string> exceptVector = split(exceptedCodons, delim);
         map<string, int> exceptMap;
-        for (auto exceptCodon : exceptVector) {
+        for (const auto& exceptCodon : exceptVector) {
             string convertedExceptCodon = exceptCodon;
             map<string, string>::iterator itr;
             if ((itr = expectedCodonOfCodon.find(exceptCodon)) != expectedCodonOfCodon.end()) {
@@ -92,7 +92,7 @@ class codon {
         return filterTable;
     }
 
-    char c2a(int p1, int p2, int p3) { return table_rev[p1][p2][p3]; }
+    char c2a(int p1, int p2, int p3) const { return table_rev[p1][p2][p3]; }
 
     void showTable() {
         for (auto & it : table) {

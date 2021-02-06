@@ -12,6 +12,7 @@
 #include <limits>
 #include <string>
 #include <ctime>
+#include <utility>
 #include <vector>
 
 #pragma once
@@ -36,7 +37,7 @@ class AASeqConverter {
         return baseEnergy;
     }
 
-    vector<vector<int>> countNeighborTwoBase(string aaseq, string exceptedCodons) {
+    vector<vector<int>> countNeighborTwoBase(const string& aaseq, const string& exceptedCodons) {
         vector<vector<int>> result;
 
         // 結果格納マップを初期化
@@ -80,7 +81,7 @@ class AASeqConverter {
         return result;
     }
 
-    vector<vector<int>> countEveryOtherTwoBase(string aaseq, string exceptedCodons) {
+    vector<vector<int>> countEveryOtherTwoBase(const string& aaseq, const string& exceptedCodons) {
         vector<vector<int>> result;
 
         // 結果格納マップを初期化
@@ -132,7 +133,7 @@ class AASeqConverter {
         return result;
     }
 
-    vector<vector<vector<string>>> getExtendedBases(string aminoAcid, string exceptedCodons) {
+    vector<vector<vector<string>>> getExtendedBases(const string& aminoAcid, const string& exceptedCodons) {
         // 0～(n-8)要素の部分塩基配列を取得
         unsigned int maxLength = 8;
         vector<vector<vector<string>>> bases = getSelectedLengthExtendedBases(aminoAcid, maxLength, exceptedCodons);
@@ -183,10 +184,10 @@ class AASeqConverter {
      *	 	}
      *	 }
      */
-    vector<vector<vector<vector<pair<int, string>>>>> calcQueryExtendedBaseEnergy(string aminoAcid,
+    vector<vector<vector<vector<pair<int, string>>>>> calcQueryExtendedBaseEnergy(const string& aminoAcid,
                                                                                   string exceptedCodons) {
         // 部分配列を取得
-        vector<vector<vector<string>>> bases = getExtendedBases(aminoAcid, exceptedCodons);
+        vector<vector<vector<string>>> bases = getExtendedBases(aminoAcid, std::move(exceptedCodons));
 
         // 各部位の最小エネルギーを取得
         vector<vector<vector<vector<pair<int, string>>>>> result = calcEachExtendedBaseEnergy(aminoAcid, bases);
@@ -194,7 +195,7 @@ class AASeqConverter {
         return result;
     }
 
-    vector<vector<vector<string>>> getOriginalBases(string aminoAcid, string exceptedCodons) {
+    vector<vector<vector<string>>> getOriginalBases(const string& aminoAcid, const string& exceptedCodons) {
         // 0～(n-8)要素の部分塩基配列を取得
         unsigned int maxLength = 8;
         vector<vector<vector<string>>> bases = getSelectedLengthOriginalBases(aminoAcid, maxLength, exceptedCodons);
@@ -259,10 +260,10 @@ class AASeqConverter {
      *	 	}
      *	 }
      */
-    vector<vector<vector<vector<pair<int, string>>>>> calcQueryOriginalBaseEnergy(string aminoAcid,
+    vector<vector<vector<vector<pair<int, string>>>>> calcQueryOriginalBaseEnergy(const string& aminoAcid,
                                                                                   string exceptedCodons) {
         // 部分塩基配列を取得
-        vector<vector<vector<string>>> bases = getOriginalBases(aminoAcid, exceptedCodons);
+        vector<vector<vector<string>>> bases = getOriginalBases(aminoAcid, std::move(exceptedCodons));
 
         // 各部位の最小エネルギーを取得
         vector<vector<vector<vector<pair<int, string>>>>> result = calcEachOriginalBaseEnergy(aminoAcid, bases);
@@ -279,13 +280,13 @@ class AASeqConverter {
     const static int BASE_ORIGINAL = 0;
     const static int BASE_EXTENDED = 1;
 
-    int getBaseNumber(string base) {
+    int getBaseNumber(const string& base) {
         map<string, int>::iterator itr;
         itr = baseNumberMap.find(base);
         return itr->second;
     }
 
-    int getPairNumber(string twoBases) {
+    int getPairNumber(const string& twoBases) {
         map<string, int>::iterator itr;
         itr = pairNumberMap.find(twoBases);
         return itr->second;
@@ -383,7 +384,7 @@ class AASeqConverter {
     }
 
     void setBasePairMap(int position, string basePair, vector<vector<int>> &map) {
-        int pair = getPairNumber(basePair);
+        int pair = getPairNumber(std::move(basePair));
         map[pair][position] = 1;
     }
 
@@ -440,7 +441,7 @@ class AASeqConverter {
     }
 
     void getBasesBase(string aminoAcid, unsigned int maxLength, vector<vector<vector<string>>> &result, int flag,
-                      string exceptedCodons) {
+                      const string& exceptedCodons) {
         int baseLength = aminoAcid.size() * 3;
 
         // 結果格納ベクターを初期化
@@ -545,7 +546,7 @@ class AASeqConverter {
     }
 
     void addBasesBase(string aminoAcid, int startElement, unsigned int maxLength,
-                      vector<vector<vector<string>>> &result, int flag, string exceptedCodons) {
+                      vector<vector<vector<string>>> &result, int flag, const string& exceptedCodons) {
         int baseLength = aminoAcid.size() * 3;
 
         // maxLengthの長さを持つ塩基配列を作成
@@ -660,16 +661,16 @@ class AASeqConverter {
 
     void addExtendedBases(string aminoAcid, int startElement, unsigned int maxLength,
                           vector<vector<vector<string>>> &result, string exceptedCodons) {
-        addBasesBase(aminoAcid, startElement, maxLength, result, BASE_EXTENDED, exceptedCodons);
+        addBasesBase(std::move(aminoAcid), startElement, maxLength, result, BASE_EXTENDED, std::move(exceptedCodons));
     }
 
     void addOriginalBases(string aminoAcid, int startElement, unsigned int maxLength,
                           vector<vector<vector<string>>> &result, string exceptedCodons) {
-        addBasesBase(aminoAcid, startElement, maxLength, result, BASE_ORIGINAL, exceptedCodons);
+        addBasesBase(std::move(aminoAcid), startElement, maxLength, result, BASE_ORIGINAL, std::move(exceptedCodons));
     }
 
     vector<vector<vector<vector<pair<int, string>>>>>
-    calcEachBaseEnergyBase(string aminoAcid, vector<vector<vector<string>>> &bases, int flag) {
+    calcEachBaseEnergyBase(const string& aminoAcid, vector<vector<vector<string>>> &bases, int flag) {
         // 結果格納ベクターを初期化
         int baseLength = aminoAcid.size() * 3;
         int maxLength = 8;
@@ -728,32 +729,32 @@ class AASeqConverter {
 
     vector<vector<vector<vector<pair<int, string>>>>>
     calcEachExtendedBaseEnergy(string aminoAcid, vector<vector<vector<string>>> &bases) {
-        return calcEachBaseEnergyBase(aminoAcid, bases, BASE_EXTENDED);
+        return calcEachBaseEnergyBase(std::move(aminoAcid), bases, BASE_EXTENDED);
     }
 
     vector<vector<vector<vector<pair<int, string>>>>>
     calcEachOriginalBaseEnergy(string aminoAcid, vector<vector<vector<string>>> &bases) {
-        return calcEachBaseEnergyBase(aminoAcid, bases, BASE_ORIGINAL);
+        return calcEachBaseEnergyBase(std::move(aminoAcid), bases, BASE_ORIGINAL);
     }
 
     vector<vector<vector<string>>> getSelectedLengthExtendedBases(string aminoAcid, unsigned int maxLength,
                                                                   string exceptedCodons) {
         vector<vector<vector<string>>> result;
-        getBasesBase(aminoAcid, maxLength, result, BASE_EXTENDED, exceptedCodons);
+        getBasesBase(std::move(aminoAcid), maxLength, result, BASE_EXTENDED, std::move(exceptedCodons));
         return result;
     }
 
     vector<vector<vector<string>>> getSelectedLengthOriginalBases(string aminoAcid, unsigned int maxLength,
                                                                   string exceptedCodons) {
         vector<vector<vector<string>>> result;
-        getBasesBase(aminoAcid, maxLength, result, BASE_ORIGINAL, exceptedCodons);
+        getBasesBase(std::move(aminoAcid), maxLength, result, BASE_ORIGINAL, std::move(exceptedCodons));
         return result;
     }
 
     /*
      * デバッグ用
      */
-    void printTime(string msg, clock_t start, clock_t end) {
+    void printTime(const string& msg, clock_t start, clock_t end) {
         double margin = (double)(end - start) / CLOCKS_PER_SEC;
         cout << msg << "\t" << margin << endl;
     }
