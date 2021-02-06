@@ -20,9 +20,9 @@ using namespace std;
 
 class FileManager {
   public:
-    FileManager() {}
+    FileManager() = default;
 
-    ~FileManager() {}
+    ~FileManager() = default;
 
     void saveSingleFastaFile(const string& name, const string& seq, const string& file) {
         ofstream ofs(file.c_str());
@@ -30,7 +30,7 @@ class FileManager {
         ofs << seq << endl;
     }
 
-    map<string, string> loadFastaFile(const string& file) {
+    auto loadFastaFile(const string& file) -> map<string, string> {
         string name = "";
         string base = "";
         map<string, string> fastaMap;
@@ -106,7 +106,7 @@ class FileManager {
     }
 
   private:
-    vector<string> split(string &str, char delim) {
+    auto split(string &str, char delim) -> vector<string> {
         istringstream iss(str);
         string tmp;
         vector<string> res;

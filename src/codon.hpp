@@ -31,7 +31,7 @@ class codon {
   public:
     codon();
 
-    vector<string> getCodons(char c, string exceptedCodons) {
+    auto getCodons(char c, string exceptedCodons) -> vector<string> {
         if (table.count(c) == 0) {
             cerr << "ERR: table doesn't have " << c << "." << endl;
             exit(1);
@@ -59,7 +59,7 @@ class codon {
         return filterTable;
     }
 
-    vector<string> getExtendedCodons(char c, string exceptedCodons) {
+    auto getExtendedCodons(char c, string exceptedCodons) -> vector<string> {
         if (extendedTable.count(c) == 0) {
             cerr << "ERR: extended table doesn't have " << c << "." << endl;
             exit(1);
@@ -92,7 +92,7 @@ class codon {
         return filterTable;
     }
 
-    char c2a(int p1, int p2, int p3) const { return table_rev[p1][p2][p3]; }
+    auto c2a(int p1, int p2, int p3) const -> char { return table_rev[p1][p2][p3]; }
 
     void showTable() {
         for (auto & it : table) {
@@ -110,7 +110,7 @@ class codon {
     static const map<string, string> expectedCodonOfCodon;
     char table_rev[5][5][5];
 
-    vector<string> split(string &str, char delim) {
+    auto split(string &str, char delim) -> vector<string> {
         istringstream iss(str);
         string tmp;
         vector<string> res;

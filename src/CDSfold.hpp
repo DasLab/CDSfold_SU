@@ -8,25 +8,25 @@ using namespace std;
 
 #pragma once
 
-inline int E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P);
-inline int E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P);
+inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P) -> int;
+inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P) -> int;
 
-typedef struct stack {
+using stack = struct stack {
     int i;
     int j;
     int Li;
     int Rj;
     int ml;
-} stack;
+};
 
-typedef struct bond {
+using bond = struct bond {
     int i;
     int j;
-} bond;
+};
 
-inline int TermAU(int const &type, paramT *const &P);
+inline auto TermAU(int const &type, paramT *const &P) -> int;
 
-int getMatrixSize(int len, int w) {
+auto getMatrixSize(int len, int w) -> int {
     int size = 0;
     for (int i = 1; i <= w; i++) {
         size += len - (i - 1); // マトリクスの斜めの要素数を足し合わせるイメージ
@@ -37,13 +37,13 @@ int getMatrixSize(int len, int w) {
     return size;
 }
 
-inline int getIndx(int const &i, int const &j, int const &w, int *const &indx) {
+inline auto getIndx(int const &i, int const &j, int const &w, int *const &indx) -> int {
     return indx[j] + i - MAX2(0, j - w); // j-wは使わない要素の数。
                                          // wが指定されない(=length)と、j列にはj個分(1<i<j)の要素が用意される。
                                          // wが指定されると、j列にはで使う要素はw個、使わない要素はj-w個となる。
 }
 
-float predict_memory(int len, int w, vector<vector<int>> &pos2nuc) {
+auto predict_memory(int len, int w, vector<vector<int>> &pos2nuc) -> float {
     // int size = getMatrixSize(len, w);
     long int total_bytes = 0;
     // int n_test;
@@ -307,7 +307,7 @@ map<char, int> make_n2i() {
 }
 
 // void view_n2i(map<char, int> n2i, char const &c){
-int view_n2i(map<char, int> n2i, char c) {
+auto view_n2i(map<char, int> n2i, char c) -> int {
     // cout << c << endl;
     return n2i[c];
 }
@@ -1708,14 +1708,14 @@ string init_string(int const &len){
 }
 */
 
-inline int TermAU(int const &type, paramT *const &P) {
+inline auto TermAU(int const &type, paramT *const &P) -> int {
     if (type > 2) {
         return P->TerminalAU;
     }
     return 0;
 }
 
-inline int E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P) {
+inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P) -> int {
     int energy;
     // fprintf(stderr, "ok\n");
     energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30] + (int)(P->lxc * log((size) / 30.));
@@ -1744,7 +1744,7 @@ inline int E_hairpin(int size, int type, int si1, int sj1, const char *string, p
     return energy;
 }
 
-inline int E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P) {
+inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P) -> int {
     /* compute energy of degree 2 loop (stack bulge or interior) */
     int nl, ns, energy;
     energy = INF;
@@ -1808,7 +1808,7 @@ inline int E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int
     return energy;
 }
 
-int getMemoryUsage(const string &fname) {
+auto getMemoryUsage(const string &fname) -> int {
     // cout << fname << endl;
     ifstream ifs(fname.c_str());
     if (ifs) {

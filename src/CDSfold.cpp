@@ -48,7 +48,7 @@ int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
 int test;
 
 using namespace std;
-int main(int argc, char *argv[]) {
+auto main(int argc, char *argv[]) -> int {
     // printf("%d\n%ld", INT_MAX, LONG_MAX);
     int W = 0;            // -w
     string exc = "";      // -e

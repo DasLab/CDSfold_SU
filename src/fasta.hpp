@@ -20,13 +20,13 @@ class fasta {
     fasta(const char *fname); //コンストラクタには戻り値
                               //が要らないという特別ルールがある。
     ~fasta();
-    char *getDesc() { return data[p].desc; }
-    char *getSeq() { return data[p].seq; }
-    int getSeqLen() { return data[p].seqlen; }
+    auto getDesc() -> char * { return data[p].desc; }
+    auto getSeq() -> char * { return data[p].seq; }
+    auto getSeqLen() -> int { return data[p].seqlen; }
     void initP() { p = 0; }
     void printP() { cout << p << endl; }
 
-    int next() {
+    auto next() -> int {
         p++;
         if (p > numSeq) {
             p = 0;

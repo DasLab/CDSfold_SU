@@ -90,7 +90,7 @@ void showCtable(Ctable C) {
     cout << "GU=" << C.GU << endl;
 }
 
-float calcPseudoEnergy(const Ntable &N, const Ctable &C) {
+auto calcPseudoEnergy(const Ntable &N, const Ctable &C) -> float {
     float energy = 0;
 
     energy = N.A * N.U * -1;
@@ -109,7 +109,7 @@ float calcPseudoEnergy(const Ntable &N, const Ctable &C) {
     return energy;
 }
 
-string rev_fold_step1(const char *aaseq, const int aalen, codon &codon_table, const string &exc_codons) {
+auto rev_fold_step1(const char *aaseq, const int aalen, codon &codon_table, const string &exc_codons) -> string {
     int nuc_len = aalen * 3 + 1;
 
     string optseq_r;
@@ -187,7 +187,7 @@ string rev_fold_step1(const char *aaseq, const int aalen, codon &codon_table, co
     return optseq_r;
 }
 
-Ntable countNtable(string &seq, int F) {
+auto countNtable(string &seq, int F) -> Ntable {
     Ntable N;
     N.A = 0;
     N.C = 0;
@@ -213,7 +213,7 @@ Ntable countNtable(string &seq, int F) {
     }
     return N;
 }
-Ctable countCtable(string &seq, int F) {
+auto countCtable(string &seq, int F) -> Ctable {
     Ctable C;
     C.AU = 0;
     C.GC = 0;
