@@ -145,8 +145,7 @@ string rev_fold_step1(const char *aaseq, const int aalen, codon &codon_table, co
         Ctable maxC;
 
         vector<string> cand_codons = codon_table.getCodons(aaseq[i], exc_codons);
-        for (unsigned int l = 0; l < cand_codons.size(); l++) {
-            string codon = cand_codons[l];
+        for (auto codon : cand_codons) {
             Ntable N = Ntab;
             Ctable C = Ctab;
             //			Ntable N = {0,0,0,0};

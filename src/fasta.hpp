@@ -113,9 +113,9 @@ fasta::fasta(const char *fname) { // DPマトリクスの動的メモリ確保
 
 fasta::~fasta() {
     // cout << "# elemetns :" << data.size() << endl;
-    for (unsigned int i = 0; i < data.size(); i++) {
+    for (auto & i : data) {
         // cout << "deleting fasta: " << i << endl;
-        delete[] data[i].desc;
-        delete[] data[i].seq;
+        delete[] i.desc;
+        delete[] i.seq;
     }
 }

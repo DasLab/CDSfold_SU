@@ -46,9 +46,7 @@ class AASeqConverter {
         // アミノ酸配列の文字列を配列に変換
         int position = 0;
         map<string, int> preBaseMap;
-        for (unsigned int i = 0; i < aaseq.size(); ++i) {
-            char aa = aaseq[i];
-
+        for (char aa : aaseq) {
             // アミノ酸の塩基候補リストを取得
             vector<string> baseList = codonTable.getExtendedCodons(aa, exceptedCodons);
 
@@ -93,9 +91,7 @@ class AASeqConverter {
         int position = 0;
         map<string, int> preOneBaseMap;
         map<string, int> preTwoBaseMap;
-        for (unsigned int i = 0; i < aaseq.size(); ++i) {
-            char aa = aaseq[i];
-
+        for (char aa : aaseq) {
             // アミノ酸の塩基候補リストを取得
             vector<string> baseList = codonTable.getExtendedCodons(aa, exceptedCodons);
 
@@ -479,8 +475,7 @@ class AASeqConverter {
                         exit(1);
                     }
 
-                    for (unsigned int k = 0; k < codons.size(); k++) {
-                        string codon = codons[k];
+                    for (auto codon : codons) {
                         int addNumber = 0;
                         string addingBase;
                         for (unsigned int l = 0; l < codon.size(); l++) {
@@ -505,8 +500,7 @@ class AASeqConverter {
                         if (bases.empty()) {
                             newBases.push_back(base);
                         } else {
-                            for (unsigned int l2 = 0; l2 < bases.size(); l2++) {
-                                string newBase = bases[l2];
+                            for (auto newBase : bases) {
                                 newBase += base;
                                 newBases.push_back(newBase);
                             }
@@ -526,8 +520,8 @@ class AASeqConverter {
             }
 
             // 作成した塩基配列を結果格納ベクターにセット
-            for (unsigned int m = 0; m < bases.size(); m++) {
-                result[startPosition][maxLength].push_back(bases[m]);
+            for (auto & base : bases) {
+                result[startPosition][maxLength].push_back(base);
             }
         }
 
@@ -585,8 +579,7 @@ class AASeqConverter {
                         exit(1);
                     }
 
-                    for (unsigned int k = 0; k < codons.size(); k++) {
-                        string codon = codons[k];
+                    for (auto codon : codons) {
                         int addNumber = 0;
                         string addingBase;
                         for (unsigned int l = 0; l < codon.size(); l++) {
@@ -611,8 +604,7 @@ class AASeqConverter {
                         if (bases.empty()) {
                             newBases.push_back(base);
                         } else {
-                            for (unsigned int l2 = 0; l2 < bases.size(); l2++) {
-                                string newBase = bases[l2];
+                            for (auto newBase : bases) {
                                 newBase += base;
                                 newBases.push_back(newBase);
                             }
@@ -632,8 +624,8 @@ class AASeqConverter {
             }
 
             // 作成した塩基配列を結果格納ベクターにセット
-            for (unsigned int m = 0; m < bases.size(); m++) {
-                nowResult[startPosition][maxLength].push_back(bases[m]);
+            for (auto & base : bases) {
+                nowResult[startPosition][maxLength].push_back(base);
             }
         }
 
@@ -689,8 +681,7 @@ class AASeqConverter {
         baseLengths.push_back(5);
         baseLengths.push_back(6);
         baseLengths.push_back(8);
-        for (unsigned int size = 0; size < baseLengths.size(); size++) {
-            int baseSize = baseLengths[size];
+        for (int baseSize : baseLengths) {
             for (int i = 0; i < baseLength; i++) {
                 int position = i + 1;
                 for (unsigned int k = 0; k < bases[position][baseSize].size(); k++) {

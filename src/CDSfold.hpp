@@ -1146,13 +1146,13 @@ OUTLOOP:
             }
             shuffle(label, 4);
 
-            for (int l = 0; l < 4; l++) {
+            for (int l : label) {
                 cout << "go to label F" << label[l] + 1 << endl;
-                if (label[l] == 0) {
+                if (l == 0) {
                     goto F1;
-                } else if (label[l] == 1) {
+                } else if (l == 1) {
                     goto F2;
-                } else if (label[l] == 2) {
+                } else if (l == 2) {
                     goto F3;
                 } else {
                     goto F4;

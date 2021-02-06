@@ -40,8 +40,7 @@ class codon {
         char delim = ',';
         vector<string> exceptVector = split(exceptedCodons, delim);
         map<string, int> exceptMap;
-        for (unsigned int i = 0; i < exceptVector.size(); ++i) {
-            string tmp = exceptVector.at(i);
+        for (auto const & tmp : exceptVector) {
             if (exceptMap.find(tmp) == exceptMap.end()) {
                 exceptMap[tmp] = 1;
             } else {
@@ -51,8 +50,7 @@ class codon {
         }
 
         vector<string> filterTable;
-        for (unsigned int i = 0; i < table[c].size(); ++i) {
-            string codon = table[c].at(i);
+        for (auto const & codon : table[c]) {
             if (exceptMap.find(codon) == exceptMap.end()) {
                 filterTable.push_back(codon);
             }
@@ -69,8 +67,7 @@ class codon {
         char delim = ',';
         vector<string> exceptVector = split(exceptedCodons, delim);
         map<string, int> exceptMap;
-        for (unsigned int i = 0; i < exceptVector.size(); ++i) {
-            string exceptCodon = exceptVector.at(i);
+        for (auto exceptCodon : exceptVector) {
             string convertedExceptCodon = exceptCodon;
             map<string, string>::iterator itr;
             if ((itr = expectedCodonOfCodon.find(exceptCodon)) != expectedCodonOfCodon.end()) {
@@ -87,8 +84,7 @@ class codon {
 
         // 除外コドンを除いたコドンテーブルを作成
         vector<string> filterTable;
-        for (unsigned int i = 0; i < extendedTable[c].size(); ++i) {
-            string codon = extendedTable[c].at(i);
+        for (auto const & codon : extendedTable[c]) {
             if (exceptMap.find(codon) == exceptMap.end()) {
                 filterTable.push_back(codon);
             }
@@ -99,11 +95,11 @@ class codon {
     char c2a(int p1, int p2, int p3) { return table_rev[p1][p2][p3]; }
 
     void showTable() {
-        for (map<char, vector<string>>::iterator it = table.begin(); it != table.end(); ++it) {
-            char aa = it->first;
+        for (auto & it : table) {
+            char aa = it.first;
             vector<string> codons = getCodons(aa, "");
-            for (unsigned int j = 0; j < codons.size(); j++) {
-                cout << aa << " " << codons[j] << endl;
+            for (auto & codon : codons) {
+                cout << aa << " " << codon << endl;
             }
         }
     }
