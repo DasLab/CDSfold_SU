@@ -1909,7 +1909,8 @@ void fixed_backtrack(string optseq, bond *base_pair, int *c, int *m, int *f, int
     sector[s].ml = 0;
 
     map<char, int> n2i = make_n2i();
-    int ioptseq[nuclen + 1];
+    vector<int> ioptseq;
+	ioptseq.reserve(nuclen + 1);
     ioptseq[0] = 0;
     for (int i = 1; i <= nuclen; i++) {
         ioptseq[i] = n2i[optseq[i]];
@@ -2135,16 +2136,24 @@ void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predef
     int nuclen = optseq.size() - 1;
     int aalen = (optseq.size() - 1) / 3;
     int size = getMatrixSize(nuclen, w);
-    int C[size];
-    int M[size];
-    int F[nuclen + 1];
-    int DMl[nuclen + 1];
-    int DMl1[nuclen + 1];
-    int DMl2[nuclen + 1];
-    bond base_pair[nuclen / 2];
+    vector<int> C;
+	C.reserve(size);
+    vector<int> M;
+	M.reserve(size);
+    vector<int> F;
+	F.reserve(nuclen + 1);
+    vector<int> DMl;
+	DMl.reserve(nuclen + 1);
+    vector<int> DMl1;
+	DMl1.reserve(nuclen + 1);
+    vector<int> DMl2;
+	DMl2.reserve(nuclen + 1);
+    vector<bond> base_pair;
+	base_pair.reserve(nuclen / 2);
 
     map<char, int> n2i = make_n2i();
-    int ioptseq[nuclen + 1];
+    vector<int> ioptseq;
+	ioptseq.reserve(nuclen + 1);
     ioptseq[0] = 0;
     for (int i = 1; i <= nuclen; i++) {
         ioptseq[i] = n2i[optseq[i]];
@@ -2152,7 +2161,7 @@ void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predef
     }
     //	exit(0);
 
-    fixed_init_matrix(nuclen, size, C, M, F, DMl, DMl1, DMl2);
+    fixed_init_matrix(nuclen, size, &C[0], &M[0], &F[0], &DMl[0], &DMl1[0], &DMl2[0]);
     int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
 
     // investigate mfe
@@ -2300,7 +2309,8 @@ void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predef
     //	for(int i = 1; i <= nuclen; i++){
     //		cout << "FMAT: " << i << " " << F[i] << "  " <<  w << endl;
     //	}
-    fixed_backtrack(optseq, base_pair, C, M, F, indx, P, nuclen, w, BP_pair, predefE);
+	// AMW TODO
+    fixed_backtrack(optseq, &base_pair[0], &C[0], &M[0], &F[0], indx, P, nuclen, w, BP_pair, predefE);
     //}
 
     //	cout << "end" << endl;

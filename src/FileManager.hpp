@@ -47,11 +47,12 @@ class FileManager {
         }
 
         size_t nmatch = 1; // 「先頭>」のマッチ数は最大1
-        regmatch_t pmatch[nmatch];
+        std::vector<regmatch_t> pmatch;
+		pmatch.reserve(nmatch);
         // unsigned int i; //, j;
         string str;
         while (getline(ifs, str)) {
-            if (regexec(&preg, str.c_str(), nmatch, pmatch, 0) == 0) {
+            if (regexec(&preg, str.c_str(), nmatch, &pmatch[0], 0) == 0) {
                 fastaMap[name] = base;
                 name = str;
                 base = "";
