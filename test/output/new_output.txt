@@ -161,7 +161,7 @@ M  G  G  S  G  G  S  G  Y  Q  P  Y  R  V  V  V  L  G  G  S  G  G  S  P  Y  R  V 
 AUGGGUGGCAGCGGGGGCUCAGGCUACCAGCCCUACCGAGUGGUAGUACUCGGCGGGUCGGGCGGAAGCCCGUACCGCGUCGUAGUACUAUCAUUCGGUGGGAGCGGUGGUAGCCUGAGCCCCCGCUGGUACUUUUAUUAUUAA
 ..(((((.(((((((((((((((((((((((((((((((((((((((((((((((((((((((....))))).))).))))).))))))))))))))))))).))..))))))))))))))))))))).)))))..........
 MFE:-114.3 kcal/mol
-Runing time: 0.0186244 minutes
+Runing time: 0.0194728 minutes
 W = 20
 e = 
 MGGSGGSGYQPYRVVVLGGSGGSPYRVVVLSFGGSGGSLSPRWYFYY*
@@ -204,7 +204,7 @@ M  G  G  S  G  G  S  G  Y  Q  P  Y  R  V  V  V  L  G  G  S  G  G  S  P  Y  R  V 
 AUGGGCGGCUCCGGCGGCUCGGGCUACCAGCCCUACCGAGUAGUAGUACUCGGGGGCUCCGGAGGGAGCCCCUACCGAGUGGUAGUGCUGUCCUUCGGGGGCAGCGGGGGCUCACUGAGCCCCCGGUGGUAUUUUUACUACUAA
 ..((((.((....)).))))(((((...)))))..(((((((....)))))))(((((((....)))))))(((((....))))).((((((((...))))))))((((((((...))))))))(((((((....)))))))..
 MFE:-76.7 kcal/mol
-Runing time: 0.000580533 minutes
+Runing time: 0.000597633 minutes
 W = 0
 e = GGU
 MGGSGGSGYQPYRVVVLGGSGGSPYRVVVLSFGGSGGSLSPRWYFYY*
@@ -360,7 +360,7 @@ M  G  G  S  G  G  S  G  Y  Q  P  Y  R  V  V  V  L  G  G  S  G  G  S  P  Y  R  V 
 AUGGGGGGCUCCGGAGGCUCCGGGUACCAGCCCUACCGGGUUGUGGUACUCGGAGGCUCCGGAGGCUCCCCAUACAGAGUAGUGGUACUCAGCUUUGGGGGCUCAGGCGGAAGCCUGAGCCCCCGCUGGUACUUCUACUACUGA
 ((((((((((((((((.((((((((((((((((....))))..)))))))))))).))))))).))))))))).((((((((.(((((.((((...((((((((((((....))))))))))))))))))))).))))).))).
 MFE:-112.3 kcal/mol
-Runing time: 0.0149435 minutes
+Runing time: 0.0153972 minutes
 W = 20
 e = GGC
 MGGSGGSGYQPYRVVVLGGSGGSPYRVVVLSFGGSGGSLSPRWYFYY*
@@ -409,4 +409,4 @@ M  G  G  S  G  G  S  G  Y  Q  P  Y  R  V  V  V  L  G  G  S  G  G  S  P  Y  R  V 
 AUGGGUGGGUCCGGAGGAUCCGGAUACCAGCCGUACCGGGUGGUUGUCCUCGGAGGAUCCGGGGGAUCACCCUACCGGGUGGUCGUGCUCUCCUUCGGGGGGAGCGGGGGGAGCCUCUCCCCCCGGUGGUAUUUUUACUACUAA
 ........(((((((...)))))))((((.(((...))).))))...(((((((...)))))))((((((((....))))))))..((((((((...))))))))((((((((...))))))))(((((((....)))))))..
 MFE:-71.3 kcal/mol
-Runing time: 0.0005018 minutes
+Runing time: 0.000510817 minutes

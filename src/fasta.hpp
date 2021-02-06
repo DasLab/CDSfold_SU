@@ -1,8 +1,8 @@
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 //#include <string> // なくても良い。
 #include <fstream>
-#include <string.h> // to use strcpy for gcc-4.3 or later
+#include <cstring> // to use strcpy for gcc-4.3 or later
 #include <vector>
 using namespace std;
 

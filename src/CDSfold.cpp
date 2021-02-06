@@ -12,19 +12,19 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <time.h>
+#include <ctime>
 #include <unistd.h>
 
 extern "C" {
-#include "ctype.h"
+#include <cctype>
 #include "fold.h"
 #include "fold_vars.h"
-#include "limits.h"
-#include "math.h"
+#include <climits>
+#include <cmath>
 #include "params.h"
 #include "part_func.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <cstdio>
+#include <cstdlib>
 #include "utils.h"
 }
 

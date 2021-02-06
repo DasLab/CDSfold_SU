@@ -12,7 +12,7 @@
 #include <map>
 #include <regex.h>
 #include <sstream>
-#include <string.h>
+#include <cstring>
 #include <string>
 #include <vector>
 
