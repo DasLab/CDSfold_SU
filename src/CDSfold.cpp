@@ -193,6 +193,23 @@ auto main(int argc, char *argv[]) -> int {
         int ofm[100];
         int oto[100];
         if (part_opt_flg) {
+            // 部分最適化が指定された。
+            if (opt_fm == 0 || opt_to == 0) {
+                cerr << "The -f and -t option must be used together." << endl;
+                exit(1);
+            }
+            if (opt_fm < 1) {
+                cerr << "The -f value must be 1 or more." << endl;
+                exit(1);
+            }
+            if (opt_to < 1) {
+                cerr << "The -t value must be 1 or more." << endl;
+                exit(1);
+            }
+            if (opt_to < opt_fm) {
+                cerr << "The -f value must be smaller than -t value." << endl;
+                exit(1);
+            }
             if (opt_to > aalen) {
                 opt_to = aalen;
             }
@@ -226,6 +243,9 @@ auto main(int argc, char *argv[]) -> int {
 
         if (W == 0) {
             w_tmp = nuclen;
+        } else if (W < 10) {
+            cerr << "W must be more";
+            exit(1);
         } else if (W > nuclen) {
             w_tmp = nuclen;
         } else {
