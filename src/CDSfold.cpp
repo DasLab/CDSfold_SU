@@ -103,6 +103,26 @@ auto main(int argc, char *argv[]) -> int {
         }
     }
 
+    if (part_opt_flg) {
+        // 部分最適化が指定された。
+        if (opt_fm == 0 || opt_to == 0) {
+            cerr << "The -f and -t option must be used together." << endl;
+            exit(1);
+        }
+        if (opt_fm < 1) {
+            cerr << "The -f value must be 1 or more." << endl;
+            exit(1);
+        }
+        if (opt_to < 1) {
+            cerr << "The -t value must be 1 or more." << endl;
+            exit(1);
+        }
+        if (opt_to < opt_fm) {
+            cerr << "The -f value must be smaller than -t value." << endl;
+            exit(1);
+        }
+    }
+
     // int energy = E(5, 1, 1, 2, "ATGCATGC");
     // int energy = E_Hairpin(5, 1, 1, 2, "ATGCATGC");
 
