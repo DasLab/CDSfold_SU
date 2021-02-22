@@ -103,12 +103,6 @@ auto main(int argc, char *argv[]) -> int {
         }
     }
 
-    if (W < 10) {
-        cerr << "W must be more than 10"
-                << "(you used " << W << ")" << endl;
-        exit(1);
-    }
-    
     if (part_opt_flg) {
         // 部分最適化が指定された。
         if (opt_fm == 0 || opt_to == 0) {
@@ -244,7 +238,8 @@ auto main(int argc, char *argv[]) -> int {
         if (W == 0) {
             w_tmp = nuclen;
         } else if (W < 10) {
-            cerr << "W must be more";
+            cerr << "W must be more than 10"
+                 << "(you used " << W << ")" << endl;
             exit(1);
         } else if (W > nuclen) {
             w_tmp = nuclen;
@@ -588,9 +583,8 @@ auto main(int argc, char *argv[]) -> int {
                             for (int p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1);
                                  p++) { // loop for position q, p
                                 int minq = j - i + p - MAXLOOP - 2;
-                                if (minq < p + 1 + TURN) {
+                                if (minq < p + 1 + TURN)
                                     minq = p + 1 + TURN;
-                                }
                                 for (int q = minq; q < j; q++) {
 
                                     int pq = getIndx(p, q, w_tmp, indx);
@@ -623,9 +617,8 @@ auto main(int argc, char *argv[]) -> int {
 
                                             int type_2 = BP_pair[i2r[Lp_nuc]][i2r[Rq_nuc]];
 
-                                            if (type_2 == 0) {
+                                            if (type_2 == 0)
                                                 continue;
-                                            }
                                             type_2 = rtype[type_2];
 
                                             //											if
@@ -645,7 +638,9 @@ auto main(int argc, char *argv[]) -> int {
                                             //											}
 
                                             // for each intloops
-                                            for (const int L2_nuc : pos2nuc[i + 1]) {
+                                            for (unsigned int L2 = 0; L2 < pos2nuc[i + 1].size();
+                                                 L2++) { // nucleotide for i+1,j-1
+                                                int L2_nuc = pos2nuc[i + 1][L2];
                                                 if (NCflg == 1 && i2r[L2_nuc] != NucConst[i + 1]) {
                                                     continue;
                                                 }
@@ -654,8 +649,8 @@ auto main(int argc, char *argv[]) -> int {
                                                     continue;
                                                 }
 
-                                                for (const int R2_nuc : pos2nuc[j - 1]) {
-                                                    // int R2_nuc = pos2nuc[j - 1][R2];
+                                                for (unsigned int R2 = 0; R2 < pos2nuc[j - 1].size(); R2++) {
+                                                    int R2_nuc = pos2nuc[j - 1][R2];
                                                     if (NCflg == 1 && i2r[R2_nuc] != NucConst[j - 1]) {
                                                         continue;
                                                     }
@@ -664,7 +659,9 @@ auto main(int argc, char *argv[]) -> int {
                                                         continue;
                                                     }
 
-                                                    for (int const Lp2_nuc : pos2nuc[p - 1]) {
+                                                    for (unsigned int Lp2 = 0; Lp2 < pos2nuc[p - 1].size();
+                                                         Lp2++) { // nucleotide for p-1,q+1
+                                                        int Lp2_nuc = pos2nuc[p - 1][Lp2];
                                                         if (NCflg == 1 && i2r[Lp2_nuc] != NucConst[p - 1]) {
                                                             continue;
                                                         }
@@ -681,7 +678,8 @@ auto main(int argc, char *argv[]) -> int {
                                                             continue;
                                                         } // check dependency between i+1, p-1 (i,X,X,p)
 
-                                                        for (const int Rq2_nuc : pos2nuc[q + 1]) {
+                                                        for (unsigned int Rq2 = 0; Rq2 < pos2nuc[q + 1].size(); Rq2++) {
+                                                            int Rq2_nuc = pos2nuc[q + 1][Rq2];
                                                             if (q == j - 2 && R2_nuc != Rq2_nuc) {
                                                                 continue;
                                                             } // check when a single nucleotide between q and j,this
