@@ -319,8 +319,7 @@ auto main(int argc, char *argv[]) -> int {
         optseq_org[0] = ' ';
 
         //	  int ***C, ***Mbl, ***Mbr, ***Mbb, ***M, ***F, ***Fbr, ***tFbr;
-        int ***C, ***M, ***F;
-        int ***F2;
+        vector<vector<vector<int>>> C, M, F, F2;
         int ***DMl, ***DMl1, ***DMl2;
         int *chkC, *chkM;
         bond *base_pair;
@@ -335,8 +334,7 @@ auto main(int argc, char *argv[]) -> int {
             return 0;
         }
 
-        paramT *P = nullptr;
-        P = scale_parameters();
+        paramT *P = scale_parameters();
         update_fold_params();
 
         //		rev_flg = 0;
@@ -352,9 +350,9 @@ auto main(int argc, char *argv[]) -> int {
         }
 
         //		allocate_arrays(nuclen, indx, pos2nuc, pos2nuc, &C, &M, &F);
-        allocate_arrays(nuclen, indx, w_tmp, pos2nuc, &C, &M, &F, &DMl, &DMl1, &DMl2, &chkC, &chkM, &base_pair);
+        allocate_arrays(nuclen, indx, w_tmp, pos2nuc, C, M, F, &DMl, &DMl1, &DMl2, &chkC, &chkM, &base_pair);
         if (rand_tb_flg) {
-            allocate_F2(nuclen, indx, w_tmp, pos2nuc, &F2);
+            allocate_F2(nuclen, indx, w_tmp, pos2nuc, F2);
         }
         // float ptotal_Mb = ptotal_Mb_alloc + ptotal_Mb_base;
 
@@ -1241,9 +1239,7 @@ auto main(int argc, char *argv[]) -> int {
             }
         }
 
-        free_arrays(nuclen, indx, w_tmp, pos2nuc, &C, &M, &F, &DMl, &DMl1, &DMl2, &chkC, &chkM, &base_pair);
-        if (rand_tb_flg)
-            free_F2(nuclen, indx, w_tmp, pos2nuc, &F2);
+        free_arrays(nuclen, &DMl, &DMl1, &DMl2, &chkC, &chkM, &base_pair);
 
         free(P);
 
@@ -1265,7 +1261,7 @@ auto main(int argc, char *argv[]) -> int {
     return 0;
 }
 
-void backtrack(string *optseq, stack *sector, bond *base_pair, int ***const &c, int ***const &m, int ***const &f,
+void backtrack(string *optseq, stack *sector, bond *base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f,
                int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
                const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
                int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
@@ -1842,7 +1838,7 @@ OUTLOOP:
     //	cout << base_pair[0].i << endl;
 }
 
-void backtrack2(string *optseq, stack *sector, bond *base_pair, int ***const &c, int ***const &m, int ***const &f2,
+void backtrack2(string *optseq, stack *sector, bond *base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
                 int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
                 const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
                 int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,

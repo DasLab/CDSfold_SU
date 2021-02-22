@@ -83,7 +83,7 @@ void clear_sec_bp(stack *s, bond *b, int len) {
     }
 }
 
-void allocate_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, int ****c, int ****m, int ****f,
+void allocate_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & c, vector<vector<vector<int>>> & m, vector<vector<vector<int>>> & f,
                      int ****dml, int ****dml1, int ****dml2, int **chkc, int **chkm, bond **b) {
     int size = getMatrixSize(len, w);
     //	int n_elm = 0;
@@ -92,22 +92,22 @@ void allocate_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, in
 
     //	*c   = new int**[len*(len+1)/2+1];
     //	*m   = new int**[len*(len+1)/2+1];
-    *c = new int **[size + 1];
-    *m = new int **[size + 1];
+    c.resize(size + 1);
+    m.resize(size + 1);
     //	*f2   = new int**[size+1];
     for (int i = 1; i <= len; i++) {
         for (int j = i; j <= MIN2(len, i + w - 1); j++) {
             // cout << i << " " << j << endl;
             // int ij = indx[j]+i;
             int ij = getIndx(i, j, w, indx);
-            (*c)[ij] = new int *[pos2nuc[i].size()];
-            (*m)[ij] = new int *[pos2nuc[i].size()];
+            c[ij].resize(pos2nuc[i].size());
+            m[ij].resize(pos2nuc[i].size());
             //			(*f2)[ij]   = new int*[pos2nuc[i].size()];
             // total_bytes += sizeof(int*) * (pos2nuc[i].size()+1) * 2 * 2; // *2 is empirical constant
             total_bytes += sizeof(int *) * (pos2nuc[i].size() + 4) * 2; // +4 is an empirical value
             for (unsigned int L = 0; L < pos2nuc[i].size(); L++) {
-                (*c)[ij][L] = new int[pos2nuc[j].size()];
-                (*m)[ij][L] = new int[pos2nuc[j].size()];
+                c[ij][L].resize(pos2nuc[j].size());
+                m[ij][L].resize(pos2nuc[j].size());
                 //				(*f2)[ij][L]   = new int[pos2nuc[j].size()];
                 // total_bytes += sizeof(int) * (pos2nuc[j].size()+1) * 2 * 2; // *2 is empirical constant
                 //				n_elm += (pos2nuc[j].size()+1);
@@ -127,14 +127,14 @@ void allocate_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, in
     //	float total_Mb = (float)total_bytes/(1024*1024);
     //	cout << "estimated memory size: " << total_Mb << " Mb" << endl;
 
-    *f = new int **[len + 1];
+    f.resize(len + 1);
     *dml = new int **[len + 1];
     *dml1 = new int **[len + 1];
     *dml2 = new int **[len + 1];
     for (int j = 1; j <= len; j++) {
-        (*f)[j] = new int *[pos2nuc[j].size()];
+        f[j].resize(pos2nuc[j].size());
         for (unsigned int L = 0; L < pos2nuc[1].size(); L++) { // The first position
-            (*f)[j][L] = new int[pos2nuc[j].size()];
+            f[j][L].resize(pos2nuc[j].size());
         }
 
         (*dml)[j] = new int *[4];  // always secure 4 elements, because the maximum number of nucleotides is 4
@@ -168,42 +168,23 @@ void allocate_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, in
     // return (float)total_bytes/(1024*1024);
 }
 
-void allocate_F2(int len, int *indx, int w, vector<vector<int>> &pos2nuc, int ****f2) {
+void allocate_F2(int len, int *indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & f2) {
     int size = getMatrixSize(len, w);
-    *f2 = new int **[size + 1];
+    f2.resize(size + 1);
     for (int i = 1; i <= len; i++) {
         for (int j = i; j <= MIN2(len, i + w - 1); j++) {
             int ij = getIndx(i, j, w, indx);
-            (*f2)[ij] = new int *[pos2nuc[i].size()];
+            f2[ij].resize(pos2nuc[i].size());
             for (unsigned int L = 0; L < pos2nuc[i].size(); L++) {
-                (*f2)[ij][L] = new int[pos2nuc[j].size()];
+                f2[ij][L].resize(pos2nuc[j].size());
             }
         }
     }
 }
 
-void free_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, int ****c, int ****m, int ****f, int ****dml,
-                 int ****dml1, int ****dml2, int **chkc, int **chkm, bond **b) {
-    for (int i = 1; i <= len; i++) {
-        for (int j = i; j <= MIN2(len, i + w - 1); j++) {
-            // int ij = indx[j]+i;
-            int ij = getIndx(i, j, w, indx);
-            for (unsigned int L = 0; L < pos2nuc[i].size(); L++) {
-                delete[](*c)[ij][L];
-                delete[](*m)[ij][L];
-            }
-            delete[](*c)[ij];
-            delete[](*m)[ij];
-        }
-    }
-    delete[] * c;
-    delete[] * m;
+void free_arrays(int len, int ****dml, int ****dml1, int ****dml2, int **chkc, int **chkm, bond **b) {
 
     for (int j = 1; j <= len; j++) {
-        for (unsigned int L = 0; L < pos2nuc[1].size(); L++) { // The first position
-            delete[](*f)[j][L];
-        }
-        delete[](*f)[j];
 
         for (unsigned int L = 0; L < 4; L++) {
             delete[](*dml)[j][L];
@@ -214,7 +195,6 @@ void free_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, int **
         delete[](*dml1)[j];
         delete[](*dml2)[j];
     }
-    delete[] * f;
     delete[] * dml;
     delete[] * dml1;
     delete[] * dml2;
@@ -223,20 +203,6 @@ void free_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, int **
     delete[] * chkm;
 
     delete[] * b;
-}
-
-void free_F2(int len, int *indx, int w, vector<vector<int>> &pos2nuc, int ****f2) {
-    for (int i = 1; i <= len; i++) {
-        for (int j = i; j <= MIN2(len, i + w - 1); j++) {
-            // int ij = indx[j]+i;
-            int ij = getIndx(i, j, w, indx);
-            for (unsigned int L = 0; L < pos2nuc[i].size(); L++) {
-                delete[](*f2)[ij][L];
-            }
-            delete[](*f2)[ij];
-        }
-    }
-    delete[] * f2;
 }
 
 void set_ij_indx(int *a, int length) {
@@ -482,7 +448,7 @@ vector<pair<int, int>> shufflePair(vector<pair<int, int>> ary, int size) {
     return ary;
 }
 
-void backtrack(string *optseq, stack *sector, bond *base_pair, int ***const &c, int ***const &m, int ***const &f,
+void backtrack(string *optseq, stack *sector, bond *base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
                int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
                const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
                int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
@@ -490,7 +456,7 @@ void backtrack(string *optseq, stack *sector, bond *base_pair, int ***const &c, 
                vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef);
 
-void backtrack2(string *optseq, stack *sector, bond *base_pair, int ***const &c, int ***const &m, int ***const &f2,
+void backtrack2(string *optseq, stack *sector, bond *base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
                 int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
                 const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
                 int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
