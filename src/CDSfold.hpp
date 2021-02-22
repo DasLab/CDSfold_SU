@@ -1719,22 +1719,23 @@ inline auto TermAU(int const &type, paramT *const &P) -> int {
 }
 
 inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P) -> int {
-    int energy;
+    // AMW: change to strcpy from strncpy here improves safety
+    // but may result in a 0.05% decrease in performance.
+    int energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30] + (int)(P->lxc * log((size) / 30.));
     // fprintf(stderr, "ok\n");
-    energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30] + (int)(P->lxc * log((size) / 30.));
     if (P->model_details.special_hp) {
+        char tl[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, *ts;
         if (size == 4) { /* check for tetraloop bonus */
-            char tl[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, *ts;
             strcpy(tl, string);
-            if ((ts = strstr(P->Tetraloops, tl)))
+            if ((ts = strstr(P->Tetraloops, tl))) {
                 return (P->Tetraloop_E[(ts - P->Tetraloops) / 7]);
+            }
         } else if (size == 6) {
-            char tl[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, *ts;
             strcpy(tl, string);
-            if ((ts = strstr(P->Hexaloops, tl)))
+            if ((ts = strstr(P->Hexaloops, tl))) {
                 return (energy = P->Hexaloop_E[(ts - P->Hexaloops) / 9]);
+            }
         } else if (size == 3) {
-            char tl[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, *ts;
             strcpy(tl, string);
             if ((ts = strstr(P->Triloops, tl))) {
                 return (P->Triloop_E[(ts - P->Triloops) / 6]);
