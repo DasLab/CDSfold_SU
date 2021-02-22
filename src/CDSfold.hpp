@@ -1720,7 +1720,8 @@ inline auto TermAU(int const &type, paramT *const &P) -> int {
 
 inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P) -> int {
     // AMW: change to strcpy from strncpy here improves safety
-    // but may result in a 0.05% decrease in performance.
+    // but may result in a 0.05% decrease in performance. May
+    // be within error.
     int energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30] + (int)(P->lxc * log((size) / 30.));
     // fprintf(stderr, "ok\n");
     if (P->model_details.special_hp) {
