@@ -37,7 +37,6 @@ extern "C" {
 //#include <sys/time.h>
 //#include <sys/resource.h>
 
-int *indx;
 int BP_pair[5][5] =
     /* _  A  C  G  U  */
     {{0, 0, 0, 0, 0}, {0, 0, 0, 0, 5}, {0, 0, 0, 1, 0}, {0, 0, 2, 0, 3}, {0, 6, 0, 4, 0}};
@@ -127,10 +126,11 @@ auto main(int argc, char *argv[]) -> int {
     // int energy = E_Hairpin(5, 1, 1, 2, "ATGCATGC");
 
     map<char, int> n2i = make_n2i();
-    char i2n[20];
+    std::array<char, 20> i2n;
     make_i2n(i2n);
 
-    int i2r[20], ii2r[100];
+    array<int, 20> i2r;
+    array<int, 100> ii2r;
     make_i2r(i2r);
     make_ii2r(ii2r);
 
@@ -305,7 +305,7 @@ auto main(int argc, char *argv[]) -> int {
         //		vector<vector<int> > pos2nuc = getPossibleNucleotide(aaseq, aalen, codon_table, n2i, 'R');
         //		showPos2Nuc(pos2nuc, i2n);
         //		exit(0);
-        indx = new int[nuclen + 1];
+        vector<int> indx(nuclen+1, 0);
 
         set_ij_indx(indx, nuclen, w_tmp);
         // set_ij_indx(indx, nuclen);
@@ -452,7 +452,9 @@ auto main(int argc, char *argv[]) -> int {
 
                         int type = BP_pair[i2r[L_nuc]][i2r[R_nuc]];
 
-                        if (type && opt_flg_ij) {
+                        if (!type || !opt_flg_ij) {
+                            C[ij][L][R] = INF;
+                        } else {
                             // hairpin
                             if ((l == 5 || l == 6 || l == 8) && TEST) {
                                 for (unsigned int s = 0; s < substr[i][l].size(); s++) {
@@ -625,9 +627,7 @@ auto main(int argc, char *argv[]) -> int {
                                             //											}
 
                                             // for each intloops
-                                            for (unsigned int L2 = 0; L2 < pos2nuc[i + 1].size();
-                                                 L2++) { // nucleotide for i+1,j-1
-                                                int L2_nuc = pos2nuc[i + 1][L2];
+                                            for (int const L2_nuc : pos2nuc[i + 1]) {
                                                 if (NCflg == 1 && i2r[L2_nuc] != NucConst[i + 1]) {
                                                     continue;
                                                 }
@@ -636,8 +636,7 @@ auto main(int argc, char *argv[]) -> int {
                                                     continue;
                                                 }
 
-                                                for (unsigned int R2 = 0; R2 < pos2nuc[j - 1].size(); R2++) {
-                                                    int R2_nuc = pos2nuc[j - 1][R2];
+                                                for (int const R2_nuc : pos2nuc[j - 1]) {
                                                     if (NCflg == 1 && i2r[R2_nuc] != NucConst[j - 1]) {
                                                         continue;
                                                     }
@@ -646,9 +645,7 @@ auto main(int argc, char *argv[]) -> int {
                                                         continue;
                                                     }
 
-                                                    for (unsigned int Lp2 = 0; Lp2 < pos2nuc[p - 1].size();
-                                                         Lp2++) { // nucleotide for p-1,q+1
-                                                        int Lp2_nuc = pos2nuc[p - 1][Lp2];
+                                                    for (int const Lp2_nuc : pos2nuc[p - 1]) {
                                                         if (NCflg == 1 && i2r[Lp2_nuc] != NucConst[p - 1]) {
                                                             continue;
                                                         }
@@ -665,8 +662,7 @@ auto main(int argc, char *argv[]) -> int {
                                                             continue;
                                                         } // check dependency between i+1, p-1 (i,X,X,p)
 
-                                                        for (unsigned int Rq2 = 0; Rq2 < pos2nuc[q + 1].size(); Rq2++) {
-                                                            int Rq2_nuc = pos2nuc[q + 1][Rq2];
+                                                        for (int const Rq2_nuc : pos2nuc[q + 1]) {
                                                             if (q == j - 2 && R2_nuc != Rq2_nuc) {
                                                                 continue;
                                                             } // check when a single nucleotide between q and j,this
@@ -758,8 +754,6 @@ auto main(int argc, char *argv[]) -> int {
                             //							cout << "ok" << endl;
                         }
 
-                        else
-                            C[ij][L][R] = INF;
 
                         // fill M
                         // create M[ij] from C[ij]
@@ -856,9 +850,7 @@ auto main(int argc, char *argv[]) -> int {
             DMl = FF;
             for (int j = 1; j <= nuclen; j++) {
                 for (unsigned int L = 0; L < 4; L++) {
-                    for (unsigned int L2 = 0; L2 < 4; L2++) {
-                        DMl[j][L][L2] = INF;
-                    }
+                    DMl[j][L].fill(INF);
                     // AMW TODO: may be a better way to do this. Might want to set all of DMl to infs I think?
                     // fill(DMl[j][L], DMl[j][L] + 4, INF);
                 }
@@ -866,12 +858,7 @@ auto main(int argc, char *argv[]) -> int {
         }
 
         // Fill F matrix
-        // Initialize F[1]
-        for (unsigned int L = 0; L < pos2nuc[1].size(); L++) {
-            for (unsigned int R = 0; R < pos2nuc[1].size(); R++) {
-                F[1][L][R] = 0;
-            }
-        }
+        // F[1], as well as the rest of F, is default-initialized to 0.
 
         for (unsigned int L1 = 0; L1 < pos2nuc[1].size(); L1++) {
             int L1_nuc = pos2nuc[1][L1];
@@ -1264,9 +1251,9 @@ auto main(int argc, char *argv[]) -> int {
 }
 
 void backtrack(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f,
-               int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
-               const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
-               int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
+               vector<int> const & indx, const int &initL, const int &initR, paramT *const P, const vector<int> &NucConst,
+               const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
+               int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
                vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
                vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef) {
@@ -1841,9 +1828,9 @@ OUTLOOP:
 }
 
 void backtrack2(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
-                int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
-                const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
-                int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
+                vector<int> const & indx, const int &initL, const int &initR, paramT *const P, const vector<int> &NucConst,
+                const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
+                int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
                 vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
                 vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
                 vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef) {
@@ -2481,7 +2468,7 @@ OUTLOOP:
 }
 
 
-void fixed_backtrack(string optseq, bond *base_pair, vector<int> const & c, vector<int> const & m, int *f, int *indx, paramT *P, int nuclen, int w,
+void fixed_backtrack(string optseq, bond *base_pair, vector<int> const & c, vector<int> const & m, int *f, vector<int> const & indx, paramT * const P, int nuclen, int w,
                      const int (&BP_pair)[5][5], map<string, int> predefE) {
     int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
     int s = 0;
@@ -2714,7 +2701,7 @@ OUTLOOP:
     //	cout << base_pair[0].i << endl;
 }
 
-void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predefE, const int (&BP_pair)[5][5],
+void fixed_fold(string optseq, vector<int> const & indx, const int &w, map<string, int> &predefE, const int (&BP_pair)[5][5],
                 paramT *P, char *aaseq, const codon& codon_table) {
     int nuclen = optseq.size() - 1;
     int aalen = (optseq.size() - 1) / 3;

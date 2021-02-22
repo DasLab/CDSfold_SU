@@ -24,7 +24,7 @@ using bond = struct bond {
     int j;
 };
 
-inline auto TermAU(int const &type, paramT *const &P) -> int;
+inline auto TermAU(int const &type, paramT * const P) -> int;
 
 auto getMatrixSize(int len, int w) -> int {
     int size = 0;
@@ -37,7 +37,7 @@ auto getMatrixSize(int len, int w) -> int {
     return size;
 }
 
-inline auto getIndx(int const &i, int const &j, int const &w, int *const &indx) -> int {
+inline auto getIndx(int const &i, int const &j, int const &w, vector<int> const &indx) -> int {
     return indx[j] + i - MAX2(0, j - w); // j-wは使わない要素の数。
                                          // wが指定されない(=length)と、j列にはj個分(1<i<j)の要素が用意される。
                                          // wが指定されると、j列にはで使う要素はw個、使わない要素はj-w個となる。
@@ -85,7 +85,7 @@ void clear_sec_bp(stack *s, bond *b, int len) {
 
 void allocate_arrays(
     int len,
-    int *indx,
+    vector<int> const & indx,
     int w,
     vector<vector<int>> &pos2nuc,
     vector<vector<vector<int>>> & c,
@@ -175,7 +175,7 @@ void allocate_arrays(
     // return (float)total_bytes/(1024*1024);
 }
 
-void allocate_F2(int len, int *indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & f2) {
+void allocate_F2(int len, vector<int> const & indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & f2) {
     int size = getMatrixSize(len, w);
     f2.resize(size + 1);
     for (int i = 1; i <= len; i++) {
@@ -189,13 +189,13 @@ void allocate_F2(int len, int *indx, int w, vector<vector<int>> &pos2nuc, vector
     }
 }
 
-void set_ij_indx(int *a, int length) {
+void set_ij_indx(vector<int> & a, int length) {
     for (int n = 1; n <= length; n++) {
         a[n] = (n * (n - 1)) / 2;
     }
 }
 
-void set_ij_indx(int *a, int length, int w) {
+void set_ij_indx(vector<int> & a, int length, int w) {
     if (w <= 0) {
         cerr << "Invalid w:" << w << endl;
         exit(1);
@@ -213,16 +213,7 @@ void set_ij_indx(int *a, int length, int w) {
     }
 }
 
-void set_arrays(int **a, int length) {
-    *a = new int[length + 1]; //
-
-    for (int n = 1; n <= length; n++) {
-        (*a)[n] = (n * (n - 1)) / 2;
-        // cout << *a[n] << endl;
-    }
-}
-
-void make_i2r(int *n) {
+void make_i2r(array<int, 20> & n) {
     n[1] = 1;
     n[2] = 2;
     n[3] = 3;
@@ -233,7 +224,7 @@ void make_i2r(int *n) {
     n[8] = 3;
 }
 
-void make_ii2r(int *n) {
+void make_ii2r(array<int, 100> & n) {
     int s = 1;
     for (int i1 = 1; i1 <= 8; i1++) {
         for (int i2 = 1; i2 <= 8; i2++) {
@@ -262,7 +253,7 @@ auto view_n2i(map<char, int> n2i, char c) -> int {
     return n2i[c];
 }
 
-void make_i2n(char *n) {
+void make_i2n(array<char, 20> & n) {
     n[0] = ' ';
     n[1] = 'A';
     n[2] = 'C';
@@ -349,7 +340,7 @@ vector<vector<int>> getPossibleNucleotide(char *aaseq, int aalen, codon &codon_t
     return v;
 }
 
-void showChkMatrix(int *&m, int *&indx, int len, int w) {
+void showChkMatrix(int *&m, vector<int > const &indx, int len, int w) {
     printf("REF:");
     for (int j = 1; j <= len; j++) {
         printf("\t%d", j);
@@ -371,7 +362,7 @@ void showChkMatrix(int *&m, int *&indx, int len, int w) {
     }
 }
 
-void showFixedMatrix(const int *m, int *indx, const int len, const int w) {
+void showFixedMatrix(const int *m, vector<int> const & indx, const int len, const int w) {
     printf("REF:");
     for (int j = 1; j <= len; j++) {
         printf("\t%d", j);
@@ -433,17 +424,17 @@ vector<pair<int, int>> shufflePair(vector<pair<int, int>> ary, int size) {
 }
 
 void backtrack(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
-               int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
-               const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
-               int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
+               vector<int> const & indx, const int &initL, const int &initR, paramT * const P, const vector<int> &NucConst,
+               const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
+               int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
                vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
                vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef);
 
 void backtrack2(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
-                int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
-                const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
-                int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
+                vector<int> const &, const int &initL, const int &initR, paramT * const P, const vector<int> &NucConst,
+                const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
+                int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
                 vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
                 vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
                 vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef);
@@ -460,14 +451,14 @@ string init_string(int const &len){
 }
 */
 
-inline auto TermAU(int const &type, paramT *const &P) -> int {
+inline auto TermAU(int const &type, paramT * const P) -> int {
     if (type > 2) {
         return P->TerminalAU;
     }
     return 0;
 }
 
-inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P) -> int {
+inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT * const P) -> int {
     // AMW: change to strcpy from strncpy here improves safety
     // but may result in a 0.05% decrease in performance. May
     // be within error.
@@ -498,7 +489,7 @@ inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, 
     return energy;
 }
 
-inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P) -> int {
+inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT * const P) -> int {
     /* compute energy of degree 2 loop (stack bulge or interior) */
     int nl, ns, energy;
     energy = INF;
@@ -602,9 +593,10 @@ auto getMemoryUsage(const string &fname) -> int {
 
 void fill_optseq(string *optseq, int I, int J, vector<vector<int>> &pos2nuc, vector<vector<int>> Dep1) {
 
-    int i2r[20], ii2r[100];
+    array<int, 20> i2r;
+    array<int, 100> ii2r;
+    array<char, 20> i2n;
     map<char, int> n2i = make_n2i();
-    char i2n[20];
     make_i2n(i2n);
     make_i2r(i2r);
     make_ii2r(ii2r); // encoding a dinucleotide (each eight variation) to an integer from 11 - 88
@@ -652,8 +644,8 @@ void fixed_init_matrix(const int &nuclen, const int &size, vector<int> & C, vect
     }
 }
 
-void fixed_backtrack(string optseq, bond *base_pair, vector<int> const & c, vector<int> const & m, int *f, int *indx, paramT *P, int nuclen, int w,
+void fixed_backtrack(string optseq, bond *base_pair, vector<int> const & c, vector<int> const & m, int *f, vector<int> const & indx, paramT *P, int nuclen, int w,
                      const int (&BP_pair)[5][5], map<string, int> predefE);
 
-void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predefE, const int (&BP_pair)[5][5],
+void fixed_fold(string optseq, vector<int> const & indx, const int &w, map<string, int> &predefE, const int (&BP_pair)[5][5],
                 paramT *P, char *aaseq, const codon& codon_table);
