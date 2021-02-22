@@ -487,7 +487,7 @@ void backtrack(string *optseq, stack *sector, bond *base_pair, int ***const &c, 
                const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
                int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
                vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
-               vector<vector<vector<vector<pair<int, string>>>>> &predefH, map<string, int> &predefE,
+               vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef) {
 
     int s = 0;
@@ -1064,7 +1064,7 @@ void backtrack2(string *optseq, stack *sector, bond *base_pair, int ***const &c,
                 const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
                 int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
                 vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
-                vector<vector<vector<vector<pair<int, string>>>>> &predefH, map<string, int> &predefE,
+                vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
                 vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef) {
 
     InitRand();
