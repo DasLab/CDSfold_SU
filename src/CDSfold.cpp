@@ -320,7 +320,7 @@ auto main(int argc, char *argv[]) -> int {
 
         //	  int ***C, ***Mbl, ***Mbr, ***Mbb, ***M, ***F, ***Fbr, ***tFbr;
         vector<vector<vector<int>>> C, M, F, F2;
-        int ***DMl, ***DMl1, ***DMl2;
+        vector<array<array<int, 4>, 4>> DMl, DMl1, DMl2;
         int *chkC, *chkM;
         bond *base_pair;
 
@@ -350,7 +350,7 @@ auto main(int argc, char *argv[]) -> int {
         }
 
         //		allocate_arrays(nuclen, indx, pos2nuc, pos2nuc, &C, &M, &F);
-        allocate_arrays(nuclen, indx, w_tmp, pos2nuc, C, M, F, &DMl, &DMl1, &DMl2, &chkC, &chkM, &base_pair);
+        allocate_arrays(nuclen, indx, w_tmp, pos2nuc, C, M, F, DMl, DMl1, DMl2, &chkC, &chkM, &base_pair);
         if (rand_tb_flg) {
             allocate_F2(nuclen, indx, w_tmp, pos2nuc, F2);
         }
@@ -849,14 +849,18 @@ auto main(int argc, char *argv[]) -> int {
                 }
             }
             // rotate DMl arrays
-            int ***FF;
+            vector<array<array<int, 4>, 4>> FF;
             FF = DMl2;
             DMl2 = DMl1;
             DMl1 = DMl;
             DMl = FF;
             for (int j = 1; j <= nuclen; j++) {
                 for (unsigned int L = 0; L < 4; L++) {
-                    fill(DMl[j][L], DMl[j][L] + 4, INF);
+                    for (unsigned int L2 = 0; L2 < 4; L2++) {
+                        DMl[j][L][L2] = INF;
+                    }
+                    // AMW TODO: may be a better way to do this. Might want to set all of DMl to infs I think?
+                    // fill(DMl[j][L], DMl[j][L] + 4, INF);
                 }
             }
         }
@@ -1239,7 +1243,7 @@ auto main(int argc, char *argv[]) -> int {
             }
         }
 
-        free_arrays(nuclen, &DMl, &DMl1, &DMl2, &chkC, &chkM, &base_pair);
+        free_arrays(nuclen, &chkC, &chkM, &base_pair);
 
         free(P);
 

@@ -84,7 +84,7 @@ void clear_sec_bp(stack *s, bond *b, int len) {
 }
 
 void allocate_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & c, vector<vector<vector<int>>> & m, vector<vector<vector<int>>> & f,
-                     int ****dml, int ****dml1, int ****dml2, int **chkc, int **chkm, bond **b) {
+                     vector<array<array<int, 4>, 4>> & dml, vector<array<array<int, 4>, 4>> & dml1, vector<array<array<int, 4>, 4>> & dml2, int **chkc, int **chkm, bond **b) {
     int size = getMatrixSize(len, w);
     //	int n_elm = 0;
     int total_bytes = 0;
@@ -128,26 +128,23 @@ void allocate_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, ve
     //	cout << "estimated memory size: " << total_Mb << " Mb" << endl;
 
     f.resize(len + 1);
-    *dml = new int **[len + 1];
-    *dml1 = new int **[len + 1];
-    *dml2 = new int **[len + 1];
+    dml.resize(len + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
+    dml1.resize(len + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
+    dml2.resize(len + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
     for (int j = 1; j <= len; j++) {
         f[j].resize(pos2nuc[j].size());
         for (unsigned int L = 0; L < pos2nuc[1].size(); L++) { // The first position
             f[j][L].resize(pos2nuc[j].size());
         }
 
-        (*dml)[j] = new int *[4];  // always secure 4 elements, because the maximum number of nucleotides is 4
-        (*dml1)[j] = new int *[4]; // always secure 4 elements, because the maximum number of nucleotides is 4
-        (*dml2)[j] = new int *[4]; // always secure 4 elements, because the maximum number of nucleotides is 4
-        for (unsigned int L = 0; L < 4; L++) {
-            (*dml)[j][L] = new int[4];  // always secure 4 elements, because the maximum number of nucleotides is 4
-            (*dml1)[j][L] = new int[4]; // always secure 4 elements, because the maximum number of nucleotides is 4
-            (*dml2)[j][L] = new int[4]; // always secure 4 elements, because the maximum number of nucleotides is 4
-            fill((*dml)[j][L], (*dml)[j][L] + 4, INF);
-            fill((*dml1)[j][L], (*dml1)[j][L] + 4, INF);
-            fill((*dml2)[j][L], (*dml2)[j][L] + 4, INF);
-        }
+        // for (unsigned int L = 0; L < 4; L++) {
+        //     (*dml)[j][L] = new int[4];  // always secure 4 elements, because the maximum number of nucleotides is 4
+        //     (*dml1)[j][L] = new int[4]; // always secure 4 elements, because the maximum number of nucleotides is 4
+        //     (*dml2)[j][L] = new int[4]; // always secure 4 elements, because the maximum number of nucleotides is 4
+        //     fill((*dml)[j][L], (*dml)[j][L] + 4, INF);
+        //     fill((*dml1)[j][L], (*dml1)[j][L] + 4, INF);
+        //     fill((*dml2)[j][L], (*dml2)[j][L] + 4, INF);
+        // }
     }
 
     //	*chkc   = new int[len*(len+1)/2+1];
@@ -182,22 +179,7 @@ void allocate_F2(int len, int *indx, int w, vector<vector<int>> &pos2nuc, vector
     }
 }
 
-void free_arrays(int len, int ****dml, int ****dml1, int ****dml2, int **chkc, int **chkm, bond **b) {
-
-    for (int j = 1; j <= len; j++) {
-
-        for (unsigned int L = 0; L < 4; L++) {
-            delete[](*dml)[j][L];
-            delete[](*dml1)[j][L];
-            delete[](*dml2)[j][L];
-        }
-        delete[](*dml)[j];
-        delete[](*dml1)[j];
-        delete[](*dml2)[j];
-    }
-    delete[] * dml;
-    delete[] * dml1;
-    delete[] * dml2;
+void free_arrays(int **chkc, int **chkm, bond **b) {
 
     delete[] * chkc;
     delete[] * chkm;
