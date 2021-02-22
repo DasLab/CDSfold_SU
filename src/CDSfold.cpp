@@ -177,12 +177,12 @@ auto main(int argc, char *argv[]) -> int {
                 opt_to = aalen;
             }
 
-            // 部分逆最適化情報の作成
-            if (rev_flg) { // 指定された領域の構造除去
+            // Creating partial inverse optimization information
+            if (rev_flg) { // Structural removal of the specified area
                 ofm[0] = (opt_fm - 1) * 3 + 1;
                 oto[0] = opt_to * 3;
                 n_inter = 1;
-            } else { // 指定された領域の構造安定化
+            } else { // Structural stabilization of the specified area
                 int l = 0;
                 if (opt_fm != 1) {
                     ofm[l] = 1;
@@ -194,7 +194,7 @@ auto main(int argc, char *argv[]) -> int {
                 }
                 n_inter = l;
             }
-            // 最適化領域のチェック
+            // Checking the optimization area
             // for(int I = 0; I < n_inter; I++){
             //	cout << ofm[I] << "-" << oto[I] << endl;
             //}

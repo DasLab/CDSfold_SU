@@ -359,6 +359,9 @@ vector<vector<int>> getPossibleNucleotide(char *aaseq, int aalen, codon &codon_t
         int nucpos = i * 3 + 1;
         char aa = aaseq[i];
         // cout << "test: " << aa << endl;
+        // AMW TODO: should get codons from the codon table, filtering out
+        // exclusions, *once* rather than generating new vector<string>s for each
+        // aa position. This function is only called once, but it's still silly.
         vector<string> codons = codon_table.getCodons(aa, excludedCodons);
         for (int k = 0; k < 3; k++) { // for each codon position
             nucpos += k;
@@ -2199,16 +2202,18 @@ void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predef
                 // interior loop
                 for (int p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); p++) { // loop for position q, p
                     int minq = j - i + p - MAXLOOP - 2;
-                    if (minq < p + 1 + TURN)
+                    if (minq < p + 1 + TURN) {
                         minq = p + 1 + TURN;
+                    }
                     for (int q = minq; q < j; q++) {
 
                         int pq = getIndx(p, q, w, indx);
 
                         int type_2 = BP_pair[ioptseq[p]][ioptseq[q]];
 
-                        if (type_2 == 0)
+                        if (type_2 == 0) {
                             continue;
+                        }
                         type_2 = rtype[type_2];
 
                         int int_energy = E_intloop(p - i - 1, j - q - 1, type, type_2, ioptseq[i + 1], ioptseq[j - 1],
@@ -2238,8 +2243,9 @@ void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predef
             // create M[ij] from C[ij]
             if (type) {
                 int energy_M = C[ij];
-                if (type > 2)
+                if (type > 2) {
                     energy_M += P->TerminalAU;
+                }
 
                 energy_M += P->MLintern[type];
                 M[ij] = energy_M;
@@ -2341,7 +2347,7 @@ void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predef
         j++;
     }
     cout << endl;
-    //最適塩基と2次構造の表示
+    // Display of optimal bases and secondary structure
     optseq.erase(0, 1);
     optstr.erase(0, 1);
     cout << optseq << endl;
