@@ -1884,7 +1884,7 @@ void fill_optseq(string *optseq, int I, int J, vector<vector<int>> &pos2nuc, vec
     }
 }
 
-void fixed_init_matrix(const int &nuclen, const int &size, int *C, int *M, int *F, int *DMl, int *DMl1, int *DMl2) {
+void fixed_init_matrix(const int &nuclen, const int &size, vector<int> & C, vector<int> & M, int *F, int *DMl, int *DMl1, int *DMl2) {
     for (int i = 0; i <= nuclen; i++) {
         F[i] = 0;
         DMl[i] = INF;
@@ -1898,7 +1898,7 @@ void fixed_init_matrix(const int &nuclen, const int &size, int *C, int *M, int *
     }
 }
 
-void fixed_backtrack(string optseq, bond *base_pair, int *c, int *m, int *f, int *indx, paramT *P, int nuclen, int w,
+void fixed_backtrack(string optseq, bond *base_pair, vector<int> const & c, vector<int> const & m, int *f, int *indx, paramT *P, int nuclen, int w,
                      const int (&BP_pair)[5][5], map<string, int> predefE) {
     int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
     int s = 0;
@@ -2161,7 +2161,7 @@ void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predef
     }
     //	exit(0);
 
-    fixed_init_matrix(nuclen, size, &C[0], &M[0], &F[0], &DMl[0], &DMl1[0], &DMl2[0]);
+    fixed_init_matrix(nuclen, size, C, M, &F[0], &DMl[0], &DMl1[0], &DMl2[0]);
     int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
 
     // investigate mfe
@@ -2311,7 +2311,7 @@ void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predef
     //		cout << "FMAT: " << i << " " << F[i] << "  " <<  w << endl;
     //	}
 	// AMW TODO
-    fixed_backtrack(optseq, &base_pair[0], &C[0], &M[0], &F[0], indx, P, nuclen, w, BP_pair, predefE);
+    fixed_backtrack(optseq, &base_pair[0], C, M, &F[0], indx, P, nuclen, w, BP_pair, predefE);
     //}
 
     //	cout << "end" << endl;
