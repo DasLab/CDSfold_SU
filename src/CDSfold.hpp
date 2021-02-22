@@ -500,7 +500,7 @@ OUTLOOP:
         int fij, fi, ij, cij, traced, traced_Lk, i1, j1, k, p, q;
         //	    int canonical = 1;     /* (i,j) closes a canonical structure */
 
-        //ここでoptseqに値を反映させるべき？
+        //The value should be reflected in optseq here？
         int i = sector[s].i;
         int j = sector[s].j;
         int Li = sector[s].Li;
@@ -2261,7 +2261,8 @@ void fixed_fold(string optseq, int *indx, const int &w, map<string, int> &predef
             }
         }
         // rotate DMl arrays
-        int FF[nuclen + 1];
+        vector<int> FF;
+        FF.reserve(nuclen + 1);
         for (int j = 1; j <= nuclen; j++) {
             FF[j] = DMl2[j];
             DMl2[j] = DMl1[j];

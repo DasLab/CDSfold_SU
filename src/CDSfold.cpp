@@ -1168,7 +1168,7 @@ auto main(int argc, char *argv[]) -> int {
             j++;
         }
         cout << endl;
-        //最適塩基と2次構造の表示
+        // Display of optimal bases and secondary structure
         string optseq_disp = optseq;
         optseq_disp.erase(0, 1);
         optstr.erase(0, 1);
@@ -1177,13 +1177,14 @@ auto main(int argc, char *argv[]) -> int {
         cout << "MFE:" << float(MFE) / 100 << " kcal/mol" << endl;
 
         if (part_opt_flg == 1) {
-            //部分アミノ酸配列の作成
+            // Creation of partial amino acid sequence
             for (int I = 0; I < n_inter; I++) {
                 int aa_fm = (ofm[I] - 1) / 3 + 1; // 1-based
                 int aa_to = oto[I] / 3;           // 1-based
                 int part_aalen = aa_to - aa_fm + 1;
 
-                char part_aaseq[part_aalen];
+                vector<char> part_aaseq;
+                part_aaseq.reserve(part_aalen);
                 part_aaseq[part_aalen] = '\0';
                 int j = 0;
                 for (int i = aa_fm; i <= aa_to; i++) {
@@ -1192,10 +1193,10 @@ auto main(int argc, char *argv[]) -> int {
 
                 cout << aa_fm << ":" << aa_to << endl;
                 cout << part_aalen << endl;
-                cout << part_aaseq << endl;
+                cout << &part_aaseq << endl;
 
-                string part_optseq = rev_fold_step1(part_aaseq, part_aalen, codon_table, exc);
-                rev_fold_step2(&part_optseq, part_aaseq, part_aalen, codon_table, exc);
+                string part_optseq = rev_fold_step1(&part_aaseq[0], part_aalen, codon_table, exc);
+                rev_fold_step2(&part_optseq, &part_aaseq[0], part_aalen, codon_table, exc);
                 // combine optseq_rev and optseq
                 j = 1;
                 for (int i = ofm[I]; i <= oto[I]; i++) {

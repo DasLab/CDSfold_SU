@@ -22,8 +22,6 @@ using namespace std;
 class AASeqConverter {
   public:
     AASeqConverter() {
-        getBaseNumberMap();
-        getPairNumberMap();
         getBaseEnergy();
     }
 
@@ -273,101 +271,21 @@ class AASeqConverter {
 
   private:
     codon codonTable;
-    map<string, int> baseNumberMap;
-    map<string, int> pairNumberMap;
+    static const map<string, int> baseNumberMap; 
+    static const map<string, int> pairNumberMap;
     map<string, int> baseEnergy;
 
     const static int BASE_ORIGINAL = 0;
     const static int BASE_EXTENDED = 1;
 
     auto getBaseNumber(const string &base) -> int {
-        map<string, int>::iterator itr;
-        itr = baseNumberMap.find(base);
+        auto itr = baseNumberMap.find(base);
         return itr->second;
     }
 
     auto getPairNumber(const string &twoBases) -> int {
-        map<string, int>::iterator itr;
-        itr = pairNumberMap.find(twoBases);
+        auto itr = pairNumberMap.find(twoBases);
         return itr->second;
-    }
-
-    void getPairNumberMap() {
-        pairNumberMap.insert(make_pair("AA", 1));
-        pairNumberMap.insert(make_pair("AC", 2));
-        pairNumberMap.insert(make_pair("AG", 3));
-        pairNumberMap.insert(make_pair("AU", 4));
-        pairNumberMap.insert(make_pair("AV", 5));
-        pairNumberMap.insert(make_pair("AW", 6));
-        pairNumberMap.insert(make_pair("AX", 7));
-        pairNumberMap.insert(make_pair("AY", 8));
-        pairNumberMap.insert(make_pair("CA", 9));
-        pairNumberMap.insert(make_pair("CC", 10));
-        pairNumberMap.insert(make_pair("CG", 11));
-        pairNumberMap.insert(make_pair("CU", 12));
-        pairNumberMap.insert(make_pair("CV", 13));
-        pairNumberMap.insert(make_pair("CW", 14));
-        pairNumberMap.insert(make_pair("CX", 15));
-        pairNumberMap.insert(make_pair("CY", 16));
-        pairNumberMap.insert(make_pair("GA", 17));
-        pairNumberMap.insert(make_pair("GC", 18));
-        pairNumberMap.insert(make_pair("GG", 19));
-        pairNumberMap.insert(make_pair("GU", 20));
-        pairNumberMap.insert(make_pair("GV", 21));
-        pairNumberMap.insert(make_pair("GW", 22));
-        pairNumberMap.insert(make_pair("GX", 23));
-        pairNumberMap.insert(make_pair("GY", 24));
-        pairNumberMap.insert(make_pair("UA", 25));
-        pairNumberMap.insert(make_pair("UC", 26));
-        pairNumberMap.insert(make_pair("UG", 27));
-        pairNumberMap.insert(make_pair("UU", 28));
-        pairNumberMap.insert(make_pair("UV", 29));
-        pairNumberMap.insert(make_pair("UW", 30));
-        pairNumberMap.insert(make_pair("UX", 31));
-        pairNumberMap.insert(make_pair("UY", 32));
-        pairNumberMap.insert(make_pair("VA", 33));
-        pairNumberMap.insert(make_pair("VC", 34));
-        pairNumberMap.insert(make_pair("VG", 35));
-        pairNumberMap.insert(make_pair("VU", 36));
-        pairNumberMap.insert(make_pair("VV", 37));
-        pairNumberMap.insert(make_pair("VW", 38));
-        pairNumberMap.insert(make_pair("VX", 39));
-        pairNumberMap.insert(make_pair("VY", 40));
-        pairNumberMap.insert(make_pair("WA", 41));
-        pairNumberMap.insert(make_pair("WC", 42));
-        pairNumberMap.insert(make_pair("WG", 43));
-        pairNumberMap.insert(make_pair("WU", 44));
-        pairNumberMap.insert(make_pair("WV", 45));
-        pairNumberMap.insert(make_pair("WW", 46));
-        pairNumberMap.insert(make_pair("WX", 47));
-        pairNumberMap.insert(make_pair("WY", 48));
-        pairNumberMap.insert(make_pair("XA", 49));
-        pairNumberMap.insert(make_pair("XC", 50));
-        pairNumberMap.insert(make_pair("XG", 51));
-        pairNumberMap.insert(make_pair("XU", 52));
-        pairNumberMap.insert(make_pair("XV", 53));
-        pairNumberMap.insert(make_pair("XW", 54));
-        pairNumberMap.insert(make_pair("XX", 55));
-        pairNumberMap.insert(make_pair("XY", 56));
-        pairNumberMap.insert(make_pair("YA", 57));
-        pairNumberMap.insert(make_pair("YC", 58));
-        pairNumberMap.insert(make_pair("YG", 59));
-        pairNumberMap.insert(make_pair("YU", 60));
-        pairNumberMap.insert(make_pair("YV", 61));
-        pairNumberMap.insert(make_pair("YW", 62));
-        pairNumberMap.insert(make_pair("YX", 63));
-        pairNumberMap.insert(make_pair("YY", 64));
-    }
-
-    void getBaseNumberMap() {
-        baseNumberMap.insert(make_pair("A", 1));
-        baseNumberMap.insert(make_pair("C", 2));
-        baseNumberMap.insert(make_pair("G", 3));
-        baseNumberMap.insert(make_pair("U", 4));
-        baseNumberMap.insert(make_pair("V", 5));
-        baseNumberMap.insert(make_pair("W", 6));
-        baseNumberMap.insert(make_pair("X", 7));
-        baseNumberMap.insert(make_pair("Y", 8));
     }
 
     void initBasePairMap(int size, vector<vector<int>> &map) {
@@ -758,4 +676,82 @@ class AASeqConverter {
         double margin = (double)(end - start) / CLOCKS_PER_SEC;
         cout << msg << "\t" << margin << endl;
     }
+};
+
+const map<string, int> AASeqConverter::baseNumberMap {
+    {"A", 1},
+    {"C", 2},
+    {"G", 3},
+    {"U", 4},
+    {"V", 5},
+    {"W", 6},
+    {"X", 7},
+    {"Y", 8}
+};
+
+const map<string, int> AASeqConverter::pairNumberMap{
+    {"AA", 1},
+    {"AC", 2},
+    {"AG", 3},
+    {"AU", 4},
+    {"AV", 5},
+    {"AW", 6},
+    {"AX", 7},
+    {"AY", 8},
+    {"CA", 9},
+    {"CC", 10},
+    {"CG", 11},
+    {"CU", 12},
+    {"CV", 13},
+    {"CW", 14},
+    {"CX", 15},
+    {"CY", 16},
+    {"GA", 17},
+    {"GC", 18},
+    {"GG", 19},
+    {"GU", 20},
+    {"GV", 21},
+    {"GW", 22},
+    {"GX", 23},
+    {"GY", 24},
+    {"UA", 25},
+    {"UC", 26},
+    {"UG", 27},
+    {"UU", 28},
+    {"UV", 29},
+    {"UW", 30},
+    {"UX", 31},
+    {"UY", 32},
+    {"VA", 33},
+    {"VC", 34},
+    {"VG", 35},
+    {"VU", 36},
+    {"VV", 37},
+    {"VW", 38},
+    {"VX", 39},
+    {"VY", 40},
+    {"WA", 41},
+    {"WC", 42},
+    {"WG", 43},
+    {"WU", 44},
+    {"WV", 45},
+    {"WW", 46},
+    {"WX", 47},
+    {"WY", 48},
+    {"XA", 49},
+    {"XC", 50},
+    {"XG", 51},
+    {"XU", 52},
+    {"XV", 53},
+    {"XW", 54},
+    {"XX", 55},
+    {"XY", 56},
+    {"YA", 57},
+    {"YC", 58},
+    {"YG", 59},
+    {"YU", 60},
+    {"YV", 61},
+    {"YW", 62},
+    {"YX", 63},
+    {"YY", 64}
 };

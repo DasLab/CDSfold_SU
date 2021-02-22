@@ -30,6 +30,7 @@
 *.exe
 *.out
 *.app
+CDSfold
 
 # Test output
 test/output/*
