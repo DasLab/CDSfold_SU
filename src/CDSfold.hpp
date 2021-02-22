@@ -1724,18 +1724,18 @@ inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, 
     energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30] + (int)(P->lxc * log((size) / 30.));
     if (P->model_details.special_hp) {
         if (size == 4) { /* check for tetraloop bonus */
-            char tl[7] = {0}, *ts;
-            strncpy(tl, string, 6);
+            char tl[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, *ts;
+            strcpy(tl, string);
             if ((ts = strstr(P->Tetraloops, tl)))
                 return (P->Tetraloop_E[(ts - P->Tetraloops) / 7]);
         } else if (size == 6) {
-            char tl[9] = {0}, *ts;
-            strncpy(tl, string, 8);
+            char tl[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, *ts;
+            strcpy(tl, string);
             if ((ts = strstr(P->Hexaloops, tl)))
                 return (energy = P->Hexaloop_E[(ts - P->Hexaloops) / 9]);
         } else if (size == 3) {
-            char tl[6] = {0, 0, 0, 0, 0, 0}, *ts;
-            strncpy(tl, string, 5);
+            char tl[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, *ts;
+            strcpy(tl, string);
             if ((ts = strstr(P->Triloops, tl))) {
                 return (P->Triloop_E[(ts - P->Triloops) / 6]);
             }
