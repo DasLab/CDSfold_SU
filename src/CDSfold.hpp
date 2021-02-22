@@ -272,26 +272,6 @@ void set_arrays(int **a, int length) {
     }
 }
 
-void make_i2r(int *n) {
-    n[1] = 1;
-    n[2] = 2;
-    n[3] = 3;
-    n[4] = 4;
-    n[5] = 4; // 2nd position of L is converted to U
-    n[6] = 4;
-    n[7] = 3; // 2nd position of R is converted to G
-    n[8] = 3;
-}
-
-void make_ii2r(int *n) {
-    int s = 1;
-    for (int i1 = 1; i1 <= 8; i1++) {
-        for (int i2 = 1; i2 <= 8; i2++) {
-            n[i1 * 10 + i2] = s++;
-        }
-    }
-}
-
 map<char, int> make_n2i() {
     map<char, int> m;
     m['A'] = 1;
@@ -484,8 +464,8 @@ vector<pair<int, int>> shufflePair(vector<pair<int, int>> ary, int size) {
 
 void backtrack(string *optseq, stack *sector, bond *base_pair, int ***const &c, int ***const &m, int ***const &f,
                int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
-               const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
-               int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
+               const vector<vector<int>> &pos2nuc, const int &NCflg, int const *const &i2r, int const &length, int const &w,
+               int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int const *const &ii2r,
                vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
                vector<vector<vector<vector<pair<int, string>>>>> &predefH, map<string, int> &predefE,
                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef) {
@@ -1061,8 +1041,8 @@ OUTLOOP:
 
 void backtrack2(string *optseq, stack *sector, bond *base_pair, int ***const &c, int ***const &m, int ***const &f2,
                 int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
-                const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
-                int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
+                const vector<vector<int>> &pos2nuc, const int &NCflg, int const *const &i2r, int const &length, int const &w,
+                int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int const *const &ii2r,
                 vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
                 vector<vector<vector<vector<pair<int, string>>>>> &predefH, map<string, int> &predefE,
                 vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef) {
@@ -1850,13 +1830,25 @@ auto getMemoryUsage(const string &fname) -> int {
 }
 
 void fill_optseq(string *optseq, int I, int J, vector<vector<int>> &pos2nuc, vector<vector<int>> Dep1) {
-
-    int i2r[20], ii2r[100];
+    // int i2r[20], ii2r[100];
     map<char, int> n2i = make_n2i();
     char i2n[20];
     make_i2n(i2n);
-    make_i2r(i2r);
-    make_ii2r(ii2r); // encoding a dinucleotide (each eight variation) to an integer from 11 - 88
+
+    // constexpr int i2r[20] = {0, 1, 2, 3, 4, 4, 4, 3, 3, 0,
+    //             0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    constexpr int ii2r[100] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 0,
+                0, 11, 12, 13, 14, 15, 16, 17, 18, 0,
+                0, 21, 22, 23, 24, 25, 26, 27, 28, 0,
+                0, 31, 32, 33, 34, 35, 36, 37, 38, 0,
+                0, 41, 42, 43, 44, 45, 46, 47, 48, 0,
+                0, 51, 52, 53, 54, 55, 56, 57, 58, 0,
+                0, 61, 62, 63, 64, 65, 66, 67, 68, 0,
+                0, 71, 72, 73, 74, 75, 76, 77, 78, 0,
+                };
+    // make_i2r(i2r);
+    // make_ii2r(ii2r); // encoding a dinucleotide (each eight variation) to an integer from 11 - 88
 
     // main routine
     //	cout << I << endl;
