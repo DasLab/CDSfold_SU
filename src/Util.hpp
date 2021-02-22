@@ -7,19 +7,11 @@
 
 #pragma once
 
-#include <iostream>
-#include <map>
-#include <string>
+#include <iosfwd>
 
-using namespace std;
 
 class Util {
-  public:
-    static void baseReplace(string &base, const string& from, const string& to) {
-        unsigned long int pos = 0;
-        while ((pos = base.find(from, pos)) != string::npos) {
-            base.replace(pos, from.length(), to);
-            pos += to.length();
-        }
-    }
+    using string = std::string;
+    public:
+        static void baseReplace(string &base, const string& from, const string& to);
 };

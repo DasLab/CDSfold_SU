@@ -38,39 +38,29 @@ class AASeqConverter {
     auto countNeighborTwoBase(const string &aaseq, const string &exceptedCodons) -> vector<vector<int>> {
         vector<vector<int>> result;
 
-        // 結果格納マップを初期化
+        // Initialize result storage map
         int twoPairSize = aaseq.size() * 3 - 1;
         initBasePairMap(twoPairSize, result);
 
-        // アミノ酸配列の文字列を配列に変換
+        // Convert a string of amino acid sequences to a sequence
         int position = 0;
         map<string, int> preBaseMap;
         for (char aa : aaseq) {
-            // アミノ酸の塩基候補リストを取得
+            // Get a list of amino acid base candidates
             vector<string> baseList = codonTable.getExtendedCodons(aa, exceptedCodons);
 
-            // 塩基配列の候補配列を作成
+            // Create a base sequence candidate sequence
             map<string, int> nextPreBaseMap;
-            vector<string>::iterator itr;
-            itr = baseList.begin();
-            while (itr != baseList.end()) {
-                string codon = *itr;
-
-                if (preBaseMap.empty()) {
-
-                } else {
-                    map<string, int>::iterator mapItr;
-                    for (mapItr = preBaseMap.begin(); mapItr != preBaseMap.end(); mapItr++) {
-                        string preBase = mapItr->first;
-                        string basePair = preBase + codon.substr(0, 1);
-                        setBasePairMap(position, basePair, result);
-                    }
+            for (string const & codon : baseList) {
+                for (auto const & elem : preBaseMap) {
+                    string const & preBase = elem.first;
+                    string basePair = preBase + codon.substr(0, 1);
+                    setBasePairMap(position, basePair, result);
                 }
 
                 setBasePairMap(position + 1, codon.substr(0, 2), result);
                 setBasePairMap(position + 2, codon.substr(1, 2), result);
                 nextPreBaseMap.insert(make_pair(codon.substr(2, 1), 1));
-                itr++;
             }
             position = position + 3;
             preBaseMap = nextPreBaseMap;
@@ -82,37 +72,30 @@ class AASeqConverter {
     auto countEveryOtherTwoBase(const string &aaseq, const string &exceptedCodons) -> vector<vector<int>> {
         vector<vector<int>> result;
 
-        // 結果格納マップを初期化
+        // Initialize result storage map
         int twoPairSize = aaseq.size() * 3 - 2;
         initBasePairMap(twoPairSize, result);
 
-        // アミノ酸配列の文字列を配列に変換
+        // Convert a string of amino acid sequences to a sequence
         int position = 0;
         map<string, int> preOneBaseMap;
         map<string, int> preTwoBaseMap;
         for (char aa : aaseq) {
-            // アミノ酸の塩基候補リストを取得
+            // Get a list of amino acid base candidates
             vector<string> baseList = codonTable.getExtendedCodons(aa, exceptedCodons);
 
-            // 塩基配列の候補配列を作成
+            // Create a base sequence candidate sequence
             map<string, int> nextOneBaseMap;
             map<string, int> nextTwoBaseMap;
-            vector<string>::iterator itr;
-            itr = baseList.begin();
-            while (itr != baseList.end()) {
-                string codon = *itr;
-
-                if (preOneBaseMap.empty()) {
-
-                } else {
-                    map<string, int>::iterator mapItr;
-                    for (mapItr = preTwoBaseMap.begin(); mapItr != preTwoBaseMap.end(); mapItr++) {
-                        string preBase = mapItr->first;
+            for (string const & codon : baseList) {
+                if (!preOneBaseMap.empty()) {
+                    for (auto const & elem : preTwoBaseMap) {
+                        string const & preBase = elem.first;
                         string basePair = preBase + codon.substr(0, 1);
                         setBasePairMap(position - 1, basePair, result);
                     }
-                    for (mapItr = preOneBaseMap.begin(); mapItr != preOneBaseMap.end(); mapItr++) {
-                        string preBase = mapItr->first;
+                    for (auto const & elem : preOneBaseMap) {
+                        string const &  preBase = elem.first;
                         string basePair = preBase + codon.substr(1, 1);
                         setBasePairMap(position, basePair, result);
                     }
@@ -121,7 +104,6 @@ class AASeqConverter {
                 setBasePairMap(position + 1, twoBase, result);
                 nextTwoBaseMap.insert(make_pair(codon.substr(1, 1), 1));
                 nextOneBaseMap.insert(make_pair(codon.substr(2, 1), 1));
-                itr++;
             }
             position = position + 3;
             preTwoBaseMap = nextTwoBaseMap;
@@ -131,12 +113,14 @@ class AASeqConverter {
         return result;
     }
 
+    // AMW: what differentiates extended vs. original here -- if just the function
+    // calls they use, then we can exploit that and merge the functions.
     auto getExtendedBases(const string &aminoAcid, const string &exceptedCodons) -> vector<vector<vector<string>>> {
-        // 0～(n-8)要素の部分塩基配列を取得
+        // Obtain the partial base sequence of 0 to (n-8) elements
         unsigned int maxLength = 8;
         vector<vector<vector<string>>> bases = getSelectedLengthExtendedBases(aminoAcid, maxLength, exceptedCodons);
 
-        // (n-8+1)以降の部分塩基配列を取得
+        // Obtain the partial base sequence after (n-8 + 1)
         int preMaxLength = maxLength;
         for (int i = maxLength - 1; i > 0; --i) {
             maxLength = i;
@@ -184,21 +168,21 @@ class AASeqConverter {
      */
     auto calcQueryExtendedBaseEnergy(const string &aminoAcid, string exceptedCodons)
         -> vector<vector<vector<vector<pair<int, string>>>>> {
-        // 部分配列を取得
+        // Get a partial array
         vector<vector<vector<string>>> bases = getExtendedBases(aminoAcid, std::move(exceptedCodons));
 
-        // 各部位の最小エネルギーを取得
+        // Get the minimum energy of each part
         vector<vector<vector<vector<pair<int, string>>>>> result = calcEachExtendedBaseEnergy(aminoAcid, bases);
 
         return result;
     }
 
     auto getOriginalBases(const string &aminoAcid, const string &exceptedCodons) -> vector<vector<vector<string>>> {
-        // 0～(n-8)要素の部分塩基配列を取得
+        // Obtain the partial base sequence of 0 to (n-8) elements
         unsigned int maxLength = 8;
         vector<vector<vector<string>>> bases = getSelectedLengthOriginalBases(aminoAcid, maxLength, exceptedCodons);
 
-        // (n-8+1)以降の部分塩基配列を取得
+        // Obtain the partial base sequence after (n-8 + 1)
         int preMaxLength = maxLength;
         for (int i = maxLength - 1; i > 0; --i) {
             maxLength = i;
@@ -260,10 +244,10 @@ class AASeqConverter {
      */
     auto calcQueryOriginalBaseEnergy(const string &aminoAcid, string exceptedCodons)
         -> vector<vector<vector<vector<pair<int, string>>>>> {
-        // 部分塩基配列を取得
+        // Get partial base sequence
         vector<vector<vector<string>>> bases = getOriginalBases(aminoAcid, std::move(exceptedCodons));
 
-        // 各部位の最小エネルギーを取得
+        // Get the minimum energy of each part
         vector<vector<vector<vector<pair<int, string>>>>> result = calcEachOriginalBaseEnergy(aminoAcid, bases);
 
         return result;
@@ -289,13 +273,10 @@ class AASeqConverter {
     }
 
     void initBasePairMap(int size, vector<vector<int>> &map) {
-        // 各行に代入する列の配列を作成（実際に使用するのは、要素1以降）
-        vector<int> rows;
-        for (int i = 0; i <= size; i++) {
-            rows.push_back(0);
-        }
+        // Create an array of columns to be assigned to each row (actually used after element 1) 
+        vector<int> rows(size+1, 0);
 
-        // 各行に列を代入（実際に使用するのは、要素1以降）
+        // Assign a column to each row (actually used after element 1)
         for (unsigned int i = 0; i <= pairNumberMap.size(); i++) {
             map.push_back(rows);
         }
@@ -362,19 +343,19 @@ class AASeqConverter {
                       const string &exceptedCodons) {
         int baseLength = aminoAcid.size() * 3;
 
-        // 結果格納ベクターを初期化
+        // Initialize the result storage vector
         initResultBaseVector(baseLength, maxLength, result);
 
-        // maxLengthの長さを持つ塩基配列を作成
+        // Create a base sequence with a length of maxLength
         for (unsigned int i = 0; i <= baseLength - maxLength; i++) {
-            vector<string> bases; // 作成した塩基配列を格納
+            vector<string> bases; // Stores the created base sequence
             unsigned int startPosition = i + 1;
             for (unsigned int j = 0; j < aminoAcid.size(); j++) {
                 if (startPosition > (j + 1) * 3) {
-                    // 開始位置より手前なら処理をスキップ
+                    // If it is before the start position, skip the process
                     continue;
                 } else {
-                    // 作成中の塩基配列に連結する塩基配列をコドンから取得
+                    // Obtain the base sequence linked to the base sequence being created from the codon
                     map<string, int> baseMap;
                     int nowPosition = (j + 1) * 3 - 2;
                     int addLength;
@@ -390,7 +371,7 @@ class AASeqConverter {
                     } else if (flag == BASE_EXTENDED) {
                         codons = codonTable.getExtendedCodons(aminoAcid.at(j), exceptedCodons);
                     } else {
-                        cout << "エラー：getBasesBase()のflagが無効な値です:" << flag << endl;
+                        cout << "Error: getBasesBase () flag is an invalid value:" << flag << endl;
                         exit(1);
                     }
 
@@ -399,7 +380,7 @@ class AASeqConverter {
                         string addingBase;
                         for (unsigned int l = 0; l < codon.size(); l++) {
                             if (nowPosition + l >= startPosition) {
-                                // maxLengthを超える場合は処理をスキップ
+                                // Skip processing if maxLength is exceeded 
                                 if (addLength - addNumber > 0) {
                                     addingBase += codon.at(l);
                                     addNumber++;
@@ -410,7 +391,7 @@ class AASeqConverter {
                         baseMap.insert(make_pair(addingBase, 1));
                     }
 
-                    // コドンから取得した塩基配列を作成中の塩基配列に連結
+                    // Concatenate the base sequence obtained from the codon to the base sequence being created
                     vector<string> newBases;
                     map<string, int>::iterator itr;
                     for (itr = baseMap.begin(); itr != baseMap.end(); itr++) {
@@ -426,37 +407,35 @@ class AASeqConverter {
                         }
                     }
 
-                    // 塩基配列を伸長した新しい結果に置き換える
+                    // Replace the base sequence with the new extended result
                     if (!newBases.empty()) {
                         bases = newBases;
                     }
 
-                    // 部分配列の長さmaxLengthに達したらループを抜ける
+                    // Exit the loop when the partial array length reaches maxLength
                     if (bases[0].length() == maxLength) {
                         break;
                     }
                 }
             }
 
-            // 作成した塩基配列を結果格納ベクターにセット
+            // Set the created base sequence in the result storage vector
             for (auto &base : bases) {
                 result[startPosition][maxLength].push_back(base);
             }
         }
 
-        // maxLength以下の部分配列を作成
+        // Create a subarray below maxLength
         for (unsigned int i = 0; i <= baseLength - maxLength; i++) {
             int startPosition = i + 1;
             for (int j = maxLength; j > 1; j--) {
                 map<string, int> baseMap;
-                for (unsigned int k = 0; k < result[startPosition][j].size(); k++) {
-                    string base = result[startPosition][j][k];
+                for (string const & base : result[startPosition][j]) {
                     baseMap.insert(make_pair(base.substr(0, j - 1), 1));
                 }
 
-                map<string, int>::iterator itr;
-                for (itr = baseMap.begin(); itr != baseMap.end(); itr++) {
-                    string base = itr->first;
+                for (auto const & elem : baseMap) {
+                    string const & base = elem.first;
                     result[startPosition][j - 1].push_back(base);
                 }
             }
@@ -467,18 +446,18 @@ class AASeqConverter {
                       vector<vector<vector<string>>> &result, int flag, const string &exceptedCodons) {
         int baseLength = aminoAcid.size() * 3;
 
-        // maxLengthの長さを持つ塩基配列を作成
+        // Create a base sequence with a length of maxLength
         vector<vector<vector<string>>> nowResult;
         initResultBaseVector(baseLength, maxLength, nowResult);
         for (unsigned int i = startElement; i <= baseLength - maxLength; i++) {
-            vector<string> bases; // 作成した塩基配列を格納
+            vector<string> bases; // Stores the created base sequence
             unsigned int startPosition = i + 1;
             for (unsigned int j = 0; j < aminoAcid.size(); j++) {
                 if (startPosition > (j + 1) * 3) {
-                    // 開始位置より手前なら処理をスキップ
+                    // If it is before the start position, skip the process
                     continue;
                 } else {
-                    // 作成中の塩基配列に連結する塩基配列をコドンから取得
+                    // Obtain the base sequence linked to the base sequence being created from the codon
                     map<string, int> baseMap;
                     int nowPosition = (j + 1) * 3 - 2;
                     int addLength;
@@ -494,7 +473,7 @@ class AASeqConverter {
                     } else if (flag == BASE_EXTENDED) {
                         codons = codonTable.getExtendedCodons(aminoAcid.at(j), exceptedCodons);
                     } else {
-                        cout << "エラー：addBasesBase()のflagが無効な値です:" << flag << endl;
+                        cout << "Error: The flag in addBasesBase () is an invalid value:" << flag << endl;
                         exit(1);
                     }
 
@@ -503,7 +482,7 @@ class AASeqConverter {
                         string addingBase;
                         for (unsigned int l = 0; l < codon.size(); l++) {
                             if (nowPosition + l >= startPosition) {
-                                // maxLengthを超える場合は処理をスキップ
+                                // Skip processing if maxLength is exceeded
                                 if (addLength - addNumber > 0) {
                                     addingBase += codon.at(l);
                                     addNumber++;
@@ -514,11 +493,10 @@ class AASeqConverter {
                         baseMap.insert(make_pair(addingBase, 1));
                     }
 
-                    // コドンから取得した塩基配列を作成中の塩基配列に連結
+                    // Concatenate the base sequence obtained from the codon to the base sequence being created
                     vector<string> newBases;
-                    map<string, int>::iterator itr;
-                    for (itr = baseMap.begin(); itr != baseMap.end(); itr++) {
-                        string base = itr->first;
+                    for (auto const & elem : baseMap) {
+                        string const & base = elem.first;
 
                         if (bases.empty()) {
                             newBases.push_back(base);
@@ -530,43 +508,41 @@ class AASeqConverter {
                         }
                     }
 
-                    // 塩基配列を伸長した新しい結果に置き換える
+                    // Replace the base sequence with the new extended result
                     if (!newBases.empty()) {
                         bases = newBases;
                     }
 
-                    // 部分配列の長さmaxLengthに達したらループを抜ける
+                    // Exit the loop when the partial array length reaches maxLength
                     if (bases[0].length() == maxLength) {
                         break;
                     }
                 }
             }
 
-            // 作成した塩基配列を結果格納ベクターにセット
-            for (auto &base : bases) {
+            // Set the created base sequence in the result storage vector
+            for (auto const & base : bases) {
                 nowResult[startPosition][maxLength].push_back(base);
             }
         }
 
-        // maxLength以下の部分配列を作成
+        // Create a subarray below maxLength
         for (unsigned int i = 0; i <= baseLength - maxLength; i++) {
             int startPosition = i + 1;
             for (int j = maxLength; j > 1; j--) {
                 map<string, int> baseMap;
-                for (unsigned int k = 0; k < nowResult[startPosition][j].size(); k++) {
-                    string base = nowResult[startPosition][j][k];
+                for (string const & base : nowResult[startPosition][j]) {
                     baseMap.insert(make_pair(base.substr(0, j - 1), 1));
                 }
 
-                map<string, int>::iterator itr;
-                for (itr = baseMap.begin(); itr != baseMap.end(); itr++) {
-                    string base = itr->first;
+                for (auto const & elem : baseMap) {
+                    string const & base = elem.first;
                     nowResult[startPosition][j - 1].push_back(base);
                 }
             }
         }
 
-        // 取得した内容を結果ベクターに設定
+        // Set the acquired contents in the result vector
         for (unsigned int i = 1; i < nowResult.size(); i++) {
             for (unsigned int j = 1; j < nowResult[i].size(); j++) {
                 for (unsigned int k = 0; k < nowResult[i][j].size(); k++) {
@@ -589,13 +565,13 @@ class AASeqConverter {
 
     auto calcEachBaseEnergyBase(const string &aminoAcid, vector<vector<vector<string>>> &bases, int flag)
         -> vector<vector<vector<vector<pair<int, string>>>>> {
-        // 結果格納ベクターを初期化
+        // Initialize the result storage vector
         int baseLength = aminoAcid.size() * 3;
         int maxLength = 8;
         vector<vector<vector<vector<pair<int, string>>>>> result;
         initResultExtendedBaseEnergyVector(baseLength, maxLength, result);
 
-        // 各ポジション（配列長=5, 6, 8）における部分配列の自由エネルギーを取得
+        // Obtain the free energy of the partial array at each position (array length = 5, 6, 8)
         vector<int> baseLengths;
         baseLengths.push_back(5);
         baseLengths.push_back(6);
@@ -603,28 +579,26 @@ class AASeqConverter {
         for (int baseSize : baseLengths) {
             for (int i = 0; i < baseLength; i++) {
                 int position = i + 1;
-                for (unsigned int k = 0; k < bases[position][baseSize].size(); k++) {
-                    string base = bases[position][baseSize][k];
+                for (auto const & base : bases[position][baseSize]) {
 
-                    // 配列、エネルギーマップから自由エネルギーを検索
+                    // Search for free energy from arrays and energy maps
                     string originalBase = base;
                     if (flag == BASE_EXTENDED) {
-                        // 拡張した塩基を使用する場合は、V、WはUに変換、X、YはGに変換
+                        // When using extended bases, V and W are converted to U, and X and Y are converted to G.
                         Util::baseReplace(originalBase, "V", "U");
                         Util::baseReplace(originalBase, "W", "U");
                         Util::baseReplace(originalBase, "X", "G");
                         Util::baseReplace(originalBase, "Y", "G");
                     }
 
-                    // エネルギー取得（未設定なら以降の処理スキップ）
-                    map<string, int>::iterator itr;
-                    itr = baseEnergy.find(originalBase);
+                    // Energy acquisition (skip subsequent processing if not set)
+                    auto itr = baseEnergy.find(originalBase);
                     if (itr == baseEnergy.end()) {
                         continue;
                     }
                     int energy = itr->second;
 
-                    // 結果ベクターに格納
+                    // Store in result vector
                     int startBase = getBaseNumber(base.substr(0, 1));
                     int endBase = getBaseNumber(base.substr(base.length() - 1, 1));
                     int resultEnergy = result[position][baseSize][startBase][endBase].first;
