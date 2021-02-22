@@ -83,8 +83,21 @@ void clear_sec_bp(stack *s, bond *b, int len) {
     }
 }
 
-void allocate_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & c, vector<vector<vector<int>>> & m, vector<vector<vector<int>>> & f,
-                     vector<array<array<int, 4>, 4>> & dml, vector<array<array<int, 4>, 4>> & dml1, vector<array<array<int, 4>, 4>> & dml2, int **chkc, int **chkm, bond **b) {
+void allocate_arrays(
+    int len,
+    int *indx,
+    int w,
+    vector<vector<int>> &pos2nuc,
+    vector<vector<vector<int>>> & c,
+    vector<vector<vector<int>>> & m,
+    vector<vector<vector<int>>> & f,
+    vector<array<array<int, 4>, 4>> & dml,
+    vector<array<array<int, 4>, 4>> & dml1,
+    vector<array<array<int, 4>, 4>> & dml2,
+    vector<int> & chkc,
+    vector<int> & chkm,
+    vector<bond> & b
+) {
     int size = getMatrixSize(len, w);
     //	int n_elm = 0;
     int total_bytes = 0;
@@ -153,13 +166,10 @@ void allocate_arrays(int len, int *indx, int w, vector<vector<int>> &pos2nuc, ve
     //	fill(*chkc, *chkc+len*(len+1)/2, INF);
     //	fill(*chkm, *chkm+len*(len+1)/2, INF);
 
-    *chkc = new int[size + 1];
-    *chkm = new int[size + 1];
+    chkc.resize(size + 1, INF);
+    chkm.resize(size + 1, INF);
 
-    fill(*chkc, *chkc + size, INF);
-    fill(*chkm, *chkm + size, INF);
-
-    *b = new bond[len / 2];
+    b.resize(len / 2);
 
     //	return (float)total_bytes/(1024*1024) * 1.25; // 1.2 is empirical constant
     // return (float)total_bytes/(1024*1024);
@@ -177,14 +187,6 @@ void allocate_F2(int len, int *indx, int w, vector<vector<int>> &pos2nuc, vector
             }
         }
     }
-}
-
-void free_arrays(int **chkc, int **chkm, bond **b) {
-
-    delete[] * chkc;
-    delete[] * chkm;
-
-    delete[] * b;
 }
 
 void set_ij_indx(int *a, int length) {
@@ -430,7 +432,7 @@ vector<pair<int, int>> shufflePair(vector<pair<int, int>> ary, int size) {
     return ary;
 }
 
-void backtrack(string *optseq, stack *sector, bond *base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
+void backtrack(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
                int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
                const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
                int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
@@ -438,7 +440,7 @@ void backtrack(string *optseq, stack *sector, bond *base_pair, vector<vector<vec
                vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef);
 
-void backtrack2(string *optseq, stack *sector, bond *base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
+void backtrack2(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
                 int *const indx, const int &initL, const int &initR, paramT *const &P, const vector<int> &NucConst,
                 const vector<vector<int>> &pos2nuc, const int &NCflg, int *const &i2r, int const &length, int const &w,
                 int const (&BP_pair)[5][5], char *const &i2n, int *const &rtype, int *const &ii2r,
