@@ -1,9 +1,7 @@
-#include <algorithm> // only to use fill
-#include <fstream>
 #include <map>
-//#include <iostream>
-//#include <stdlib.h>
+
 #include "codon.hpp"
+
 using namespace std;
 
 #pragma once
@@ -99,46 +97,20 @@ void allocate_arrays(
     vector<bond> & b
 ) {
     int size = getMatrixSize(len, w);
-    //	int n_elm = 0;
-    int total_bytes = 0;
-    // int test_bytes = 0;
-
-    //	*c   = new int**[len*(len+1)/2+1];
-    //	*m   = new int**[len*(len+1)/2+1];
     c.resize(size + 1);
     m.resize(size + 1);
-    //	*f2   = new int**[size+1];
     for (int i = 1; i <= len; i++) {
         for (int j = i; j <= MIN2(len, i + w - 1); j++) {
             // cout << i << " " << j << endl;
-            // int ij = indx[j]+i;
             int ij = getIndx(i, j, w, indx);
             c[ij].resize(pos2nuc[i].size());
             m[ij].resize(pos2nuc[i].size());
-            //			(*f2)[ij]   = new int*[pos2nuc[i].size()];
-            // total_bytes += sizeof(int*) * (pos2nuc[i].size()+1) * 2 * 2; // *2 is empirical constant
-            total_bytes += sizeof(int *) * (pos2nuc[i].size() + 4) * 2; // +4 is an empirical value
             for (unsigned int L = 0; L < pos2nuc[i].size(); L++) {
                 c[ij][L].resize(pos2nuc[j].size());
                 m[ij][L].resize(pos2nuc[j].size());
-                //				(*f2)[ij][L]   = new int[pos2nuc[j].size()];
-                // total_bytes += sizeof(int) * (pos2nuc[j].size()+1) * 2 * 2; // *2 is empirical constant
-                //				n_elm += (pos2nuc[j].size()+1);
-                total_bytes += sizeof(int) * (pos2nuc[j].size() + 4) * 2; // +4 is an empirical value
             }
         }
     }
-
-    total_bytes *= 1.2; // 1.2 is an empirical value
-                        //	cout << "sizeof(int): " << sizeof(int) << endl;
-                        //	cout << "sizeof(int*): " << sizeof(int***) << endl;
-                        //	cout << "N_ELM: "<< n_elm << endl;
-                        //	cout << "test_bytes: "<< (float)test_bytes/(1024*1024) << endl;
-                        //	return test_bytes;
-
-    //	int total_bytes = n_elm * sizeof(int) * 2; // *2 is m and c
-    //	float total_Mb = (float)total_bytes/(1024*1024);
-    //	cout << "estimated memory size: " << total_Mb << " Mb" << endl;
 
     f.resize(len + 1);
     dml.resize(len + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
@@ -149,30 +121,12 @@ void allocate_arrays(
         for (unsigned int L = 0; L < pos2nuc[1].size(); L++) { // The first position
             f[j][L].resize(pos2nuc[j].size());
         }
-
-        // for (unsigned int L = 0; L < 4; L++) {
-        //     (*dml)[j][L] = new int[4];  // always secure 4 elements, because the maximum number of nucleotides is 4
-        //     (*dml1)[j][L] = new int[4]; // always secure 4 elements, because the maximum number of nucleotides is 4
-        //     (*dml2)[j][L] = new int[4]; // always secure 4 elements, because the maximum number of nucleotides is 4
-        //     fill((*dml)[j][L], (*dml)[j][L] + 4, INF);
-        //     fill((*dml1)[j][L], (*dml1)[j][L] + 4, INF);
-        //     fill((*dml2)[j][L], (*dml2)[j][L] + 4, INF);
-        // }
     }
-
-    //	*chkc   = new int[len*(len+1)/2+1];
-    //	*chkm   = new int[len*(len+1)/2+1];
-
-    //	fill(*chkc, *chkc+len*(len+1)/2, INF);
-    //	fill(*chkm, *chkm+len*(len+1)/2, INF);
 
     chkc.resize(size + 1, INF);
     chkm.resize(size + 1, INF);
 
     b.resize(len / 2);
-
-    //	return (float)total_bytes/(1024*1024) * 1.25; // 1.2 is empirical constant
-    // return (float)total_bytes/(1024*1024);
 }
 
 void allocate_F2(int len, vector<int> const & indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & f2) {
@@ -385,8 +339,7 @@ void showFixedMatrix(const int *m, vector<int> const & indx, const int len, cons
 }
 
 vector<int> createNucConstraint(const char *s, int &len, map<char, int> &n2i) {
-    vector<int> v;
-    v.resize(len + 1);
+    vector<int> v(len + 1);
     for (int i = 1; i <= len; i++) {
         v[i] = n2i[s[i]];
     }
@@ -459,9 +412,6 @@ inline auto TermAU(int const &type, paramT * const P) -> int {
 }
 
 inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT * const P) -> int {
-    // AMW: change to strcpy from strncpy here improves safety
-    // but may result in a 0.05% decrease in performance. May
-    // be within error.
     int energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30] + (int)(P->lxc * log((size) / 30.));
     // fprintf(stderr, "ok\n");
     if (P->model_details.special_hp) {
@@ -491,16 +441,12 @@ inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, 
 
 inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT * const P) -> int {
     /* compute energy of degree 2 loop (stack bulge or interior) */
-    int nl, ns, energy;
-    energy = INF;
+    // AMW: trying to reduce the scope of the variable energy surprisingly reduces performance a small amount.
+    // Might be an inlining issue.
+    int energy = INF;
     int MAX_NINIO = 300;
-    if (n1 > n2) {
-        nl = n1;
-        ns = n2;
-    } else {
-        nl = n2;
-        ns = n1;
-    }
+    int const nl = n1 > n2 ? n1 : n2;
+    int const ns = n1 > n2 ? n2 : n1;
 
     if (nl == 0)
         return P->stack[type][type_2]; /* stack */
@@ -522,10 +468,9 @@ inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, in
                 return P->int11[type][type_2][si1][sj1];
             if (nl == 2) { /* 2x1 loop */
                 if (n1 == 1)
-                    energy = P->int21[type][type_2][si1][sq1][sj1];
+                    return P->int21[type][type_2][si1][sq1][sj1];
                 else
-                    energy = P->int21[type_2][type][sq1][si1][sp1];
-                return energy;
+                    return P->int21[type_2][type][sq1][si1][sp1];
             } else { /* 1xn loop */
                 energy = (nl + 1 <= MAXLOOP) ? (P->internal_loop[nl + 1])
                                              : (P->internal_loop[30] + (int)(P->lxc * log((nl + 1) / 30.)));
@@ -548,9 +493,9 @@ inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, in
             energy += MIN2(MAX_NINIO, (nl - ns) * P->ninio[2]);
 
             energy += P->mismatchI[type][si1][sj1] + P->mismatchI[type_2][sq1][sp1];
+            return energy;
         }
     }
-    return energy;
 }
 
 auto getMemoryUsage(const string &fname) -> int {
@@ -589,45 +534,6 @@ auto getMemoryUsage(const string &fname) -> int {
 
     cerr << "VmRSS line was not found in " << fname << endl;
     return -1;
-}
-
-void fill_optseq(string *optseq, int I, int J, vector<vector<int>> &pos2nuc, vector<vector<int>> Dep1) {
-
-    array<int, 20> i2r;
-    array<int, 100> ii2r;
-    array<char, 20> i2n;
-    map<char, int> n2i = make_n2i();
-    make_i2n(i2n);
-    make_i2r(i2r);
-    make_ii2r(ii2r); // encoding a dinucleotide (each eight variation) to an integer from 11 - 88
-
-    // main routine
-    //	cout << I << endl;
-    //	cout << pos2nuc[I][0]<< endl;
-    //	cout << i2n[pos2nuc[I][0]] << endl;
-    (*optseq)[I] = i2n[pos2nuc[I][0]];
-    //	cout << "CHK:" << (*optseq)[I] << endl;
-    for (int i = I + 1; i <= J; i++) {
-        for (unsigned int L = 0; L < pos2nuc[i].size(); L++) { // search possible nucleotides
-            int L_nuc = pos2nuc[i][L];
-            int L1_nuc;
-            L1_nuc = n2i[(*optseq)[i - 1]];
-            if (Dep1[ii2r[L1_nuc * 10 + L_nuc]][i - 1] == 0) {
-                continue;
-            }
-            (*optseq)[i] = i2n[L_nuc];
-            break;
-        }
-    }
-
-    // modification of bases V,W,X,Y
-    for (int i = I; i <= J; i++) {
-        if ((*optseq)[i] == 'V' || (*optseq)[i] == 'W') {
-            (*optseq)[i] = 'U';
-        } else if ((*optseq)[i] == 'X' || (*optseq)[i] == 'Y') {
-            (*optseq)[i] = 'G';
-        }
-    }
 }
 
 void fixed_init_matrix(const int &nuclen, const int &size, vector<int> & C, vector<int> & M, int *F, int *DMl, int *DMl1, int *DMl2) {
