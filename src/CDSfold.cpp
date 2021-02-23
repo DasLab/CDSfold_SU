@@ -2921,3 +2921,56 @@ void fixed_fold(string optseq, vector<int> const & indx, const int &w, map<strin
     cout << optstr << endl;
     cout << "MFE:" << float(MFE) / 100 << " kcal/mol" << endl;
 }
+
+
+vector<vector<int>> getPossibleNucleotide(char *aaseq, int aalen, codon &codon_table, map<char, int> &n2i,
+                                          string excludedCodons) {
+
+    vector<vector<int>> v;
+
+    int nuclen = aalen * 3;
+    v.resize(nuclen + 1);
+
+    for (int i = 0; i < aalen; i++) {
+        int nucpos = i * 3 + 1;
+        char aa = aaseq[i];
+        // cout << "test: " << aa << endl;
+        // AMW TODO: should get codons from the codon table, filtering out
+        // exclusions, *once* rather than generating new vector<string>s for each
+        // aa position. This function is only called once, but it's still silly.
+        vector<string> codons = codon_table.getCodons(aa, excludedCodons);
+        for (int k = 0; k < 3; k++) { // for each codon position
+            nucpos += k;
+
+            if (aa == 'L' && k == 1) {
+                v[nucpos].push_back(n2i['V']);
+                v[nucpos].push_back(n2i['W']);
+            } else if (aa == 'R' && k == 1) {
+                v[nucpos].push_back(n2i['X']);
+                v[nucpos].push_back(n2i['Y']);
+            } else {
+                bool flg_A, flg_C, flg_G, flg_U;
+                flg_A = flg_C = flg_G = flg_U = false;
+
+                for (unsigned int j = 0; j < codons.size(); j++) { // for each codon corresp. to each aa
+                    char nuc = codons[j][k];
+                    if (nuc == 'A' && flg_A == 0) {
+                        v[nucpos].push_back(n2i[nuc]);
+                        flg_A = 1;
+                    } else if (nuc == 'C' && flg_C == 0) {
+                        v[nucpos].push_back(n2i[nuc]);
+                        flg_C = 1;
+                    } else if (nuc == 'G' && flg_G == 0) {
+                        v[nucpos].push_back(n2i[nuc]);
+                        flg_G = 1;
+                    } else if (nuc == 'U' && flg_U == 0) {
+                        v[nucpos].push_back(n2i[nuc]);
+                        flg_U = 1;
+                    }
+                }
+            }
+            nucpos -= k;
+        }
+    }
+    return v;
+}

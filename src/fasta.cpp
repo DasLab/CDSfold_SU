@@ -1,3 +1,7 @@
+#include <iostream>
+#include <fstream>
+#include <cstring> // to use strcpy for gcc-4.3 or later
+
 #include "fasta.hpp"
 
 fasta::fasta(const char *fname) { // DPマトリクスの動的メモリ確保
@@ -78,3 +82,5 @@ fasta::~fasta() {
         delete[] i.seq;
     }
 }
+
+void fasta::printP() { cout << p << endl; }

@@ -1,4 +1,3 @@
-
 #include "codon.hpp"
 
 #pragma once

@@ -5,10 +5,7 @@
 using namespace std;
 
 #pragma once
-
-inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P) -> int;
-inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P) -> int;
-
+           
 using stack = struct stack {
     int i;
     int j;
@@ -22,6 +19,28 @@ using bond = struct bond {
     int j;
 };
 
+inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P) -> int;
+inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P) -> int;
+
+vector<vector<int>> getPossibleNucleotide(char *aaseq, int aalen, codon &codon_table, map<char, int> &n2i,
+                                          string excludedCodons);
+
+void backtrack(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
+               vector<int> const & indx, const int &initL, const int &initR, paramT * const P, const vector<int> &NucConst,
+               const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
+               int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
+               vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
+               vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
+               vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef);
+
+void backtrack2(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
+                vector<int> const &, const int &initL, const int &initR, paramT * const P, const vector<int> &NucConst,
+                const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
+                int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
+                vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
+                vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
+                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef);
+                               
 inline auto TermAU(int const &type, paramT * const P) -> int;
 
 auto getMatrixSize(int len, int w) -> int {
@@ -230,7 +249,7 @@ void showPos2Nuc(vector<vector<int>> &v) {
     }
 }
 
-void showPos2Nuc(vector<vector<int>> &v, char i2n[]) {
+void showPos2Nuc(vector<vector<int>> &v, std::array<char, 20> const & i2n) {
 
     for (unsigned int i = 1; i < v.size(); i++) {
         //	  for(unsigned int i = 1; i <= v.size(); i++){ // This is segmentaion fault
@@ -240,58 +259,6 @@ void showPos2Nuc(vector<vector<int>> &v, char i2n[]) {
         }
         cout << endl;
     }
-}
-
-vector<vector<int>> getPossibleNucleotide(char *aaseq, int aalen, codon &codon_table, map<char, int> &n2i,
-                                          string excludedCodons) {
-
-    vector<vector<int>> v;
-
-    int nuclen = aalen * 3;
-    v.resize(nuclen + 1);
-
-    for (int i = 0; i < aalen; i++) {
-        int nucpos = i * 3 + 1;
-        char aa = aaseq[i];
-        // cout << "test: " << aa << endl;
-        // AMW TODO: should get codons from the codon table, filtering out
-        // exclusions, *once* rather than generating new vector<string>s for each
-        // aa position. This function is only called once, but it's still silly.
-        vector<string> codons = codon_table.getCodons(aa, excludedCodons);
-        for (int k = 0; k < 3; k++) { // for each codon position
-            nucpos += k;
-
-            if (aa == 'L' && k == 1) {
-                v[nucpos].push_back(n2i['V']);
-                v[nucpos].push_back(n2i['W']);
-            } else if (aa == 'R' && k == 1) {
-                v[nucpos].push_back(n2i['X']);
-                v[nucpos].push_back(n2i['Y']);
-            } else {
-                bool flg_A, flg_C, flg_G, flg_U;
-                flg_A = flg_C = flg_G = flg_U = false;
-
-                for (unsigned int j = 0; j < codons.size(); j++) { // for each codon corresp. to each aa
-                    char nuc = codons[j][k];
-                    if (nuc == 'A' && flg_A == 0) {
-                        v[nucpos].push_back(n2i[nuc]);
-                        flg_A = 1;
-                    } else if (nuc == 'C' && flg_C == 0) {
-                        v[nucpos].push_back(n2i[nuc]);
-                        flg_C = 1;
-                    } else if (nuc == 'G' && flg_G == 0) {
-                        v[nucpos].push_back(n2i[nuc]);
-                        flg_G = 1;
-                    } else if (nuc == 'U' && flg_U == 0) {
-                        v[nucpos].push_back(n2i[nuc]);
-                        flg_U = 1;
-                    }
-                }
-            }
-            nucpos -= k;
-        }
-    }
-    return v;
 }
 
 void showChkMatrix(int *&m, vector<int > const &indx, int len, int w) {
@@ -375,34 +342,6 @@ vector<pair<int, int>> shufflePair(vector<pair<int, int>> ary, int size) {
 
     return ary;
 }
-
-void backtrack(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
-               vector<int> const & indx, const int &initL, const int &initR, paramT * const P, const vector<int> &NucConst,
-               const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
-               int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
-               vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
-               vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
-               vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef);
-
-void backtrack2(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
-                vector<int> const &, const int &initL, const int &initR, paramT * const P, const vector<int> &NucConst,
-                const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
-                int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
-                vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
-                vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
-                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef);
-
-/*
-string init_string(int const &len){
-        string s;
-        s.resize(len+1);
-        s[0] = ' ';
-        for(int i = 1; i <= len; i++){
-                s[i] = 'N';
-        }
-        return s;
-}
-*/
 
 inline auto TermAU(int const &type, paramT * const P) -> int {
     if (type > 2) {

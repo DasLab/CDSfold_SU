@@ -1,8 +1,6 @@
-#include <iostream>
-#include <cstdlib>
+// #include <cstdlib>
 //#include <string> // なくても良い。
-#include <fstream>
-#include <cstring> // to use strcpy for gcc-4.3 or later
+// #include <fstream>
 #include <vector>
 using namespace std;
 
@@ -24,7 +22,7 @@ class fasta {
     auto getSeq() -> char * { return data[p].seq; }
     auto getSeqLen() -> int { return data[p].seqlen; }
     void initP() { p = 0; }
-    void printP() { cout << p << endl; }
+    void printP();
 
     auto next() -> int {
         p++;
