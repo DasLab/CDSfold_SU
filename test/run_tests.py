@@ -7,6 +7,8 @@ def run_all_tests(fn):
     system('./src/CDSfold -e GGU example/mev.faa >> {}'.format(fn))
     system('./src/CDSfold -w 20 -e GGC example/mev.faa >> {}'.format(fn))
 
+    system('./src/CDSfold -R example/mev.faa >> {}'.format(fn))
+
 def diff_output():
     with open('test/output/gold_standard_output.txt') as f, open('test/output/new_output.txt') as g:
         for ii, (line1, line2) in enumerate(zip(f.readlines(), g.readlines())):

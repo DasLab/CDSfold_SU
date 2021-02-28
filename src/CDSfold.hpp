@@ -1,23 +1,13 @@
 #include <map>
-
+#include <cstring>
+#include <fstream>
+#include <sstream>
 #include "codon.hpp"
+#include "backtracking.hpp" // just for bond
 
 using namespace std;
 
 #pragma once
-           
-using stack = struct stack {
-    int i;
-    int j;
-    int Li;
-    int Rj;
-    int ml;
-};
-
-using bond = struct bond {
-    int i;
-    int j;
-};
 
 inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P) -> int;
 inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P) -> int;
@@ -25,25 +15,10 @@ inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, in
 vector<vector<int>> getPossibleNucleotide(char *aaseq, int aalen, codon &codon_table, map<char, int> &n2i,
                                           string excludedCodons);
 
-void backtrack(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
-               vector<int> const & indx, const int &initL, const int &initR, paramT * const P, const vector<int> &NucConst,
-               const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
-               int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
-               vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
-               vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
-               vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef);
-
-void backtrack2(string *optseq, stack *sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
-                vector<int> const &, const int &initL, const int &initR, paramT * const P, const vector<int> &NucConst,
-                const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
-                int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
-                vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, int &DEPflg,
-                vector<vector<vector<vector<pair<int, string>>>>> &, map<string, int> &predefE,
-                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef);
-                               
 inline auto TermAU(int const &type, paramT * const P) -> int;
 
-auto getMatrixSize(int len, int w) -> int {
+
+inline auto getMatrixSize(int len, int w) -> int {
     int size = 0;
     for (int i = 1; i <= w; i++) {
         size += len - (i - 1); // マトリクスの斜めの要素数を足し合わせるイメージ
@@ -60,7 +35,8 @@ inline auto getIndx(int const &i, int const &j, int const &w, vector<int> const 
                                          // wが指定されると、j列にはで使う要素はw個、使わない要素はj-w個となる。
 }
 
-auto predict_memory(int len, int w, vector<vector<int>> &pos2nuc) -> float {
+
+inline auto predict_memory(int len, int w, vector<vector<int>> &pos2nuc) -> float {
     // int size = getMatrixSize(len, w);
     long int total_bytes = 0;
     // int n_test;
@@ -86,21 +62,8 @@ auto predict_memory(int len, int w, vector<vector<int>> &pos2nuc) -> float {
     return (float)total_bytes / (1024 * 1024);
 }
 
-void clear_sec_bp(stack *s, bond *b, int len) {
-    for (int i = 0; i < 500; i++) {
-        s[i].i = -INF;
-        s[i].j = -INF;
-        s[i].Li = -INF;
-        s[i].Rj = -INF;
-        s[i].ml = -INF;
-    }
-    for (int i = 0; i < len / 2; i++) {
-        b[i].i = -INF;
-        b[i].j = -INF;
-    }
-}
 
-void allocate_arrays(
+inline void allocate_arrays(
     int len,
     vector<int> const & indx,
     int w,
@@ -148,7 +111,8 @@ void allocate_arrays(
     b.resize(len / 2);
 }
 
-void allocate_F2(int len, vector<int> const & indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & f2) {
+
+inline void allocate_F2(int len, vector<int> const & indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & f2) {
     int size = getMatrixSize(len, w);
     f2.resize(size + 1);
     for (int i = 1; i <= len; i++) {
@@ -162,13 +126,15 @@ void allocate_F2(int len, vector<int> const & indx, int w, vector<vector<int>> &
     }
 }
 
-void set_ij_indx(vector<int> & a, int length) {
+
+inline void set_ij_indx(vector<int> & a, int length) {
     for (int n = 1; n <= length; n++) {
         a[n] = (n * (n - 1)) / 2;
     }
 }
 
-void set_ij_indx(vector<int> & a, int length, int w) {
+
+inline void set_ij_indx(vector<int> & a, int length, int w) {
     if (w <= 0) {
         cerr << "Invalid w:" << w << endl;
         exit(1);
@@ -186,7 +152,8 @@ void set_ij_indx(vector<int> & a, int length, int w) {
     }
 }
 
-void make_i2r(array<int, 20> & n) {
+
+inline void make_i2r(array<int, 20> & n) {
     n[1] = 1;
     n[2] = 2;
     n[3] = 3;
@@ -197,7 +164,8 @@ void make_i2r(array<int, 20> & n) {
     n[8] = 3;
 }
 
-void make_ii2r(array<int, 100> & n) {
+
+inline void make_ii2r(array<int, 100> & n) {
     int s = 1;
     for (int i1 = 1; i1 <= 8; i1++) {
         for (int i2 = 1; i2 <= 8; i2++) {
@@ -206,7 +174,8 @@ void make_ii2r(array<int, 100> & n) {
     }
 }
 
-map<char, int> make_n2i() {
+
+inline map<char, int> make_n2i() {
     map<char, int> m;
     m['A'] = 1;
     m['C'] = 2;
@@ -221,12 +190,14 @@ map<char, int> make_n2i() {
 }
 
 // void view_n2i(map<char, int> n2i, char const &c){
-auto view_n2i(map<char, int> n2i, char c) -> int {
+
+inline auto view_n2i(map<char, int> n2i, char c) -> int {
     // cout << c << endl;
     return n2i[c];
 }
 
-void make_i2n(array<char, 20> & n) {
+
+inline void make_i2n(array<char, 20> & n) {
     n[0] = ' ';
     n[1] = 'A';
     n[2] = 'C';
@@ -238,7 +209,8 @@ void make_i2n(array<char, 20> & n) {
     n[8] = 'Y';
 }
 
-void showPos2Nuc(vector<vector<int>> &v) {
+
+inline void showPos2Nuc(vector<vector<int>> &v) {
 
     for (unsigned int i = 1; i <= v.size(); i++) {
         cout << i;
@@ -249,7 +221,8 @@ void showPos2Nuc(vector<vector<int>> &v) {
     }
 }
 
-void showPos2Nuc(vector<vector<int>> &v, std::array<char, 20> const & i2n) {
+
+inline void showPos2Nuc(vector<vector<int>> &v, std::array<char, 20> const & i2n) {
 
     for (unsigned int i = 1; i < v.size(); i++) {
         //	  for(unsigned int i = 1; i <= v.size(); i++){ // This is segmentaion fault
@@ -261,7 +234,8 @@ void showPos2Nuc(vector<vector<int>> &v, std::array<char, 20> const & i2n) {
     }
 }
 
-void showChkMatrix(int *&m, vector<int > const &indx, int len, int w) {
+
+inline void showChkMatrix(int *&m, vector<int > const &indx, int len, int w) {
     printf("REF:");
     for (int j = 1; j <= len; j++) {
         printf("\t%d", j);
@@ -283,7 +257,8 @@ void showChkMatrix(int *&m, vector<int > const &indx, int len, int w) {
     }
 }
 
-void showFixedMatrix(const int *m, vector<int> const & indx, const int len, const int w) {
+
+inline void showFixedMatrix(const int *m, vector<int> const & indx, const int len, const int w) {
     printf("REF:");
     for (int j = 1; j <= len; j++) {
         printf("\t%d", j);
@@ -305,7 +280,8 @@ void showFixedMatrix(const int *m, vector<int> const & indx, const int len, cons
     }
 }
 
-vector<int> createNucConstraint(const char *s, int &len, map<char, int> &n2i) {
+
+inline vector<int> createNucConstraint(const char *s, int &len, map<char, int> &n2i) {
     vector<int> v(len + 1);
     for (int i = 1; i <= len; i++) {
         v[i] = n2i[s[i]];
@@ -313,9 +289,11 @@ vector<int> createNucConstraint(const char *s, int &len, map<char, int> &n2i) {
     return v;
 }
 
+
 inline void InitRand() { srand((unsigned int)time(nullptr)); }
 
-void shuffleStr(vector<string>(*ary), int size) {
+
+inline void shuffleStr(vector<string>(*ary), int size) {
     for (int i = 0; i < size; i++) {
         int j = rand() % size;
         string t = (*ary)[i];
@@ -323,7 +301,8 @@ void shuffleStr(vector<string>(*ary), int size) {
         (*ary)[j] = t;
     }
 }
-void shuffle(int ary[], int size) {
+
+inline void shuffle(int ary[], int size) {
     for (int i = 0; i < size; i++) {
         int j = rand() % size;
         int t = ary[i];
@@ -331,7 +310,8 @@ void shuffle(int ary[], int size) {
         ary[j] = t;
     }
 }
-vector<pair<int, int>> shufflePair(vector<pair<int, int>> ary, int size) {
+
+inline vector<pair<int, int>> shufflePair(vector<pair<int, int>> ary, int size) {
     for (int i = 0; i < size; i++) {
         int j = rand() % size;
         // cout << rand() << ":" << j << endl;
@@ -437,7 +417,8 @@ inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, in
     }
 }
 
-auto getMemoryUsage(const string &fname) -> int {
+
+inline auto getMemoryUsage(const string &fname) -> int {
     // cout << fname << endl;
     ifstream ifs(fname.c_str());
     if (ifs) {
@@ -475,7 +456,8 @@ auto getMemoryUsage(const string &fname) -> int {
     return -1;
 }
 
-void fixed_init_matrix(const int &nuclen, const int &size, vector<int> & C, vector<int> & M, int *F, int *DMl, int *DMl1, int *DMl2) {
+
+inline void fixed_init_matrix(const int &nuclen, const int &size, vector<int> & C, vector<int> & M, int *F, int *DMl, int *DMl1, int *DMl2) {
     for (int i = 0; i <= nuclen; i++) {
         F[i] = 0;
         DMl[i] = INF;
@@ -489,8 +471,6 @@ void fixed_init_matrix(const int &nuclen, const int &size, vector<int> & C, vect
     }
 }
 
-void fixed_backtrack(string optseq, bond *base_pair, vector<int> const & c, vector<int> const & m, int *f, vector<int> const & indx, paramT *P, int nuclen, int w,
-                     const int (&BP_pair)[5][5], map<string, int> predefE);
 
 void fixed_fold(string optseq, vector<int> const & indx, const int &w, map<string, int> &predefE, const int (&BP_pair)[5][5],
                 paramT *P, char *aaseq, const codon& codon_table);
