@@ -165,7 +165,7 @@ auto main(int argc, char *argv[]) -> int {
     cout << "W = " << W << endl;
     cout << "e = " << exc << endl;
     do {
-        char *aaseq = all_aaseq.getSeq();
+        string aaseq = string(all_aaseq.getSeq());
         int aalen = all_aaseq.getSeqLen();
 
         if (aalen <= 2) {
@@ -222,7 +222,7 @@ auto main(int argc, char *argv[]) -> int {
 
         //		w_tmp = 50;// test!
         //		vector<vector<vector<string> > >  substr = conv.getBases(string(aaseq),8, exc);
-        vector<vector<vector<string>>> substr = conv.getOriginalBases(string(aaseq), exc);
+        vector<vector<vector<string>>> substr = conv.getOriginalBases(aaseq, exc);
         vector<vector<int>> Dep1;
         vector<vector<int>> Dep2;
         float ptotal_Mb_base = 0;
@@ -230,8 +230,8 @@ auto main(int argc, char *argv[]) -> int {
         if (m_estim) {
             ptotal_Mb_base = 2 + nuclen * 0.006956;
         } else {
-            Dep1 = conv.countNeighborTwoBase(string(aaseq), exc);
-            Dep2 = conv.countEveryOtherTwoBase(string(aaseq), exc);
+            Dep1 = conv.countNeighborTwoBase(aaseq, exc);
+            Dep2 = conv.countEveryOtherTwoBase(aaseq, exc);
         }
 
         map<string, int> predefHPN_E = conv.getBaseEnergy();
@@ -250,7 +250,7 @@ auto main(int argc, char *argv[]) -> int {
         cout << aaseq << endl;
         //		cout << aalen << endl;
 
-        vector<vector<int>> pos2nuc = getPossibleNucleotide(aaseq, aalen, codon_table, n2i, exc);
+        vector<vector<int>> pos2nuc = getPossibleNucleotide(aaseq, codon_table, n2i, exc);
         //		vector<vector<int> > pos2nuc = getPossibleNucleotide(aaseq, aalen, codon_table, n2i, 'R');
         //		showPos2Nuc(pos2nuc, i2n);
         //		exit(0);
@@ -290,10 +290,10 @@ auto main(int argc, char *argv[]) -> int {
         //		if(rev_flg && num_interval == 0){
         if (rev_flg && !part_opt_flg) {
             // reverse mode
-            string optseq_rev = rev_fold_step1(aaseq, aalen, codon_table, exc);
+            string optseq_rev = rev_fold_step1(&aaseq[0], aalen, codon_table, exc);
             //			rev_fold_step2(&optseq_rev, aaseq, aalen, codon_table, exc, ofm, oto, 1);
-            rev_fold_step2(&optseq_rev, aaseq, aalen, codon_table, exc);
-            fixed_fold(optseq_rev, indx, w_tmp, predefHPN_E, BP_pair, P, aaseq, codon_table);
+            rev_fold_step2(&optseq_rev, &aaseq[0], aalen, codon_table, exc);
+            fixed_fold(optseq_rev, indx, w_tmp, predefHPN_E, BP_pair, P, &aaseq[0], codon_table);
             free(P);
             break; // returnすると、実行時間が表示されなくなるためbreakすること。
         }
@@ -1101,7 +1101,7 @@ auto main(int argc, char *argv[]) -> int {
                     optseq[i] = part_optseq[j++];
                 }
             }
-            fixed_fold(optseq, indx, w_tmp, predefHPN_E, BP_pair, P, aaseq, codon_table);
+            fixed_fold(optseq, indx, w_tmp, predefHPN_E, BP_pair, P, &aaseq[0], codon_table);
             // fixed_fold(optseq, indx, w_tmp, predefHPN_E, BP_pair, P, aaseq, codon_table);
         }
 
@@ -1360,16 +1360,17 @@ void fixed_fold(string optseq, vector<int> const & indx, const int &w, map<strin
     cout << "MFE:" << float(MFE) / 100 << " kcal/mol" << endl;
 }
 
-
-vector<vector<int>> getPossibleNucleotide(char *aaseq, int aalen, codon &codon_table, map<char, int> &n2i,
-                                          string excludedCodons) {
+// Get all the possibilities at each position. This is essentially the process
+// by which we transform the AA sequence to a nucleotide [possibility] sequence.
+vector<vector<int>> getPossibleNucleotide(string const & aaseq, codon &codon_table, map<char, int> const & n2i,
+                                          string const & excludedCodons) {
 
     vector<vector<int>> v;
 
-    int nuclen = aalen * 3;
+    int nuclen = aaseq.size() * 3;
     v.resize(nuclen + 1);
 
-    for (int i = 0; i < aalen; i++) {
+    for (unsigned int i = 0; i < aaseq.size(); i++) {
         int nucpos = i * 3 + 1;
         char aa = aaseq[i];
         // cout << "test: " << aa << endl;
@@ -1381,11 +1382,11 @@ vector<vector<int>> getPossibleNucleotide(char *aaseq, int aalen, codon &codon_t
             nucpos += k;
 
             if (aa == 'L' && k == 1) {
-                v[nucpos].push_back(n2i['V']);
-                v[nucpos].push_back(n2i['W']);
+                v[nucpos].push_back(n2i.at('V'));
+                v[nucpos].push_back(n2i.at('W'));
             } else if (aa == 'R' && k == 1) {
-                v[nucpos].push_back(n2i['X']);
-                v[nucpos].push_back(n2i['Y']);
+                v[nucpos].push_back(n2i.at('X'));
+                v[nucpos].push_back(n2i.at('Y'));
             } else {
                 bool flg_A, flg_C, flg_G, flg_U;
                 flg_A = flg_C = flg_G = flg_U = false;
@@ -1393,16 +1394,16 @@ vector<vector<int>> getPossibleNucleotide(char *aaseq, int aalen, codon &codon_t
                 for (unsigned int j = 0; j < codons.size(); j++) { // for each codon corresp. to each aa
                     char nuc = codons[j][k];
                     if (nuc == 'A' && flg_A == 0) {
-                        v[nucpos].push_back(n2i[nuc]);
+                        v[nucpos].push_back(n2i.at(nuc));
                         flg_A = 1;
                     } else if (nuc == 'C' && flg_C == 0) {
-                        v[nucpos].push_back(n2i[nuc]);
+                        v[nucpos].push_back(n2i.at(nuc));
                         flg_C = 1;
                     } else if (nuc == 'G' && flg_G == 0) {
-                        v[nucpos].push_back(n2i[nuc]);
+                        v[nucpos].push_back(n2i.at(nuc));
                         flg_G = 1;
                     } else if (nuc == 'U' && flg_U == 0) {
-                        v[nucpos].push_back(n2i[nuc]);
+                        v[nucpos].push_back(n2i.at(nuc));
                         flg_U = 1;
                     }
                 }
