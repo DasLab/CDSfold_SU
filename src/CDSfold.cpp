@@ -50,45 +50,45 @@ int test;
 using namespace std;
 auto main(int argc, char *argv[]) -> int {
     // printf("%d\n%ld", INT_MAX, LONG_MAX);
-    int W = 0;            // -w
+    int max_bp_distance = 0;            // -w
     string exc = "";      // -e
-    int m_disp = 0;       // -M
-    int m_estim = 0;      // -U
-    int rand_tb_flg = 0;  //-R
-    int rev_flg = 0;      // -r
-    int part_opt_flg = 0; // -f and -t
-    int opt_fm = 0;       // -f
-    int opt_to = 0;       // -t
+    bool show_memory_use = false;       // -M
+    bool estimate_memory_use = false;      // -U
+    bool random_backtrack = false;  //-R
+    bool maximize_mfe = false;      // -r
+    bool partial_opt = false; // -f and -t
+    unsigned int opt_fm = 0;       // -f
+    unsigned int opt_to = 0;       // -t
     // get options
     {
         int opt;
         while ((opt = getopt(argc, argv, "w:e:f:t:rMUR")) != -1) {
             switch (opt) {
             case 'w':
-                W = atoi(optarg);
+                max_bp_distance = atoi(optarg);
                 break;
             case 'e':
                 exc = string(optarg);
                 break;
             case 'M':
-                m_disp = 1;
+                show_memory_use = true;
                 break;
             case 'U':
-                m_estim = 1;
+                estimate_memory_use = true;
                 break;
             case 'R':
-                rand_tb_flg = 1;
+                random_backtrack = true;
                 break;
             case 'r':
-                rev_flg = 1;
+                maximize_mfe = true;
                 break;
             case 'f':
                 opt_fm = atoi(optarg);
-                part_opt_flg = 1;
+                partial_opt = true;
                 break;
             case 't':
                 opt_to = atoi(optarg);
-                part_opt_flg = 1;
+                partial_opt = true;
                 break;
             }
         }
@@ -96,14 +96,14 @@ auto main(int argc, char *argv[]) -> int {
     // exit(0);
 
     // -R オプションに関するチェック
-    if (rand_tb_flg) {
-        if (W != 0 || exc != "" || m_disp || m_estim || rev_flg || part_opt_flg) {
+    if (random_backtrack) {
+        if (max_bp_distance != 0 || exc != "" || show_memory_use || estimate_memory_use || maximize_mfe || partial_opt) {
             cerr << "The -R option must not be used together with other options." << endl;
             return 0;
         }
     }
 
-    if (part_opt_flg) {
+    if (partial_opt) {
         // 部分最適化が指定された。
         if (opt_fm == 0 || opt_to == 0) {
             cerr << "The -f and -t option must be used together." << endl;
@@ -162,7 +162,7 @@ auto main(int argc, char *argv[]) -> int {
     // const char *NucDef = tmp_def.c_str();
     fasta all_aaseq(argv[optind]); // get all sequences
 
-    cout << "W = " << W << endl;
+    cout << "W = " << max_bp_distance << endl;
     cout << "e = " << exc << endl;
     do {
         string aaseq = string(all_aaseq.getSeq());
@@ -176,13 +176,13 @@ auto main(int argc, char *argv[]) -> int {
         int n_inter = 0; //今の実装では、n_inter=1 or 2となる。
         int ofm[100];
         int oto[100];
-        if (part_opt_flg) {
+        if (partial_opt) {
             if (opt_to > aalen) {
                 opt_to = aalen;
             }
 
             // Creating partial inverse optimization information
-            if (rev_flg) { // Structural removal of the specified area
+            if (maximize_mfe) { // Structural removal of the specified area
                 ofm[0] = (opt_fm - 1) * 3 + 1;
                 oto[0] = opt_to * 3;
                 n_inter = 1;
@@ -206,18 +206,18 @@ auto main(int argc, char *argv[]) -> int {
         }
 
         int nuclen = aalen * 3;
-        int w_tmp;
+        int max_bp_distance_final = 0;
 
-        if (W == 0) {
-            w_tmp = nuclen;
-        } else if (W < 10) {
+        if (max_bp_distance == 0) {
+            max_bp_distance_final = nuclen;
+        } else if (max_bp_distance < 10) {
             cerr << "W must be more than 10"
-                 << "(you used " << W << ")" << endl;
+                 << "(you used " << max_bp_distance << ")" << endl;
             exit(1);
-        } else if (W > nuclen) {
-            w_tmp = nuclen;
+        } else if (max_bp_distance > nuclen) {
+            max_bp_distance_final = nuclen;
         } else {
-            w_tmp = W;
+            max_bp_distance_final = max_bp_distance;
         }
 
         //		w_tmp = 50;// test!
@@ -227,7 +227,7 @@ auto main(int argc, char *argv[]) -> int {
         vector<vector<int>> Dep2;
         float ptotal_Mb_base = 0;
 
-        if (m_estim) {
+        if (estimate_memory_use) {
             ptotal_Mb_base = 2 + nuclen * 0.006956;
         } else {
             Dep1 = conv.countNeighborTwoBase(aaseq, exc);
@@ -256,7 +256,7 @@ auto main(int argc, char *argv[]) -> int {
         //		exit(0);
         vector<int> indx(nuclen+1, 0);
 
-        set_ij_indx(indx, nuclen, w_tmp);
+        set_ij_indx(indx, nuclen, max_bp_distance_final);
         // set_ij_indx(indx, nuclen);
 
         string optseq;
@@ -275,9 +275,9 @@ auto main(int argc, char *argv[]) -> int {
 
         //		int n_inter = 1;
 
-        if (m_estim) {
+        if (estimate_memory_use) {
             //		allocate_arrays(nuclen, indx, pos2nuc, pos2nuc, &C, &M, &F);
-            float ptotal_Mb_alloc = predict_memory(nuclen, w_tmp, pos2nuc);
+            float ptotal_Mb_alloc = predict_memory(nuclen, max_bp_distance_final, pos2nuc);
             float ptotal_Mb = ptotal_Mb_alloc + ptotal_Mb_base;
             cout << "Estimated memory usage: " << ptotal_Mb << " Mb" << endl;
             return 0;
@@ -288,20 +288,20 @@ auto main(int argc, char *argv[]) -> int {
 
         //		rev_flg = 0;
         //		if(rev_flg && num_interval == 0){
-        if (rev_flg && !part_opt_flg) {
+        if (maximize_mfe && !partial_opt) {
             // reverse mode
             string optseq_rev = rev_fold_step1(&aaseq[0], aalen, codon_table, exc);
             //			rev_fold_step2(&optseq_rev, aaseq, aalen, codon_table, exc, ofm, oto, 1);
             rev_fold_step2(&optseq_rev, &aaseq[0], aalen, codon_table, exc);
-            fixed_fold(optseq_rev, indx, w_tmp, predefHPN_E, BP_pair, P, &aaseq[0], codon_table);
+            fixed_fold(optseq_rev, indx, max_bp_distance_final, predefHPN_E, BP_pair, P, &aaseq[0], codon_table);
             free(P);
             break; // returnすると、実行時間が表示されなくなるためbreakすること。
         }
 
         //		allocate_arrays(nuclen, indx, pos2nuc, pos2nuc, &C, &M, &F);
-        allocate_arrays(nuclen, indx, w_tmp, pos2nuc, C, M, F, DMl, DMl1, DMl2, chkC, chkM, base_pair);
-        if (rand_tb_flg) {
-            allocate_F2(nuclen, indx, w_tmp, pos2nuc, F2);
+        allocate_arrays(nuclen, indx, max_bp_distance_final, pos2nuc, C, M, F, DMl, DMl1, DMl2, chkC, chkM, base_pair);
+        if (random_backtrack) {
+            allocate_F2(nuclen, indx, max_bp_distance_final, pos2nuc, F2);
         }
         // float ptotal_Mb = ptotal_Mb_alloc + ptotal_Mb_base;
 
@@ -318,7 +318,7 @@ auto main(int argc, char *argv[]) -> int {
                 //				test = 1;
                 int j = i + l - 1;
                 // int ij = indx[j] + i;
-                int ij = getIndx(i, j, w_tmp, indx);
+                int ij = getIndx(i, j, max_bp_distance_final, indx);
 
                 chkC[ij] = INF;
                 chkM[ij] = INF;
@@ -347,7 +347,7 @@ auto main(int argc, char *argv[]) -> int {
 
                         C[ij][L][R] = INF;
                         M[ij][L][R] = INF;
-                        if (rand_tb_flg)
+                        if (random_backtrack)
                             F2[ij][L][R] = 0;
                     }
                 }
@@ -357,7 +357,7 @@ auto main(int argc, char *argv[]) -> int {
         //		cout << "TEST" << M[13][0][0] << endl;
         // main routine
         for (int l = 5; l <= nuclen; l++) {
-            if (l > w_tmp)
+            if (l > max_bp_distance_final)
                 break;
             cout << "process:" << l << endl;
 
@@ -366,7 +366,7 @@ auto main(int argc, char *argv[]) -> int {
                 int j = i + l - 1;
 
                 int opt_flg_ij = 1;
-                if (part_opt_flg) {
+                if (partial_opt) {
                     for (int I = 0; I < n_inter; I++) {
                         if ((ofm[I] <= i && oto[I] >= i) || (ofm[I] <= j && oto[I] >= j)) {
                             opt_flg_ij = 0;
@@ -392,7 +392,7 @@ auto main(int argc, char *argv[]) -> int {
                         }
 
                         // int ij = indx[j] + i;
-                        int ij = getIndx(i, j, w_tmp, indx);
+                        int ij = getIndx(i, j, max_bp_distance_final, indx);
 
                         C[ij][L][R] = INF;
                         M[ij][L][R] = INF;
@@ -493,7 +493,7 @@ auto main(int argc, char *argv[]) -> int {
                                     minq = p + 1 + TURN;
                                 for (int q = minq; q < j; q++) {
 
-                                    int pq = getIndx(p, q, w_tmp, indx);
+                                    int pq = getIndx(p, q, max_bp_distance_final, indx);
 
                                     for (unsigned int Lp = 0; Lp < pos2nuc[p].size(); Lp++) {
                                         int Lp_nuc = pos2nuc[p][Lp];
@@ -694,7 +694,7 @@ auto main(int argc, char *argv[]) -> int {
                             }
 
                             // int energy_M = M[indx[j]+i+1][Li1][R]+P->MLbase;
-                            int energy_M = M[getIndx(i + 1, j, w_tmp, indx)][Li1][R] + P->MLbase;
+                            int energy_M = M[getIndx(i + 1, j, max_bp_distance_final, indx)][Li1][R] + P->MLbase;
                             M[ij][L][R] = MIN2(energy_M, M[ij][L][R]);
                         }
 
@@ -709,7 +709,7 @@ auto main(int argc, char *argv[]) -> int {
                             }
 
                             // int energy_M = M[indx[j-1]+i][L][Rj1]+P->MLbase;
-                            int energy_M = M[getIndx(i, j - 1, w_tmp, indx)][L][Rj1] + P->MLbase;
+                            int energy_M = M[getIndx(i, j - 1, max_bp_distance_final, indx)][L][Rj1] + P->MLbase;
                             M[ij][L][R] = MIN2(energy_M, M[ij][L][R]);
                         }
 
@@ -740,8 +740,8 @@ auto main(int argc, char *argv[]) -> int {
                                     // cout << i << " " << k-1 << ":" << M[indx[k-1]+i][L][Rk1] << "," << k << " " << j
                                     // << ":" << M[indx[j]+k][Lk][R] << endl; int energy_M =
                                     // M[indx[k-1]+i][L][Rk1]+M[indx[j]+k][Lk][R];
-                                    int energy_M = M[getIndx(i, k - 1, w_tmp, indx)][L][Rk1] +
-                                                   M[getIndx(k, j, w_tmp, indx)][Lk][R];
+                                    int energy_M = M[getIndx(i, k - 1, max_bp_distance_final, indx)][L][Rk1] +
+                                                   M[getIndx(k, j, max_bp_distance_final, indx)][Lk][R];
                                     DMl[i][L][R] = MIN2(energy_M, DMl[i][L][R]);
                                     M[ij][L][R] = MIN2(energy_M, M[ij][L][R]);
                                 }
@@ -801,9 +801,9 @@ auto main(int argc, char *argv[]) -> int {
                         int au_penalty = 0;
                         if (type_L1Rj > 2)
                             au_penalty = P->TerminalAU;
-                        if (j <= w_tmp)
+                        if (j <= max_bp_distance_final)
                             F[j][L1][Rj] =
-                                MIN2(F[j][L1][Rj], C[getIndx(1, j, w_tmp, indx)][L1][Rj] + au_penalty); // recc 1
+                                MIN2(F[j][L1][Rj], C[getIndx(1, j, max_bp_distance_final, indx)][L1][Rj] + au_penalty); // recc 1
                         // F[j][L1][Rj] = MIN2(F[j][L1][Rj], C[indx[j] + 1][L1][Rj] + au_penalty); // recc 1
                         //						}
                     }
@@ -823,7 +823,7 @@ auto main(int argc, char *argv[]) -> int {
 
                     // create F[j] from F[k-1] and C[k][j]
                     // for (int k = 2; k <= j - TURN - 1; k++) { // Is this correct?
-                    for (int k = MAX2(2, j - w_tmp + 1); k <= j - TURN - 1; k++) { // Is this correct?
+                    for (int k = MAX2(2, j - max_bp_distance_final + 1); k <= j - TURN - 1; k++) { // Is this correct?
                         for (unsigned int Rk1 = 0; Rk1 < pos2nuc[k - 1].size(); Rk1++) {
                             int Rk1_nuc = pos2nuc[k - 1][Rk1];
                             if (NCflg == 1 && i2r[Rk1_nuc] != NucConst[k - 1]) {
@@ -852,7 +852,7 @@ auto main(int argc, char *argv[]) -> int {
                                 if (type_LkRj > 2)
                                     au_penalty = P->TerminalAU;
                                 // int kj = indx[j] + k;
-                                int kj = getIndx(k, j, w_tmp, indx);
+                                int kj = getIndx(k, j, max_bp_distance_final, indx);
 
                                 int energy = F[k - 1][L1][Rk1] + C[kj][Lk][Rj] + au_penalty; // recc 4
 
@@ -897,10 +897,10 @@ auto main(int argc, char *argv[]) -> int {
             exit(1);
         }
 
-        if (rand_tb_flg) {
+        if (random_backtrack) {
             // Fill F2 matrix
             for (int l = 5; l <= nuclen; l++) {
-                if (l > w_tmp)
+                if (l > max_bp_distance_final)
                     break;
                 cout << "process F2:" << l << endl;
 
@@ -912,7 +912,7 @@ auto main(int argc, char *argv[]) -> int {
 
                         for (unsigned int R = 0; R < pos2nuc[j].size(); R++) {
                             int R_nuc = pos2nuc[j][R];
-                            int ij = getIndx(i, j, w_tmp, indx);
+                            int ij = getIndx(i, j, max_bp_distance_final, indx);
 
                             F2[ij][L][R] = 0;
 
@@ -924,7 +924,7 @@ auto main(int argc, char *argv[]) -> int {
                                 if (DEPflg && Dep1[ii2r[R1_nuc * 10 + R_nuc]][j - 1] == 0) {
                                     continue;
                                 }
-                                int ij1 = getIndx(i, j - 1, w_tmp, indx);
+                                int ij1 = getIndx(i, j - 1, max_bp_distance_final, indx);
                                 F2[ij][L][R] = MIN2(F2[ij][L][R], F2[ij1][L][R1]);
                             }
                             // from i-1, j -> i, j
@@ -933,7 +933,7 @@ auto main(int argc, char *argv[]) -> int {
                                 if (DEPflg && Dep1[ii2r[L_nuc * 10 + L1_nuc]][i] == 0) {
                                     continue;
                                 }
-                                int i1j = getIndx(i + 1, j, w_tmp, indx);
+                                int i1j = getIndx(i + 1, j, max_bp_distance_final, indx);
                                 F2[ij][L][R] = MIN2(F2[ij][L][R], F2[i1j][L1][R]);
                             }
 
@@ -941,7 +941,7 @@ auto main(int argc, char *argv[]) -> int {
                             int au_penalty = 0;
                             if (type > 2)
                                 au_penalty = P->TerminalAU;
-                            if (j - i + 1 <= w_tmp) {
+                            if (j - i + 1 <= max_bp_distance_final) {
                                 F2[ij][L][R] = MIN2(F2[ij][L][R], C[ij][L][R] + au_penalty);
                                 // cout << "test:" << F2[ij][L][R] << endl;
                             }
@@ -963,8 +963,8 @@ auto main(int argc, char *argv[]) -> int {
                                             continue;
                                         } // dependency between k - 1 and k
 
-                                        int energy = F2[getIndx(i, k - 1, w_tmp, indx)][L][Rk1] +
-                                                     F2[getIndx(k, j, w_tmp, indx)][Lk][R];
+                                        int energy = F2[getIndx(i, k - 1, max_bp_distance_final, indx)][L][Rk1] +
+                                                     F2[getIndx(k, j, max_bp_distance_final, indx)][Lk][R];
                                         F2[ij][L][R] = MIN2(F2[ij][L][R], energy);
                                     }
                                 }
@@ -986,13 +986,13 @@ auto main(int argc, char *argv[]) -> int {
         //i2n, rtype, ii2r, Dep1, Dep2, DEPflg, predefHPN, predefHPN_E, substr, n2i, NucDef);
 
         array<stack, 500> sector;
-        if (rand_tb_flg) {
+        if (random_backtrack) {
             backtrack2(&optseq, sector, base_pair, C, M, F2, indx, minL, minR, P, NucConst, pos2nuc, NCflg, i2r,
-                       nuclen, w_tmp, BP_pair, i2n, rtype, ii2r, Dep1, Dep2, DEPflg, predefHPN_E, substr,
+                       nuclen, max_bp_distance_final, BP_pair, i2n, rtype, ii2r, Dep1, Dep2, DEPflg, predefHPN_E, substr,
                        n2i, NucDef);
         } else {
             backtrack(&optseq, sector, base_pair, C, M, F, indx, minL, minR, P, NucConst, pos2nuc, NCflg, i2r,
-                      nuclen, w_tmp, BP_pair, i2n, rtype, ii2r, Dep1, Dep2, DEPflg, predefHPN_E, substr, n2i,
+                      nuclen, max_bp_distance_final, BP_pair, i2n, rtype, ii2r, Dep1, Dep2, DEPflg, predefHPN_E, substr, n2i,
                       NucDef);
         }
 
@@ -1074,7 +1074,7 @@ auto main(int argc, char *argv[]) -> int {
         cout << optstr << endl;
         cout << "MFE:" << float(MFE) / 100 << " kcal/mol" << endl;
 
-        if (part_opt_flg == 1) {
+        if (partial_opt == 1) {
             // Creation of partial amino acid sequence
             for (int I = 0; I < n_inter; I++) {
                 int aa_fm = (ofm[I] - 1) / 3 + 1; // 1-based
@@ -1101,11 +1101,11 @@ auto main(int argc, char *argv[]) -> int {
                     optseq[i] = part_optseq[j++];
                 }
             }
-            fixed_fold(optseq, indx, w_tmp, predefHPN_E, BP_pair, P, &aaseq[0], codon_table);
+            fixed_fold(optseq, indx, max_bp_distance_final, predefHPN_E, BP_pair, P, &aaseq[0], codon_table);
             // fixed_fold(optseq, indx, w_tmp, predefHPN_E, BP_pair, P, aaseq, codon_table);
         }
 
-        if (m_disp) {
+        if (show_memory_use) {
             // get process ID
 
             pid_t pid = getpid();

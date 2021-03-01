@@ -16,8 +16,8 @@ vector<vector<int>> getPossibleNucleotide(std::string const & aaseq, codon &codo
 inline auto getMatrixSize(int len, int w) -> int {
     int size = 0;
     for (int i = 1; i <= w; i++) {
-        size += len - (i - 1); // マトリクスの斜めの要素数を足し合わせるイメージ
-                               // i=1のときは、対角要素（len個）を足し合わせる。
+        size += len - (i - 1); // Image of adding the number of diagonal elements of the matrix
+                               // When i = 1, add diagonal elements (len).
     }
 
     cout << "The size of matrix is " << size << endl;
@@ -25,9 +25,9 @@ inline auto getMatrixSize(int len, int w) -> int {
 }
 
 inline auto getIndx(int const &i, int const &j, int const &w, vector<int> const &indx) -> int {
-    return indx[j] + i - MAX2(0, j - w); // j-wは使わない要素の数。
-                                         // wが指定されない(=length)と、j列にはj個分(1<i<j)の要素が用意される。
-                                         // wが指定されると、j列にはで使う要素はw個、使わない要素はj-w個となる。
+    return indx[j] + i - MAX2(0, j - w); // j-w is the number of unused elements.
+                                         // If w is not specified (= length), j elements (1 <i <j) are prepared in the j column.
+                                         // When w is specified, the number of elements used in column j is w, and the number of unused elements is j-w.
 }
 
 
