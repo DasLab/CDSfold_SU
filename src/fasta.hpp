@@ -2,15 +2,15 @@
 //#include <string> // なくても良い。
 // #include <fstream>
 #include <vector>
+#include <string>
 using namespace std;
 
 #pragma once
 
 class eachseq {
   public:
-    char *desc;
-    char *seq;
-    int seqlen;
+    string desc;
+    string seq;
 };
 
 class fasta {
@@ -18,9 +18,9 @@ class fasta {
     fasta(const char *fname); //コンストラクタには戻り値
                               //が要らないという特別ルールがある。
     ~fasta();
-    auto getDesc() -> char * { return data[p].desc; }
-    auto getSeq() -> char * { return data[p].seq; }
-    auto getSeqLen() -> int { return data[p].seqlen; }
+    auto getDesc() -> string { return data[p].desc; }
+    auto getSeq() -> string { return data[p].seq; }
+    auto getSeqLen() -> int { return data[p].seq.size(); }
     void initP() { p = 0; }
     void printP();
 

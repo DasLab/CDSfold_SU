@@ -28,21 +28,9 @@ fasta::fasta(const char *fname) { // DPマトリクスの動的メモリ確保
             if (line[0] == '>') {
                 eachseq e;
                 // cout << "ok1" << endl;
-                e.seq =
-                    new char[tmp_seq.length() +
-                             1]; // 配列の長さ分だけ領域を新たに確保する
-                                 // +1入れないとなぜかsegmentaionエラーに。 <- うーん。良く分からん。
-                e.desc = new char[tmp_desc.length() + 1]; // 配列の長さ分だけ領域を新たに確保する
-                strcpy(e.seq, (char *)tmp_seq.c_str());   // 文字列をコピー（char型への変換が必要）
-                strcpy(e.desc, (char *)tmp_desc.c_str()); // 文字列をコピー（char型への変換が必要）
-                e.seqlen = tmp_seq.length();
+                e.seq = tmp_seq;
+                e.desc = tmp_desc;
                 data.push_back(e); //
-                tmp_seq.erase(0);  // 空にする
-                tmp_desc.erase(0); // 空にする
-
-                // e.seq should be deleted?
-
-                // id++;
                 numSeq++; // 配列数
 
                 line.erase(0, 1); // ">"を削除
@@ -53,17 +41,9 @@ fasta::fasta(const char *fname) { // DPマトリクスの動的メモリ確保
         }
         // 一番最後の配列
         eachseq e;
-        e.seq = new char[tmp_seq.length() + 1];
-        e.desc = new char[tmp_desc.length() + 1];
-        strcpy(e.seq, (char *)tmp_seq.c_str());
-        strcpy(e.desc, (char *)tmp_desc.c_str());
-        e.seqlen = tmp_seq.length();
+        e.seq = tmp_seq;
+        e.desc = tmp_desc;
         data.push_back(e);
-
-        // e.seq should be deleted?
-        // tmp_seq.erase(0); // this should be done?
-        // tmp_desc.erase(0);// this should be done?
-
     } else {
         if (fname == nullptr) {
             cerr << "Error: no input file" << endl;
@@ -74,13 +54,6 @@ fasta::fasta(const char *fname) { // DPマトリクスの動的メモリ確保
     }
 }
 
-fasta::~fasta() {
-    // cout << "# elemetns :" << data.size() << endl;
-    for (auto & i : data) {
-        // cout << "deleting fasta: " << i << endl;
-        delete[] i.desc;
-        delete[] i.seq;
-    }
-}
+fasta::~fasta() {}
 
 void fasta::printP() { cout << p << endl; }

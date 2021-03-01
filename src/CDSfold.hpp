@@ -122,14 +122,17 @@ inline void allocate_F2(int len, vector<int> const & indx, int w, vector<vector<
 }
 
 
-inline void set_ij_indx(vector<int> & a, int length) {
+inline vector<int> set_ij_indx(int length) {
+    vector<int> a( length + 1, 0 );
     for (int n = 1; n <= length; n++) {
         a[n] = (n * (n - 1)) / 2;
     }
+    return a;
 }
 
 
-inline void set_ij_indx(vector<int> & a, int length, int w) {
+inline vector<int> set_ij_indx(int length, int w) {
+    vector<int> a( length + 1, 0 );
     if (w <= 0) {
         cerr << "Invalid w:" << w << endl;
         exit(1);
@@ -145,6 +148,7 @@ inline void set_ij_indx(vector<int> & a, int length, int w) {
             cum += w;
         }
     }
+    return a;
 }
 
 

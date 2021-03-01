@@ -51,13 +51,13 @@ using namespace std;
 auto main(int argc, char *argv[]) -> int {
     // printf("%d\n%ld", INT_MAX, LONG_MAX);
     int max_bp_distance = 0;            // -w
-    string exc = "";      // -e
+    string codons_excluded = "";      // -e
     bool show_memory_use = false;       // -M
     bool estimate_memory_use = false;      // -U
     bool random_backtrack = false;  //-R
     bool maximize_mfe = false;      // -r
     bool partial_opt = false; // -f and -t
-    unsigned int opt_fm = 0;       // -f
+    unsigned int opt_from = 0;       // -f
     unsigned int opt_to = 0;       // -t
     // get options
     {
@@ -68,7 +68,7 @@ auto main(int argc, char *argv[]) -> int {
                 max_bp_distance = atoi(optarg);
                 break;
             case 'e':
-                exc = string(optarg);
+                codons_excluded = string(optarg);
                 break;
             case 'M':
                 show_memory_use = true;
@@ -83,7 +83,7 @@ auto main(int argc, char *argv[]) -> int {
                 maximize_mfe = true;
                 break;
             case 'f':
-                opt_fm = atoi(optarg);
+                opt_from = atoi(optarg);
                 partial_opt = true;
                 break;
             case 't':
@@ -95,21 +95,21 @@ auto main(int argc, char *argv[]) -> int {
     }
     // exit(0);
 
-    // -R オプションに関するチェック
+    // -R Check for options
     if (random_backtrack) {
-        if (max_bp_distance != 0 || exc != "" || show_memory_use || estimate_memory_use || maximize_mfe || partial_opt) {
+        if (max_bp_distance != 0 || codons_excluded != "" || show_memory_use || estimate_memory_use || maximize_mfe || partial_opt) {
             cerr << "The -R option must not be used together with other options." << endl;
             return 0;
         }
     }
 
     if (partial_opt) {
-        // 部分最適化が指定された。
-        if (opt_fm == 0 || opt_to == 0) {
+        // Partial optimization was specified.
+        if (opt_from == 0 || opt_to == 0) {
             cerr << "The -f and -t option must be used together." << endl;
             exit(1);
         }
-        if (opt_fm < 1) {
+        if (opt_from < 1) {
             cerr << "The -f value must be 1 or more." << endl;
             exit(1);
         }
@@ -117,14 +117,11 @@ auto main(int argc, char *argv[]) -> int {
             cerr << "The -t value must be 1 or more." << endl;
             exit(1);
         }
-        if (opt_to < opt_fm) {
+        if (opt_to < opt_from) {
             cerr << "The -f value must be smaller than -t value." << endl;
             exit(1);
         }
     }
-
-    // int energy = E(5, 1, 1, 2, "ATGCATGC");
-    // int energy = E_Hairpin(5, 1, 1, 2, "ATGCATGC");
 
     map<char, int> n2i = make_n2i();
     std::array<char, 20> i2n;
@@ -138,42 +135,29 @@ auto main(int argc, char *argv[]) -> int {
     AASeqConverter conv;
 
     codon codon_table;
-    // codon_table.Table();
 
     const char dummy_str[10] = "XXXXXXXXX";
-    // int NCflg = 1;
-    //	int TB_CHK_flg = 0;
-    //	int preHPN_flg = 1;
     int TEST = 1;
     int DEPflg = 1;
     int NCflg = 0;
-    //	char *NucDef =
-    //"*AUGGGUCUUCCAGUGUCAUUACGAGCUGACACCAUUCGAGAUUUAUUACUUGGUGUCAGCUCGAUAAUGACCUGGAAGACCCUUGCUCUUGUGUUAGCUGUGAUCAAUCUCAAGAAUCUGCCACUAGUGUGGCACCCGGGGGAUCCUCAUUUCCCCCGGGGGAAGGCGCUGGUGACGCAUACGGGCAAACCCACUCAUCCGGUGUUUGUCCCGUAUGCGAUCACCAGUCGCACUCCGAUUCUUGAGACUGAUUACAACUUUCACAAGAGCAAUUCCACGUAUUUUAGCGAUUUGGAUAUU";
     const char NucDef[] =
         "*AUGGAGGGGAUUGUCACGGGAGAUCGGCUUGCUUGCGUGGCGCUUCAUGGAAGCUCUUUGCUCCAUGAAGCGUCCGUAAGCAAGUAUACCGAUAUCCCGGGCAUUCUCC"
         "UCCAAUACAUCGAUGAAUUUCCCCUCACUGAUAUUGCCGCGCACGCGCCACGCGAGGCGUGGCAAAGCCUGUGCGAACAGGCGAUCUGUAUCGUCCAUCAUAUUAGCGAC"
         "CGGGGCAUCCUCAAUGAGGAUGUUAAAACCCGGUCGCUGACGAUACAGAUCAACAGUGAGGGGAUGUUCAAGAUGUUUAUG";
-    // string tmp_def =
-    // "*AUGGCCCCCAUACAGCAGAAGGCACUAAUCAACUGCGAUAUGGGGGAAGCUUACGGGAACUGGGCCUGCGGCCCAGAUCUCGAGCUCCUCCCCAUGAUCGACAUCGCCAACGUGGCGUGUGGAUUUCAUGGGGGGGAUCCAUUAAUAAUGAUGGAAACGGUGCGCAACUGUAAAGCGCACAAUGUGCGCAUAGGGGCGCACCCUGGCCUCCCGGACCUGCAGGGGUUCGGGAGGCGGGAGAUGAAACUCUCCCCUGAAGAGCUCACCGCCAUGACUAUUUAUCAGGUGGGAGCUCUUCAG";
-    // char *NucDef = "*AUGAGUCUGGCGUGCAUGGCCAAGUAG";
-    // char *NucDef = "*AUGUCUCUCGCGUGCAUGGCCAAGUGA";
-    // char *NucDef = "*AUGUCUUUAGCCUGUAUGGCUAAAUAA";
-    // cout << "optind is " << optind << endl;
-    // const char *NucDef = tmp_def.c_str();
     fasta all_aaseq(argv[optind]); // get all sequences
 
     cout << "W = " << max_bp_distance << endl;
-    cout << "e = " << exc << endl;
+    cout << "e = " << codons_excluded << endl;
     do {
         string aaseq = string(all_aaseq.getSeq());
-        int aalen = all_aaseq.getSeqLen();
+        unsigned int aalen = aaseq.size();
 
         if (aalen <= 2) {
             cerr << "The amino acid sequence is too short.\n";
             exit(1);
         }
 
-        int n_inter = 0; //今の実装では、n_inter=1 or 2となる。
+        int n_inter = 0; // In the current implementation, n_inter = 1 or 2.
         int ofm[100];
         int oto[100];
         if (partial_opt) {
@@ -183,14 +167,14 @@ auto main(int argc, char *argv[]) -> int {
 
             // Creating partial inverse optimization information
             if (maximize_mfe) { // Structural removal of the specified area
-                ofm[0] = (opt_fm - 1) * 3 + 1;
+                ofm[0] = (opt_from - 1) * 3 + 1;
                 oto[0] = opt_to * 3;
                 n_inter = 1;
             } else { // Structural stabilization of the specified area
                 int l = 0;
-                if (opt_fm != 1) {
+                if (opt_from != 1) {
                     ofm[l] = 1;
-                    oto[l++] = (opt_fm - 1) * 3;
+                    oto[l++] = (opt_from - 1) * 3;
                 }
                 if (opt_to != aalen) {
                     ofm[l] = opt_to * 3 + 1;
@@ -222,7 +206,7 @@ auto main(int argc, char *argv[]) -> int {
 
         //		w_tmp = 50;// test!
         //		vector<vector<vector<string> > >  substr = conv.getBases(string(aaseq),8, exc);
-        vector<vector<vector<string>>> substr = conv.getOriginalBases(aaseq, exc);
+        vector<vector<vector<string>>> substr = conv.getOriginalBases(aaseq, codons_excluded);
         vector<vector<int>> Dep1;
         vector<vector<int>> Dep2;
         float ptotal_Mb_base = 0;
@@ -230,8 +214,8 @@ auto main(int argc, char *argv[]) -> int {
         if (estimate_memory_use) {
             ptotal_Mb_base = 2 + nuclen * 0.006956;
         } else {
-            Dep1 = conv.countNeighborTwoBase(aaseq, exc);
-            Dep2 = conv.countEveryOtherTwoBase(aaseq, exc);
+            Dep1 = conv.countNeighborTwoBase(aaseq, codons_excluded);
+            Dep2 = conv.countEveryOtherTwoBase(aaseq, codons_excluded);
         }
 
         map<string, int> predefHPN_E = conv.getBaseEnergy();
@@ -250,33 +234,12 @@ auto main(int argc, char *argv[]) -> int {
         cout << aaseq << endl;
         //		cout << aalen << endl;
 
-        vector<vector<int>> pos2nuc = getPossibleNucleotide(aaseq, codon_table, n2i, exc);
+        vector<vector<int>> pos2nuc = getPossibleNucleotide(aaseq, codon_table, n2i, codons_excluded);
         //		vector<vector<int> > pos2nuc = getPossibleNucleotide(aaseq, aalen, codon_table, n2i, 'R');
         //		showPos2Nuc(pos2nuc, i2n);
         //		exit(0);
-        vector<int> indx(nuclen+1, 0);
-
-        set_ij_indx(indx, nuclen, max_bp_distance_final);
-        // set_ij_indx(indx, nuclen);
-
-        string optseq;
-        optseq.resize(nuclen + 1, 'N');
-        optseq[0] = ' ';
-
-        string optseq_org;
-        optseq_org.resize(nuclen + 1, 'N');
-        optseq_org[0] = ' ';
-
-        //	  int ***C, ***Mbl, ***Mbr, ***Mbb, ***M, ***F, ***Fbr, ***tFbr;
-        vector<vector<vector<int>>> C, M, F, F2;
-        vector<array<array<int, 4>, 4>> DMl, DMl1, DMl2;
-        vector<int> chkC, chkM;
-        vector<bond> base_pair;
-
-        //		int n_inter = 1;
 
         if (estimate_memory_use) {
-            //		allocate_arrays(nuclen, indx, pos2nuc, pos2nuc, &C, &M, &F);
             float ptotal_Mb_alloc = predict_memory(nuclen, max_bp_distance_final, pos2nuc);
             float ptotal_Mb = ptotal_Mb_alloc + ptotal_Mb_base;
             cout << "Estimated memory usage: " << ptotal_Mb << " Mb" << endl;
@@ -288,17 +251,21 @@ auto main(int argc, char *argv[]) -> int {
 
         //		rev_flg = 0;
         //		if(rev_flg && num_interval == 0){
+        vector<int> const indx = set_ij_indx(nuclen, max_bp_distance_final);
         if (maximize_mfe && !partial_opt) {
             // reverse mode
-            string optseq_rev = rev_fold_step1(&aaseq[0], aalen, codon_table, exc);
+            string optseq_rev = rev_fold_step1(&aaseq[0], aalen, codon_table, codons_excluded);
             //			rev_fold_step2(&optseq_rev, aaseq, aalen, codon_table, exc, ofm, oto, 1);
-            rev_fold_step2(&optseq_rev, &aaseq[0], aalen, codon_table, exc);
+            rev_fold_step2(&optseq_rev, &aaseq[0], aalen, codon_table, codons_excluded);
             fixed_fold(optseq_rev, indx, max_bp_distance_final, predefHPN_E, BP_pair, P, &aaseq[0], codon_table);
             free(P);
             break; // returnすると、実行時間が表示されなくなるためbreakすること。
         }
 
-        //		allocate_arrays(nuclen, indx, pos2nuc, pos2nuc, &C, &M, &F);
+        vector<vector<vector<int>>> C, M, F, F2;
+        vector<array<array<int, 4>, 4>> DMl, DMl1, DMl2;
+        vector<int> chkC, chkM;
+        vector<bond> base_pair;
         allocate_arrays(nuclen, indx, max_bp_distance_final, pos2nuc, C, M, F, DMl, DMl1, DMl2, chkC, chkM, base_pair);
         if (random_backtrack) {
             allocate_F2(nuclen, indx, max_bp_distance_final, pos2nuc, F2);
@@ -986,6 +953,12 @@ auto main(int argc, char *argv[]) -> int {
         //i2n, rtype, ii2r, Dep1, Dep2, DEPflg, predefHPN, predefHPN_E, substr, n2i, NucDef);
 
         array<stack, 500> sector;
+        string optseq(nuclen + 1, 'N');
+        optseq[0] = ' ';
+
+        string optseq_org(nuclen + 1, 'N');
+        optseq_org[0] = ' ';
+
         if (random_backtrack) {
             backtrack2(&optseq, sector, base_pair, C, M, F2, indx, minL, minR, P, NucConst, pos2nuc, NCflg, i2r,
                        nuclen, max_bp_distance_final, BP_pair, i2n, rtype, ii2r, Dep1, Dep2, DEPflg, predefHPN_E, substr,
@@ -1093,8 +1066,8 @@ auto main(int argc, char *argv[]) -> int {
                 cout << part_aalen << endl;
                 cout << &part_aaseq << endl;
 
-                string part_optseq = rev_fold_step1(&part_aaseq[0], part_aalen, codon_table, exc);
-                rev_fold_step2(&part_optseq, &part_aaseq[0], part_aalen, codon_table, exc);
+                string part_optseq = rev_fold_step1(&part_aaseq[0], part_aalen, codon_table, codons_excluded);
+                rev_fold_step2(&part_optseq, &part_aaseq[0], part_aalen, codon_table, codons_excluded);
                 // combine optseq_rev and optseq
                 j = 1;
                 for (int i = ofm[I]; i <= oto[I]; i++) {
