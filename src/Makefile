@@ -10,7 +10,7 @@ CXXFLAGS = -O3 -std=c++17 -mfpmath=sse -msse -msse2 -msse3 \
 	-DNDEBUG -Wall -Wextra -Wpedantic -pipe -Wundef --param large-function-growth=100000 -fPIC \
 	-I$(VIENNA) -I$(VIENNA)/include/ViennaRNA 
 
-CDSFOLD_OBJS = fasta.o Util.o FileManager.o codon.o backtracking.o
+CDSFOLD_OBJS = fasta.o Util.o FileManager.o codon.o backtracking.o Problem.o CDSfold_rev.o
 
 compile:
 	$(CXX) ${CXXFLAGS} -c CDSfold.cpp 

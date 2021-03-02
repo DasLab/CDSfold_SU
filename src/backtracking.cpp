@@ -16,12 +16,14 @@ extern "C" {
 }
 
 #include "backtracking.hpp"
-#include "CDSfold.hpp" // for getIndx, TermAU...
+#include "Problem.hpp" // for getIndx...
+#include "energy.hpp" // for TermAU...
+#include "Util.hpp"
 
 void backtrack(string *optseq, array<stack, 500> & sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f,
                vector<int> const & indx, const int &initL, const int &initR, paramT *const P, const vector<int> &NucConst,
                const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
-               int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
+               int const (&BP_pair)[5][5], array<char, 20> const &i2n, int const *const &rtype, array<int, 100> const &ii2r,
                vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, bool const DEPflg, map<string, int> &predefE,
                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef) {
 
@@ -597,7 +599,7 @@ OUTLOOP:
 void backtrack2(string *optseq, array<stack, 500> & sector, vector<bond> & base_pair, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
                 vector<int> const & indx, const int &initL, const int &initR, paramT *const P, const vector<int> &NucConst,
                 const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
-                int const (&BP_pair)[5][5], array<char, 20> const &i2n, int *const &rtype, array<int, 100> const &ii2r,
+                int const (&BP_pair)[5][5], array<char, 20> const &i2n, int const *const &rtype, array<int, 100> const &ii2r,
                 vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, bool const DEPflg, map<string, int> &predefE,
                 vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef) {
 

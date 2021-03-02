@@ -1,5 +1,7 @@
-
 #pragma once
+
+#include <cstring>
+#include <cmath>
 
 inline auto TermAU(int const &type, paramT * const P) -> int {
     if (type > 2) {
