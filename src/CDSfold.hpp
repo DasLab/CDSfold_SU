@@ -280,7 +280,7 @@ inline void showFixedMatrix(const int *m, vector<int> const & indx, const int le
 }
 
 
-inline vector<int> createNucConstraint(const char *s, int &len, map<char, int> &n2i) {
+inline vector<int> createNucConstraint(const char *s, unsigned int const len, map<char, int> &n2i) {
     vector<int> v(len + 1);
     for (int i = 1; i <= len; i++) {
         v[i] = n2i[s[i]];
@@ -377,4 +377,4 @@ inline void fixed_init_matrix(const int &nuclen, const int &size, vector<int> & 
 
 
 void fixed_fold(string optseq, vector<int> const & indx, const int &w, map<string, int> &predefE, const int (&BP_pair)[5][5],
-                paramT *P, char *aaseq, const codon& codon_table);
+                paramT *P, char const *aaseq, const codon& codon_table);
