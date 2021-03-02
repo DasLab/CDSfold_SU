@@ -25,7 +25,7 @@ void backtrack(string *optseq, array<stack, 500> & sector, vector<bond> & base_p
                const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
                int const (&BP_pair)[5][5], array<char, 20> const &i2n, int const *const &rtype, array<int, 100> const &ii2r,
                vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, bool const DEPflg, map<string, int> &predefE,
-               vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef) {
+               vector<vector<vector<string>>> &substr, map<char, int> const & n2i, const char *nucdef) {
 
     int s = 0;
     int b = 0;
@@ -292,10 +292,10 @@ OUTLOOP:
             int l = j - i + 1;
             for (unsigned int s = 0; s < substr[i][l].size(); s++) {
                 string hpn = substr[i][l][s];
-                int hL_nuc = n2i[hpn[0]];
-                int hL2_nuc = n2i[hpn[1]];
-                int hR2_nuc = n2i[hpn[l - 2]];
-                int hR_nuc = n2i[hpn[l - 1]];
+                int hL_nuc = n2i.at(hpn[0]);
+                int hL2_nuc = n2i.at(hpn[1]);
+                int hR2_nuc = n2i.at(hpn[l - 2]);
+                int hR_nuc = n2i.at(hpn[l - 1]);
                 if (hL_nuc != i2r[Li_nuc])
                     continue;
                 if (hR_nuc != i2r[Rj_nuc])
@@ -601,7 +601,7 @@ void backtrack2(string *optseq, array<stack, 500> & sector, vector<bond> & base_
                 const vector<vector<int>> &pos2nuc, const int &NCflg, array<int, 20> const &i2r, int const &length, int const &w,
                 int const (&BP_pair)[5][5], array<char, 20> const &i2n, int const *const &rtype, array<int, 100> const &ii2r,
                 vector<vector<int>> &Dep1, vector<vector<int>> &Dep2, bool const DEPflg, map<string, int> &predefE,
-                vector<vector<vector<string>>> &substr, map<char, int> &n2i, const char *nucdef) {
+                vector<vector<vector<string>>> &substr, map<char, int> const & n2i, const char *nucdef) {
 
     InitRand();
 
@@ -936,10 +936,10 @@ OUTLOOP:
             int l = j - i + 1;
             for (unsigned int s = 0; s < substr[i][l].size(); s++) {
                 string hpn = substr[i][l][s];
-                int hL_nuc = n2i[hpn[0]];
-                int hL2_nuc = n2i[hpn[1]];
-                int hR2_nuc = n2i[hpn[l - 2]];
-                int hR_nuc = n2i[hpn[l - 1]];
+                int hL_nuc = n2i.at(hpn[0]);
+                int hL2_nuc = n2i.at(hpn[1]);
+                int hR2_nuc = n2i.at(hpn[l - 2]);
+                int hR_nuc = n2i.at(hpn[l - 1]);
                 if (hL_nuc != i2r[Li_nuc])
                     continue;
                 if (hR_nuc != i2r[Rj_nuc])
