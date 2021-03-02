@@ -45,14 +45,25 @@ inline void clear_sec_bp(stack *s, bond *b, int len) {
 
 
 
-
-
-static constexpr array<int, 20> make_i2r() {
-    return {0, 1, 2, 3, 4, 4, 4, 3, 4, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    // n[5] = 4; // 2nd position of L is converted to U
-    // n[7] = 3; // 2nd position of R is converted to G
+static const array<int, 20> make_i2r() {
+    array<int, 20> n;
+    n[1] = 1;
+    n[2] = 2;
+    n[3] = 3;
+    n[4] = 4;
+    n[5] = 4; // 2nd position of L is converted to U
+    n[6] = 4;
+    n[7] = 3; // 2nd position of R is converted to G
+    n[8] = 3;
+    return n;
 }
+
+// static constexpr array<int, 20> make_i2r() {
+//     return {0, 1, 2, 3, 4, 4, 4, 3, 4, 0,
+//             0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//     // n[5] = 4; // 2nd position of L is converted to U
+//     // n[7] = 3; // 2nd position of R is converted to G
+// }
 
 
 inline array<int, 100> make_ii2r() {
