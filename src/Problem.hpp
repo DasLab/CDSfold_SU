@@ -2,9 +2,11 @@
 
 #include <iosfwd>
 #include <iostream>
+// maybe convert to unique_ptr to avoid need for whole headers
 #include "codon.hpp"
 #include "CDSfold_rev.hpp"
 #include "AASeqConverter.hpp"
+#include "Options.hpp"
 
 extern "C" {
 #include "params.h"
@@ -117,9 +119,12 @@ vector<vector<int>> getPossibleNucleotide(std::string const & aaseq, codon &codo
 
 class Problem {
 public:
-    Problem(Options & options, std::string const & aaseq);
+    Problem(Options const & options, std::string const & aaseq);
     
 private:
+
+    Options options_;
+    std::string aaseq_;
 
     // In theory it's a little silly to construct this once per sequence
     // but look, it's cheap and maybe it'll be helpful long term to have
