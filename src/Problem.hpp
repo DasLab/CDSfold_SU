@@ -120,11 +120,29 @@ vector<vector<int>> getPossibleNucleotide(std::string const & aaseq, codon &codo
 class Problem {
 public:
     Problem(Options const & options, std::string const & aaseq);
+    ~Problem() {
+        free(P_);
+    }
+    void calculate();
     
 private:
 
     Options options_;
     std::string aaseq_;
+    unsigned int aalen_ = 0;
+    unsigned int nuclen_ = 0;
+    int max_bp_distance_final_ = 0;
+    paramT *P_ = nullptr;
+    vector<vector<int>> Dep1_;
+    vector<vector<int>> Dep2_;
+    map<string, int> predefHPN_E_;
+    vector<int> NucConst_;
+    vector<vector<int>> pos2nuc_;
+    vector<vector<vector<string>>> substr_;
+    int n_inter_ = 0; // In the current implementation, n_inter = 1 or 2.
+    int ofm_[5]; // I don't even think you need this much.
+    int oto_[5]; // these have two different meanings for the max and min algs?
+    vector<int> indx_;
 
     // In theory it's a little silly to construct this once per sequence
     // but look, it's cheap and maybe it'll be helpful long term to have
@@ -143,7 +161,15 @@ private:
 
     AASeqConverter conv;
 
-    codon codon_table;
+    codon codon_table_;
+
+    inline vector<int> set_ij_indx();
+
+
+    auto rev_fold_step1() -> string;
+    void rev_fold_step2(string & optseq_r);
+
+    void fixed_fold(string & optseq);
 
 };
 
@@ -241,35 +267,30 @@ inline vector<int> createNucConstraint(const char *s, unsigned int const len, ma
     return v;
 }
 
+// inline vector<int> set_ij_indx(int length) {
+//     vector<int> a( length + 1, 0 );
+//     for (int n = 1; n <= length; n++) {
+//         a[n] = (n * (n - 1)) / 2;
+//     }
+//     return a;
+// }
 
 
-void fixed_fold(string optseq, vector<int> const & indx, const int &w, map<string, int> &predefE, const int (&BP_pair)[5][5],
-                paramT *P, char const *aaseq, const codon& codon_table);
-
-inline vector<int> set_ij_indx(int length) {
-    vector<int> a( length + 1, 0 );
-    for (int n = 1; n <= length; n++) {
-        a[n] = (n * (n - 1)) / 2;
-    }
-    return a;
-}
-
-
-inline vector<int> set_ij_indx(int length, int w) {
-    vector<int> a( length + 1, 0 );
-    if (w <= 0) {
-        cerr << "Invalid w:" << w << endl;
+inline vector<int> Problem::set_ij_indx() {
+    vector<int> a( nuclen_ + 1, 0 );
+    if (max_bp_distance_final_ <= 0) {
+        cerr << "Invalid w:" << max_bp_distance_final_ << endl;
         exit(1);
     }
-    w = MIN2(length, w);
+    max_bp_distance_final_ = MIN2(nuclen_, max_bp_distance_final_);
     int cum = 0;
-    for (int n = 1; n <= length; n++) {
+    for (int n = 1; n <= nuclen_; n++) {
         a[n] = cum;
         // cout << n << ":" << a[n] << endl;
-        if (n < w) {
+        if (n < max_bp_distance_final_) {
             cum += n;
         } else {
-            cum += w;
+            cum += max_bp_distance_final_;
         }
     }
     return a;

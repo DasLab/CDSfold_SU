@@ -112,6 +112,7 @@ auto main(int argc, char *argv[]) -> int {
 
         // OK, here's where we begin.
         Problem problem(options, aaseq);
+        problem.calculate();
 
 
     } while (all_aaseq.next());

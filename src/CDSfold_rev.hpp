@@ -113,7 +113,6 @@ inline auto calcPseudoEnergy(const Ntable &N, const Ctable &C) -> float {
     return energy;
 }
 
-auto rev_fold_step1(const char *aaseq, const int aalen, codon &codon_table, const string &exc_codons) -> string;
 
 inline auto countNtable(string &seq, int F) -> Ntable {
     Ntable N;
