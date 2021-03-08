@@ -2,6 +2,7 @@
 
 #include <iosfwd>
 #include <iostream>
+#include <memory>
 // maybe convert to unique_ptr to avoid need for whole headers
 #include "codon.hpp"
 #include "CDSfold_rev.hpp"
@@ -121,7 +122,7 @@ class Problem {
 public:
     Problem(Options const & options, std::string const & aaseq);
     ~Problem() {
-        free(P_);
+        // free(P_);
     }
     void calculate();
     
@@ -132,7 +133,7 @@ private:
     unsigned int aalen_ = 0;
     unsigned int nuclen_ = 0;
     int max_bp_distance_final_ = 0;
-    paramT *P_ = nullptr;
+    unique_ptr<paramT> P_ = nullptr;
     vector<vector<int>> Dep1_;
     vector<vector<int>> Dep2_;
     map<string, int> predefHPN_E_;
@@ -185,8 +186,7 @@ private:
 
     void backtrack(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR);
     void backtrack2(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR);
-    void fixed_backtrack(string optseq, bond *base_pair, vector<int> const & c, vector<int> const & m, int *f, vector<int> const & indx, paramT *P, int nuclen, int w,
-                     const int (&BP_pair)[5][5], map<string, int> predefE);
+    void fixed_backtrack(string const & optseq, bond *base_pair, vector<int> const & c, vector<int> const & m, int *f, int nuclen, const int (&BP_pair)[5][5]);
 
 };
 

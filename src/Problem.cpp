@@ -38,7 +38,8 @@ const array<int, 100> Problem::ii2r = make_ii2r();
 
 Problem::Problem(Options const & options, string const & aaseq):
     options_( options ),
-    aaseq_( aaseq )
+    aaseq_( aaseq ),
+    P_(scale_parameters())
 {
     aalen_ = aaseq_.size();
 
@@ -132,7 +133,6 @@ Problem::Problem(Options const & options, string const & aaseq):
         exit(0);
     }
 
-    P_ = scale_parameters();
     update_fold_params();
 }
 
@@ -996,8 +996,8 @@ void Problem::fixed_fold(string & optseq) {
     //	for(int i = 1; i <= nuclen; i++){
     //		cout << "FMAT: " << i << " " << F[i] << "  " <<  w << endl;
     //	}
-	// AMW TODO
-    fixed_backtrack(optseq, &base_pair[0], C, M, &F[0], indx_, P_, nuclen, max_bp_distance_final_, BP_pair, predefHPN_E_);
+	// Because fixed_fold uses arrays made here, we assume we can only change a few things.
+    fixed_backtrack(optseq, &base_pair[0], C, M, &F[0], nuclen, BP_pair);
     //}
 
     //	cout << "end" << endl;
@@ -2759,8 +2759,7 @@ OUTLOOP:
 }
 
 
-void Problem::fixed_backtrack(string optseq, bond *base_pair_, vector<int> const & c, vector<int> const & m, int *f, vector<int> const & indx_, paramT * const P, int nuclen, int w,
-                     const int (&BP_pair)[5][5], map<string, int> predefHPN_E_) {
+void Problem::fixed_backtrack(string const & optseq, bond *base_pair_, vector<int> const & c, vector<int> const & m, int *f, int nuclen, const int (&BP_pair)[5][5]) {
     int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
     int s = 0;
     int b = 0;
@@ -2797,10 +2796,10 @@ OUTLOOP:
         if (j == i)
             break;
 
-        fij = (ml == 1) ? m[getIndx(i, j, w, indx_)] : f[j];
+        fij = (ml == 1) ? m[getIndx(i, j, max_bp_distance_final_, indx_)] : f[j];
         cout << "TB_CHK:" << i << ":" << j << " " << ml << "(" << fij << ")" << endl;
 
-        fi = (ml == 1) ? m[getIndx(i, j - 1, w, indx_)] + P->MLbase : f[j - 1];
+        fi = (ml == 1) ? m[getIndx(i, j - 1, max_bp_distance_final_, indx_)] + P_->MLbase : f[j - 1];
 
         if (fij == fi) { /* 3' end is unpaired */
             sector[++s].i = i;
@@ -2817,8 +2816,8 @@ OUTLOOP:
             }
 
             // f[j]とC[1][j]が一致している時の処理。Vieenaでは、次for文に統合されている。
-            if (type && j <= w) {
-                int en_c = TermAU(type, P) + c[getIndx(i, j, w, indx_)];
+            if (type && j <= max_bp_distance_final_) {
+                int en_c = TermAU(type, P_) + c[getIndx(i, j, max_bp_distance_final_, indx_)];
                 int en_f = f[j];
                 if (en_c == en_f) {
                     k = i;
@@ -2827,11 +2826,11 @@ OUTLOOP:
                 }
             }
 
-            for (k = j - TURN - 1, traced = 0; k >= MAX2(2, j - w + 1); k--) {
+            for (k = j - TURN - 1, traced = 0; k >= MAX2(2, j - max_bp_distance_final_ + 1); k--) {
 
                 int type_kj = BP_pair[ioptseq[k]][ioptseq[j]];
                 if (type_kj) {
-                    int en_c = TermAU(type_kj, P) + c[getIndx(k, j, w, indx_)];
+                    int en_c = TermAU(type_kj, P_) + c[getIndx(k, j, max_bp_distance_final_, indx_)];
                     int en_f = f[k - 1];
                     if (fij == en_c + en_f) {
                         traced = j;
@@ -2861,23 +2860,23 @@ OUTLOOP:
             goto repeat1;
         } else { /* trace back in fML array */
 
-            if (m[getIndx(i + 1, j, w, indx_)] + P->MLbase == fij) { /* 5' end is unpaired */
+            if (m[getIndx(i + 1, j, max_bp_distance_final_, indx_)] + P_->MLbase == fij) { /* 5' end is unpaired */
                 sector[++s].i = i + 1;
                 sector[s].j = j;
                 sector[s].ml = ml;
                 goto OUTLOOP;
             }
 
-            ij = getIndx(i, j, w, indx_);
+            ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-            if (fij == c[ij] + TermAU(type, P) + P->MLintern[type]) {
+            if (fij == c[ij] + TermAU(type, P_) + P_->MLintern[type]) {
                 base_pair_[++b].i = i;
                 base_pair_[b].j = j;
                 goto repeat1;
             }
 
             for (k = i + 2 + TURN; k <= j - 1 - TURN; k++) {
-                if (fij == (m[getIndx(i, k - 1, w, indx_)] + m[getIndx(k, j, w, indx_)])) {
+                if (fij == (m[getIndx(i, k - 1, max_bp_distance_final_, indx_)] + m[getIndx(k, j, max_bp_distance_final_, indx_)])) {
                     sector[++s].i = i;
                     sector[s].j = k - 1;
                     sector[s].ml = ml;
@@ -2897,10 +2896,10 @@ OUTLOOP:
     repeat1: // いちいちスタックに積まずに、ここで部分的なトレースバックをしてしまう。
         // continue;
         /*----- begin of "repeat:" -----*/
-        if (j - i + 1 > w) {
+        if (j - i + 1 > max_bp_distance_final_) {
             cerr << "backtrack failed at " << i << "," << j << " : the nuclen_ must at most << w << endl";
         }
-        ij = getIndx(i, j, w, indx_); // ここでは元々のi,jから変換していることに注意。jは更新されないこともある[1]
+        ij = getIndx(i, j, max_bp_distance_final_, indx_); // ここでは元々のi,jから変換していることに注意。jは更新されないこともある[1]
         type = BP_pair[ioptseq[i]][ioptseq[j]];
         cij = c[ij];
 
@@ -2917,7 +2916,7 @@ OUTLOOP:
                     goto OUTLOOP;
                 }
             } else { // 普通のヘアピンとの比較
-                int energy = E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN", P);
+                int energy = E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN", P_);
 
                 if (c[ij] == energy) {
                     goto OUTLOOP;
@@ -2926,7 +2925,7 @@ OUTLOOP:
 
         } else {
             // 普通のヘアピンのトレースバック
-            if (cij == E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN", P)) {
+            if (cij == E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN", P_)) {
                 goto OUTLOOP;
             }
         }
@@ -2943,9 +2942,9 @@ OUTLOOP:
                 type_pq = rtype[type_pq];
 
                 int energy = E_intloop(p - i - 1, j - q - 1, type, type_pq, ioptseq[i + 1], ioptseq[j - 1],
-                                       ioptseq[p - 1], ioptseq[q + 1], P);
+                                       ioptseq[p - 1], ioptseq[q + 1], P_);
 
-                int energy_new = energy + c[getIndx(p, q, w, indx_)];
+                int energy_new = energy + c[getIndx(p, q, max_bp_distance_final_, indx_)];
                 traced = (cij == energy_new);
                 if (traced) {
                     base_pair_[++b].i = p;
@@ -2966,10 +2965,10 @@ OUTLOOP:
 
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
-        int en = cij - TermAU(type_rev, P) - P->MLintern[type_rev] - P->MLclosing;
+        int en = cij - TermAU(type_rev, P_) - P_->MLintern[type_rev] - P_->MLclosing;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
             //マルチループを閉じるところと、bifucationを同時に探している。
-            if (en == m[getIndx(i + 1, k - 1, w, indx_)] + m[getIndx(k, j - 1, w, indx_)]) {
+            if (en == m[getIndx(i + 1, k - 1, max_bp_distance_final_, indx_)] + m[getIndx(k, j - 1, max_bp_distance_final_, indx_)]) {
                 goto LABEL2;
             }
         }
