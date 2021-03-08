@@ -181,6 +181,13 @@ private:
     void allocate_F2();
     void fill_F2();
 
+
+
+    void backtrack(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR);
+    void backtrack2(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR);
+    void fixed_backtrack(string optseq, bond *base_pair, vector<int> const & c, vector<int> const & m, int *f, vector<int> const & indx, paramT *P, int nuclen, int w,
+                     const int (&BP_pair)[5][5], map<string, int> predefE);
+
 };
 
 

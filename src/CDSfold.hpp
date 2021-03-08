@@ -3,7 +3,6 @@
 #include <fstream>
 #include <sstream>
 #include "codon.hpp"
-#include "backtracking.hpp" // just for bond
 #include "energy.hpp"
 
 using namespace std;

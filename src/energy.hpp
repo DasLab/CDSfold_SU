@@ -3,6 +3,11 @@
 #include <cstring>
 #include <cmath>
 
+extern "C" {
+#include "params.h"
+#include "utils.h"
+}
+
 inline auto TermAU(int const &type, paramT * const P) -> int {
     if (type > 2) {
         return P->TerminalAU;
