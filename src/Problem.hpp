@@ -144,6 +144,11 @@ private:
     int oto_[5]; // these have two different meanings for the max and min algs?
     vector<int> indx_;
 
+    vector<vector<vector<int>>> C_, M_, F_, F2_;
+    vector<array<array<int, 4>, 4>> DMl_, DMl1_, DMl2_;
+    vector<int> ChkC_, ChkM_;
+    vector<bond> base_pair_;
+
     // In theory it's a little silly to construct this once per sequence
     // but look, it's cheap and maybe it'll be helpful long term to have
     // this be a one to one relationship
@@ -171,6 +176,11 @@ private:
 
     void fixed_fold(string & optseq);
 
+    void allocate_arrays();
+    void fill_F();
+    void allocate_F2();
+    void fill_F2();
+
 };
 
 
@@ -191,22 +201,6 @@ inline auto getIndx(int const &i, int const &j, int const &w, vector<int> const 
                                          // If w is not specified (= length), j elements (1 <i <j) are prepared in the j column.
                                          // When w is specified, the number of elements used in column j is w, and the number of unused elements is j-w.
 }
-
-void allocate_arrays(
-    int len,
-    vector<int> const & indx,
-    int w,
-    vector<vector<int>> &pos2nuc,
-    vector<vector<vector<int>>> & c,
-    vector<vector<vector<int>>> & m,
-    vector<vector<vector<int>>> & f,
-    vector<array<array<int, 4>, 4>> & dml,
-    vector<array<array<int, 4>, 4>> & dml1,
-    vector<array<array<int, 4>, 4>> & dml2,
-    vector<int> & chkc,
-    vector<int> & chkm,
-    vector<bond> & b
-);
 
 void allocate_F2(int len, vector<int> const & indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & f2);
 

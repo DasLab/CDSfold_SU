@@ -149,13 +149,9 @@ void Problem::calculate() {
         return; // returnすると、実行時間が表示されなくなるためbreakすること。
     }
 
-    vector<vector<vector<int>>> C, M, F, F2;
-    vector<array<array<int, 4>, 4>> DMl, DMl1, DMl2;
-    vector<int> chkC, chkM;
-    vector<bond> base_pair;
-    allocate_arrays(nuclen_, indx_, max_bp_distance_final_, pos2nuc_, C, M, F, DMl, DMl1, DMl2, chkC, chkM, base_pair);
+    allocate_arrays();
     if (options_.random_backtrack) {
-        allocate_F2(nuclen_, indx_, max_bp_distance_final_, pos2nuc_, F2);
+        allocate_F2();
     }
     // float ptotal_Mb = ptotal_Mb_alloc + ptotal_Mb_base;
 
@@ -174,17 +170,17 @@ void Problem::calculate() {
             // int ij = indx[j] + i;
             int ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-            chkC[ij] = INF;
-            chkM[ij] = INF;
+            ChkC_[ij] = INF;
+            ChkM_[ij] = INF;
 
             for (unsigned int L = 0; L < pos2nuc_[i].size(); L++) {
                 int L_nuc = pos2nuc_[i][L];
-                if (options_.nucleotide_constraints == 1 && i2r[L_nuc] != NucConst_[i]) {
+                if (options_.nucleotide_constraints && i2r[L_nuc] != NucConst_[i]) {
                     continue;
                 }
                 for (unsigned int R = 0; R < pos2nuc_[j].size(); R++) {
                     int R_nuc = pos2nuc_[j][R];
-                    if (options_.nucleotide_constraints == 1 && i2r[R_nuc] != NucConst_[j]) {
+                    if (options_.nucleotide_constraints && i2r[R_nuc] != NucConst_[j]) {
                         continue;
                     }
                     // L-R pair must be filtered
@@ -199,10 +195,11 @@ void Problem::calculate() {
                         continue;
                     }
 
-                    C[ij][L][R] = INF;
-                    M[ij][L][R] = INF;
-                    if (options_.random_backtrack)
-                        F2[ij][L][R] = 0;
+                    C_[ij][L][R] = INF;
+                    M_[ij][L][R] = INF;
+                    if (options_.random_backtrack) {
+                        F2_[ij][L][R] = 0;
+                    }
                 }
             }
         }
@@ -211,8 +208,9 @@ void Problem::calculate() {
     //		cout << "TEST" << M[13][0][0] << endl;
     // main routine
     for (int l = 5; l <= nuclen_; l++) {
-        if (l > max_bp_distance_final_)
+        if (l > max_bp_distance_final_) {
             break;
+        }
         cout << "process:" << l << endl;
 
         //	  for(int l = 5; l <= 5; l++){
@@ -232,7 +230,7 @@ void Problem::calculate() {
             for (unsigned int L = 0; L < pos2nuc_[i].size(); L++) {
                 int L_nuc = pos2nuc_[i][L];
                 //					cout << NCflg << endl;
-                if (options_.nucleotide_constraints == 1 && i2r[L_nuc] != NucConst_[i]) {
+                if (options_.nucleotide_constraints && i2r[L_nuc] != NucConst_[i]) {
                     continue;
                 }
                 //					cout << "ok" << endl;
@@ -241,22 +239,22 @@ void Problem::calculate() {
 
                     int R_nuc = pos2nuc_[j][R];
 
-                    if (options_.nucleotide_constraints == 1 && i2r[R_nuc] != NucConst_[j]) {
+                    if (options_.nucleotide_constraints && i2r[R_nuc] != NucConst_[j]) {
                         continue;
                     }
 
                     // int ij = indx[j] + i;
                     int ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-                    C[ij][L][R] = INF;
-                    M[ij][L][R] = INF;
+                    C_[ij][L][R] = INF;
+                    M_[ij][L][R] = INF;
                     //						cout << i << " " << j << ":" << M[ij][L][R] <<
                     // endl;
 
                     int type = BP_pair[i2r[L_nuc]][i2r[R_nuc]];
 
                     if (!type || !opt_flg_ij) {
-                        C[ij][L][R] = INF;
+                        C_[ij][L][R] = INF;
                     } else {
                         // hairpin
                         if ((l == 5 || l == 6 || l == 8)) {
@@ -272,8 +270,9 @@ void Problem::calculate() {
 
                                 if (options_.nucleotide_constraints) {
                                     string s1 = string(NucDef).substr(i, l);
-                                    if (hpn != s1)
+                                    if (hpn != s1) {
                                         continue;
+                                    }
                                 }
 
                                 //									cout << hpn <<
@@ -288,7 +287,7 @@ void Problem::calculate() {
                                 } // ただし、L_nuc、R_nucがVWXYのときだけは、一つ内側との依存関係をチェックする必要がある。
                                     // その逆に、一つ内側がVWXYのときはチェックの必要はない。既にチェックされているので。
                                 if (predefHPN_E_.count(hpn) > 0) {
-                                    C[ij][L][R] = MIN2(predefHPN_E_[hpn], C[ij][L][R]);
+                                    C_[ij][L][R] = MIN2(predefHPN_E_[hpn], C_[ij][L][R]);
 
                                 } else {
                                     //										int energy
@@ -297,7 +296,7 @@ void Problem::calculate() {
                                     // dummy_str);
                                     int energy =
                                         E_hairpin(j - i - 1, type, i2r[hL2_nuc], i2r[hR2_nuc], dummy_str, P_);
-                                    C[ij][L][R] = MIN2(energy, C[ij][L][R]);
+                                    C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
                                 }
                             }
                             // exit(0);
@@ -333,7 +332,7 @@ void Problem::calculate() {
                                     // i2r[R2_nuc] << ")" << " at " << i << "," << j << ":" << energy << endl; cout
                                     // << i << " " << j  << " " << energy << ":" << i2n[L_nuc] << "-" << i2n[R_nuc]
                                     // << "<-" << i2n[L2_nuc] << "-" << i2n[R2_nuc] << endl;
-                                    C[ij][L][R] = MIN2(energy, C[ij][L][R]);
+                                    C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
                                 }
                             }
                         }
@@ -343,8 +342,9 @@ void Problem::calculate() {
                         for (int p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1);
                                 p++) { // loop for position q, p
                             int minq = j - i + p - MAXLOOP - 2;
-                            if (minq < p + 1 + TURN)
+                            if (minq < p + 1 + TURN) {
                                 minq = p + 1 + TURN;
+                            }
                             for (int q = minq; q < j; q++) {
 
                                 int pq = getIndx(p, q, max_bp_distance_final_, indx_);
@@ -377,8 +377,9 @@ void Problem::calculate() {
 
                                         int type_2 = BP_pair[i2r[Lp_nuc]][i2r[Rq_nuc]];
 
-                                        if (type_2 == 0)
+                                        if (type_2 == 0) {
                                             continue;
+                                        }
                                         type_2 = rtype[type_2];
 
                                         //											if
@@ -408,7 +409,7 @@ void Problem::calculate() {
                                             }
 
                                             for (int const R2_nuc : pos2nuc_[j - 1]) {
-                                                if (options_.nucleotide_constraints == 1 && i2r[R2_nuc] != NucConst_[j - 1]) {
+                                                if (options_.nucleotide_constraints && i2r[R2_nuc] != NucConst_[j - 1]) {
                                                     continue;
                                                 }
 
@@ -440,7 +441,7 @@ void Problem::calculate() {
                                                             // sentence confirm the dependency between Rj_nuc and
                                                             // Rq2_nuc
 
-                                                        if (options_.nucleotide_constraints == 1 && i2r[Rq2_nuc] != NucConst_[q + 1]) {
+                                                        if (options_.nucleotide_constraints && i2r[Rq2_nuc] != NucConst_[q + 1]) {
                                                             continue;
                                                         }
 
@@ -463,8 +464,8 @@ void Problem::calculate() {
                                                         //		+ C[indx[q]
                                                         //			+ p][Lp][Rq];
 
-                                                        int energy = int_energy + C[pq][Lp][Rq];
-                                                        C[ij][L][R] = MIN2(energy, C[ij][L][R]);
+                                                        int energy = int_energy + C_[pq][Lp][Rq];
+                                                        C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
                                                     }
                                                 }
                                             }
@@ -477,7 +478,7 @@ void Problem::calculate() {
                         // multi-loop
                         for (unsigned int Li1 = 0; Li1 < pos2nuc_[i + 1].size(); Li1++) {
                             int Li1_nuc = pos2nuc_[i + 1][Li1];
-                            if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
+                            if (options_.nucleotide_constraints && i2r[Li1_nuc] != NucConst_[i + 1]) {
                                 continue;
                             }
 
@@ -487,7 +488,7 @@ void Problem::calculate() {
 
                             for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
                                 int Rj1_nuc = pos2nuc_[j - 1][Rj1];
-                                if (options_.nucleotide_constraints == 1 && i2r[Rj1_nuc] != NucConst_[j - 1]) {
+                                if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
                                     continue;
                                 }
 
@@ -502,18 +503,19 @@ void Problem::calculate() {
                                 } // 2014/10/8
                                     // i-jが近いときは、MLclosingする必要はないのでは。少なくとも3つのステムが含まれなければならない。それには、５＋５＋２（ヘアピン2個分＋2塩基）の長さが必要。
 
-                                int energy = DMl2
+                                int energy = DMl2_
                                     [i + 1][Li1]
                                     [Rj1]; // 長さが2個短いときの、複合マルチループ。i'=i+1を選ぶと、j'=(i+1)+(l-2)-1=i+l-2=j-1(because:j=i+l-1)
                                 int tt = rtype[type];
 
                                 energy += P_->MLintern[tt];
-                                if (tt > 2)
+                                if (tt > 2) {
                                     energy += P_->TerminalAU;
+                                }
 
                                 energy += P_->MLclosing;
                                 // cout << "TEST:" << i << " " << j << " " << energy << endl;
-                                C[ij][L][R] = MIN2(energy, C[ij][L][R]);
+                                C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
 
                                 //									if(C[ij][L][R] == -1130 && ij
                                 //== 10091){
@@ -529,18 +531,18 @@ void Problem::calculate() {
                     // fill M
                     // create M[ij] from C[ij]
                     if (type) {
-                        int energy_M = C[ij][L][R];
+                        int energy_M = C_[ij][L][R];
                         if (type > 2)
                             energy_M += P_->TerminalAU;
 
                         energy_M += P_->MLintern[type];
-                        M[ij][L][R] = energy_M;
+                        M_[ij][L][R] = energy_M;
                     }
 
                     // create M[ij] from M[i+1][j]
                     for (unsigned int Li1 = 0; Li1 < pos2nuc_[i + 1].size(); Li1++) {
                         int Li1_nuc = pos2nuc_[i + 1][Li1];
-                        if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
+                        if (options_.nucleotide_constraints && i2r[Li1_nuc] != NucConst_[i + 1]) {
                             continue;
                         }
                         if (options_.DEPflg && Dep1_[ii2r[L_nuc * 10 + Li1_nuc]][i] == 0) {
@@ -548,14 +550,14 @@ void Problem::calculate() {
                         }
 
                         // int energy_M = M[indx[j]+i+1][Li1][R]+P->MLbase;
-                        int energy_M = M[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][R] + P_->MLbase;
-                        M[ij][L][R] = MIN2(energy_M, M[ij][L][R]);
+                        int energy_M = M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][R] + P_->MLbase;
+                        M_[ij][L][R] = MIN2(energy_M, M_[ij][L][R]);
                     }
 
                     // create M[ij] from M[i][j-1]
                     for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
                         int Rj1_nuc = pos2nuc_[j - 1][Rj1];
-                        if (options_.nucleotide_constraints == 1 && i2r[Rj1_nuc] != NucConst_[j - 1]) {
+                        if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
                             continue;
                         }
                         if (options_.DEPflg && Dep1_[ii2r[Rj1_nuc * 10 + R_nuc]][j - 1] == 0) {
@@ -563,8 +565,8 @@ void Problem::calculate() {
                         }
 
                         // int energy_M = M[indx[j-1]+i][L][Rj1]+P->MLbase;
-                        int energy_M = M[getIndx(i, j - 1, max_bp_distance_final_, indx_)][L][Rj1] + P_->MLbase;
-                        M[ij][L][R] = MIN2(energy_M, M[ij][L][R]);
+                        int energy_M = M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][L][Rj1] + P_->MLbase;
+                        M_[ij][L][R] = MIN2(energy_M, M_[ij][L][R]);
                     }
 
                     /* modular decomposition -------------------------------*/
@@ -572,7 +574,7 @@ void Problem::calculate() {
                         // cout << k << endl;
                         for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
                             int Rk1_nuc = pos2nuc_[k - 1][Rk1];
-                            if (options_.nucleotide_constraints == 1 && i2r[Rk1_nuc] != NucConst_[k - 1]) {
+                            if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
                                 continue;
                             }
                             // if(DEPflg && k == i + 2 && Dep1[ii2r[L_nuc*10+Rk1_nuc]][k-1] == 0){ continue;} //
@@ -582,7 +584,7 @@ void Problem::calculate() {
 
                             for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
                                 int Lk_nuc = pos2nuc_[k][Lk];
-                                if (options_.nucleotide_constraints == 1 && i2r[Lk_nuc] != NucConst_[k]) {
+                                if (options_.nucleotide_constraints && i2r[Lk_nuc] != NucConst_[k]) {
                                     continue;
                                 }
                                 if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
@@ -594,10 +596,10 @@ void Problem::calculate() {
                                 // cout << i << " " << k-1 << ":" << M[indx[k-1]+i][L][Rk1] << "," << k << " " << j
                                 // << ":" << M[indx[j]+k][Lk][R] << endl; int energy_M =
                                 // M[indx[k-1]+i][L][Rk1]+M[indx[j]+k][Lk][R];
-                                int energy_M = M[getIndx(i, k - 1, max_bp_distance_final_, indx_)][L][Rk1] +
-                                                M[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][R];
-                                DMl[i][L][R] = MIN2(energy_M, DMl[i][L][R]);
-                                M[ij][L][R] = MIN2(energy_M, M[ij][L][R]);
+                                int energy_M = M_[getIndx(i, k - 1, max_bp_distance_final_, indx_)][L][Rk1] +
+                                                M_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][R];
+                                DMl_[i][L][R] = MIN2(energy_M, DMl_[i][L][R]);
+                                M_[ij][L][R] = MIN2(energy_M, M_[ij][L][R]);
                             }
                         }
                     }
@@ -607,124 +609,27 @@ void Problem::calculate() {
                     // vwxyがあるので、ここを複数回訪れることがある。
                     //なので、MIN2を取っておく。
                     // if(i2r[L_nuc] == NucConst[i] && i2r[R_nuc] == NucConst[j]){
-                    chkC[ij] = MIN2(chkC[ij], C[ij][L][R]);
-                    chkM[ij] = MIN2(chkM[ij], M[ij][L][R]);
+                    ChkC_[ij] = MIN2(ChkC_[ij], C_[ij][L][R]);
+                    ChkM_[ij] = MIN2(ChkM_[ij], M_[ij][L][R]);
                     //} このループは多分意味がない。
                 }
             }
         }
         // rotate DMl arrays
         vector<array<array<int, 4>, 4>> FF;
-        FF = DMl2;
-        DMl2 = DMl1;
-        DMl1 = DMl;
-        DMl = FF;
+        FF = DMl2_;
+        DMl2_ = DMl1_;
+        DMl1_ = DMl_;
+        DMl_ = FF;
         for (int j = 1; j <= nuclen_; j++) {
-            DMl[j].fill({{INF, INF, INF, INF}});
+            DMl_[j].fill({{INF, INF, INF, INF}});
         }
     }
 
     // Fill F matrix
     // F[1], as well as the rest of F, is default-initialized to 0.
-
-    for (unsigned int L1 = 0; L1 < pos2nuc_[1].size(); L1++) {
-        int L1_nuc = pos2nuc_[1][L1];
-        if (options_.nucleotide_constraints == 1 && i2r[L1_nuc] != NucConst_[1]) {
-            continue;
-        }
-
-        for (int j = 2; j <= nuclen_; j++) {
-            for (unsigned int Rj = 0; Rj < pos2nuc_[j].size(); Rj++) {
-                int Rj_nuc = pos2nuc_[j][Rj];
-                if (options_.nucleotide_constraints == 1 && i2r[Rj_nuc] != NucConst_[j]) {
-                    continue;
-                }
-
-                if (options_.DEPflg && j == 2 && Dep1_[ii2r[L1_nuc * 10 + Rj_nuc]][1] == 0) {
-                    continue;
-                }
-                if (options_.DEPflg && j == 3 && Dep2_[ii2r[L1_nuc * 10 + Rj_nuc]][1] == 0) {
-                    continue;
-                }
-
-                F[j][L1][Rj] = INF;
-
-                int type_L1Rj = BP_pair[i2r[L1_nuc]][i2r[Rj_nuc]];
-                if (type_L1Rj) {
-                    //						if(opt_flg_1 && opt_flg_j){
-                    int au_penalty = 0;
-                    if (type_L1Rj > 2)
-                        au_penalty = P_->TerminalAU;
-                    if (j <= max_bp_distance_final_)
-                        F[j][L1][Rj] =
-                            MIN2(F[j][L1][Rj], C[getIndx(1, j, max_bp_distance_final_, indx_)][L1][Rj] + au_penalty); // recc 1
-                    // F[j][L1][Rj] = MIN2(F[j][L1][Rj], C[indx[j] + 1][L1][Rj] + au_penalty); // recc 1
-                    //						}
-                }
-
-                // create F[j] from F[j-1]
-                for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
-                    int Rj1_nuc = pos2nuc_[j - 1][Rj1];
-                    if (options_.nucleotide_constraints == 1 && i2r[Rj1_nuc] != NucConst_[j - 1]) {
-                        continue;
-                    }
-                    if (options_.DEPflg && Dep1_[ii2r[Rj1_nuc * 10 + Rj_nuc]][j - 1] == 0) {
-                        continue;
-                    }
-
-                    F[j][L1][Rj] = MIN2(F[j][L1][Rj], F[j - 1][L1][Rj1]); // recc 2
-                }
-
-                // create F[j] from F[k-1] and C[k][j]
-                // for (int k = 2; k <= j - TURN - 1; k++) { // Is this correct?
-                for (int k = MAX2(2, j - max_bp_distance_final_ + 1); k <= j - TURN - 1; k++) { // Is this correct?
-                    for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
-                        int Rk1_nuc = pos2nuc_[k - 1][Rk1];
-                        if (options_.nucleotide_constraints == 1 && i2r[Rk1_nuc] != NucConst_[k - 1]) {
-                            continue;
-                        }
-                        if (options_.DEPflg && k == 3 && Dep1_[ii2r[L1_nuc * 10 + Rk1_nuc]][1] == 0) {
-                            continue;
-                        } // dependency between 1(i) and 2(k-1)
-                        if (options_.DEPflg && k == 4 && Dep2_[ii2r[L1_nuc * 10 + Rk1_nuc]][1] == 0) {
-                            continue;
-                        } // dependency between 1(i) and 3(k-1)
-
-                        for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
-                            int Lk_nuc = pos2nuc_[k][Lk];
-                            if (options_.nucleotide_constraints == 1 && i2r[Lk_nuc] != NucConst_[k]) {
-                                continue;
-                            }
-
-                            if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
-                                continue;
-                            } // dependency between k-1 and k
-
-                            int type_LkRj = BP_pair[i2r[Lk_nuc]][i2r[Rj_nuc]];
-
-                            int au_penalty = 0;
-                            if (type_LkRj > 2)
-                                au_penalty = P_->TerminalAU;
-                            // int kj = indx[j] + k;
-                            int kj = getIndx(k, j, max_bp_distance_final_, indx_);
-
-                            int energy = F[k - 1][L1][Rk1] + C[kj][Lk][Rj] + au_penalty; // recc 4
-
-                            F[j][L1][Rj] = MIN2(F[j][L1][Rj], energy);
-                        }
-                    }
-                }
-
-                // cout << j << ":" << F[j][L1][Rj] << " " << i2n[L1_nuc] << "-" << i2n[Rj_nuc] << endl;
-
-                // test
-                if (j == nuclen_) {
-                    cout << i2n[L1_nuc] << "-" << i2n[Rj_nuc] << ":" << F[j][L1][Rj] << endl;
-                }
-            }
-        }
-    }
-
+    fill_F();
+    
     int minL, minR, MFE;
     MFE = INF;
     for (unsigned int L = 0; L < pos2nuc_[1].size(); L++) {
@@ -738,8 +643,8 @@ void Problem::calculate() {
                 continue;
             }
 
-            if (F[nuclen_][L][R] < MFE) {
-                MFE = F[nuclen_][L][R];
+            if (F_[nuclen_][L][R] < MFE) {
+                MFE = F_[nuclen_][L][R];
                 minL = L;
                 minR = R;
             }
@@ -749,87 +654,6 @@ void Problem::calculate() {
     if (MFE == INF) {
         printf("Mininum free energy is not defined.\n");
         exit(1);
-    }
-
-    if (options_.random_backtrack) {
-        // Fill F2 matrix
-        for (int l = 5; l <= nuclen_; l++) {
-            if (l > max_bp_distance_final_)
-                break;
-            cout << "process F2:" << l << endl;
-
-            for (int i = 1; i <= nuclen_ - l + 1; i++) {
-                int j = i + l - 1;
-
-                for (unsigned int L = 0; L < pos2nuc_[i].size(); L++) {
-                    int L_nuc = pos2nuc_[i][L];
-
-                    for (unsigned int R = 0; R < pos2nuc_[j].size(); R++) {
-                        int R_nuc = pos2nuc_[j][R];
-                        int ij = getIndx(i, j, max_bp_distance_final_, indx_);
-
-                        F2[ij][L][R] = 0;
-
-                        int type = BP_pair[i2r[L_nuc]][i2r[R_nuc]];
-
-                        // from i, j-1 -> i, j
-                        for (unsigned int R1 = 0; R1 < pos2nuc_[j - 1].size(); R1++) {
-                            int R1_nuc = pos2nuc_[j - 1][R1];
-                            if (options_.DEPflg && Dep1_[ii2r[R1_nuc * 10 + R_nuc]][j - 1] == 0) {
-                                continue;
-                            }
-                            int ij1 = getIndx(i, j - 1, max_bp_distance_final_, indx_);
-                            F2[ij][L][R] = MIN2(F2[ij][L][R], F2[ij1][L][R1]);
-                        }
-                        // from i-1, j -> i, j
-                        for (unsigned int L1 = 0; L1 < pos2nuc_[i + 1].size(); L1++) {
-                            int L1_nuc = pos2nuc_[i + 1][L1];
-                            if (options_.DEPflg && Dep1_[ii2r[L_nuc * 10 + L1_nuc]][i] == 0) {
-                                continue;
-                            }
-                            int i1j = getIndx(i + 1, j, max_bp_distance_final_, indx_);
-                            F2[ij][L][R] = MIN2(F2[ij][L][R], F2[i1j][L1][R]);
-                        }
-
-                        // from C
-                        int au_penalty = 0;
-                        if (type > 2)
-                            au_penalty = P_->TerminalAU;
-                        if (j - i + 1 <= max_bp_distance_final_) {
-                            F2[ij][L][R] = MIN2(F2[ij][L][R], C[ij][L][R] + au_penalty);
-                            // cout << "test:" << F2[ij][L][R] << endl;
-                        }
-
-                        // Bifucation
-                        /* modular decomposition -------------------------------*/
-                        for (int k = i + 2 + TURN; k <= j - TURN - 1; k++) { // Is this correct?
-                            // cout << k << endl;
-                            //			    				if((k - 1) - i + 1 > w_tmp ||
-                            //			    					j - k + 1 > w_tmp)
-                            //			    						continue;
-
-                            for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
-                                int Rk1_nuc = pos2nuc_[k - 1][Rk1];
-
-                                for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
-                                    int Lk_nuc = pos2nuc_[k][Lk];
-                                    if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
-                                        continue;
-                                    } // dependency between k - 1 and k
-
-                                    int energy = F2[getIndx(i, k - 1, max_bp_distance_final_, indx_)][L][Rk1] +
-                                                    F2[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][R];
-                                    F2[ij][L][R] = MIN2(F2[ij][L][R], energy);
-                                }
-                            }
-                        }
-
-                        //							cout << i << "," << j << "," << L << "," << R << "," << F2[ij][L][R]
-                        //<< endl;
-                    }
-                }
-            }
-        }
     }
 
     //		string optseq;
@@ -847,11 +671,13 @@ void Problem::calculate() {
     optseq_org[0] = ' ';
 
     if (options_.random_backtrack) {
-        backtrack2(&optseq, sector, base_pair, C, M, F2, indx_, minL, minR, P_, NucConst_, pos2nuc_, options_.nucleotide_constraints, i2r,
+        // Fill F2 matrix
+        fill_F2();
+        backtrack2(&optseq, sector, base_pair_, C_, M_, F2_, indx_, minL, minR, P_, NucConst_, pos2nuc_, options_.nucleotide_constraints, i2r,
                     nuclen_, max_bp_distance_final_, BP_pair, i2n, rtype, ii2r, Dep1_, Dep2_, options_.DEPflg, predefHPN_E_, substr_,
                     n2i, NucDef);
     } else {
-        backtrack(&optseq, sector, base_pair, C, M, F, indx_, minL, minR, P_, NucConst_, pos2nuc_, options_.nucleotide_constraints, i2r,
+        backtrack(&optseq, sector, base_pair_, C_, M_, F_, indx_, minL, minR, P_, NucConst_, pos2nuc_, options_.nucleotide_constraints, i2r,
                     nuclen_, max_bp_distance_final_, BP_pair, i2n, rtype, ii2r, Dep1_, Dep2_, options_.DEPflg, predefHPN_E_, substr_, n2i,
                     NucDef);
     }
@@ -905,9 +731,9 @@ void Problem::calculate() {
     string optstr;
     optstr.resize(nuclen_ + 1, '.');
     optstr[0] = ' ';
-    for (int i = 1; i <= base_pair[0].i; i++) {
-        optstr[base_pair[i].i] = '(';
-        optstr[base_pair[i].j] = ')';
+    for (int i = 1; i <= base_pair_[0].i; i++) {
+        optstr[base_pair_[i].i] = '(';
+        optstr[base_pair_[i].j] = ')';
     }
 
     // show original amino acids
@@ -1256,63 +1082,49 @@ vector<vector<int>> getPossibleNucleotide(string const & aaseq, codon &codon_tab
     return v;
 }
 
-void allocate_arrays(
-    int len,
-    vector<int> const & indx,
-    int w,
-    vector<vector<int>> &pos2nuc,
-    vector<vector<vector<int>>> & c,
-    vector<vector<vector<int>>> & m,
-    vector<vector<vector<int>>> & f,
-    vector<array<array<int, 4>, 4>> & dml,
-    vector<array<array<int, 4>, 4>> & dml1,
-    vector<array<array<int, 4>, 4>> & dml2,
-    vector<int> & chkc,
-    vector<int> & chkm,
-    vector<bond> & b
-) {
-    int size = getMatrixSize(len, w);
-    c.resize(size + 1);
-    m.resize(size + 1);
-    for (int i = 1; i <= len; i++) {
-        for (int j = i; j <= MIN2(len, i + w - 1); j++) {
+void Problem::allocate_arrays() {
+    int size = getMatrixSize(nuclen_, max_bp_distance_final_);
+    C_.resize(size + 1);
+    M_.resize(size + 1);
+    for (int i = 1; i <= nuclen_; i++) {
+        for (int j = i; j <= MIN2(nuclen_, i + max_bp_distance_final_ - 1); j++) {
             // cout << i << " " << j << endl;
-            int ij = getIndx(i, j, w, indx);
-            c[ij].resize(pos2nuc[i].size());
-            m[ij].resize(pos2nuc[i].size());
-            for (unsigned int L = 0; L < pos2nuc[i].size(); L++) {
-                c[ij][L].resize(pos2nuc[j].size());
-                m[ij][L].resize(pos2nuc[j].size());
+            int ij = getIndx(i, j, max_bp_distance_final_, indx_);
+            C_[ij].resize(pos2nuc_[i].size());
+            M_[ij].resize(pos2nuc_[i].size());
+            for (unsigned int L = 0; L < pos2nuc_[i].size(); L++) {
+                C_[ij][L].resize(pos2nuc_[j].size());
+                M_[ij][L].resize(pos2nuc_[j].size());
             }
         }
     }
 
-    f.resize(len + 1);
-    dml.resize(len + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
-    dml1.resize(len + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
-    dml2.resize(len + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
-    for (int j = 1; j <= len; j++) {
-        f[j].resize(pos2nuc[j].size());
-        for (unsigned int L = 0; L < pos2nuc[1].size(); L++) { // The first position
-            f[j][L].resize(pos2nuc[j].size());
+    F_.resize(nuclen_ + 1);
+    DMl_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
+    DMl1_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
+    DMl2_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
+    for (int j = 1; j <= nuclen_; j++) {
+        F_[j].resize(pos2nuc_[j].size());
+        for (unsigned int L = 0; L < pos2nuc_[1].size(); L++) { // The first position
+            F_[j][L].resize(pos2nuc_[j].size());
         }
     }
 
-    chkc.resize(size + 1, INF);
-    chkm.resize(size + 1, INF);
+    ChkC_.resize(size + 1, INF);
+    ChkM_.resize(size + 1, INF);
 
-    b.resize(len / 2);
+    base_pair_.resize(nuclen_ / 2);
 }
 
-void allocate_F2(int len, vector<int> const & indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & f2) {
-    int size = getMatrixSize(len, w);
-    f2.resize(size + 1);
-    for (int i = 1; i <= len; i++) {
-        for (int j = i; j <= MIN2(len, i + w - 1); j++) {
-            int ij = getIndx(i, j, w, indx);
-            f2[ij].resize(pos2nuc[i].size());
-            for (unsigned int L = 0; L < pos2nuc[i].size(); L++) {
-                f2[ij][L].resize(pos2nuc[j].size());
+void Problem::allocate_F2() {
+    int size = getMatrixSize(nuclen_, max_bp_distance_final_);
+    F2_.resize(size + 1);
+    for (int i = 1; i <= nuclen_; i++) {
+        for (int j = i; j <= MIN2(nuclen_, i + max_bp_distance_final_ - 1); j++) {
+            int ij = getIndx(i, j, max_bp_distance_final_, indx_);
+            F2_[ij].resize(pos2nuc_[i].size());
+            for (unsigned int L = 0; L < pos2nuc_[i].size(); L++) {
+                F2_[ij][L].resize(pos2nuc_[j].size());
             }
         }
     }
@@ -1546,5 +1358,187 @@ void Problem::rev_fold_step2(string & optseq_r) {
         if (max_energy == max_energy_prev)
             break;
         max_energy_prev = max_energy;
+    }
+}
+
+void Problem::fill_F2() {
+    for (int l = 5; l <= nuclen_; l++) {
+        if (l > max_bp_distance_final_) {
+            break;
+        }
+        cout << "process F2:" << l << endl;
+
+        for (int i = 1; i <= nuclen_ - l + 1; i++) {
+            int j = i + l - 1;
+
+            for (unsigned int L = 0; L < pos2nuc_[i].size(); L++) {
+                int L_nuc = pos2nuc_[i][L];
+
+                for (unsigned int R = 0; R < pos2nuc_[j].size(); R++) {
+                    int R_nuc = pos2nuc_[j][R];
+                    int ij = getIndx(i, j, max_bp_distance_final_, indx_);
+
+                    F2_[ij][L][R] = 0;
+
+                    int type = BP_pair[i2r[L_nuc]][i2r[R_nuc]];
+
+                    // from i, j-1 -> i, j
+                    for (unsigned int R1 = 0; R1 < pos2nuc_[j - 1].size(); R1++) {
+                        int R1_nuc = pos2nuc_[j - 1][R1];
+                        if (options_.DEPflg && Dep1_[ii2r[R1_nuc * 10 + R_nuc]][j - 1] == 0) {
+                            continue;
+                        }
+                        int ij1 = getIndx(i, j - 1, max_bp_distance_final_, indx_);
+                        F2_[ij][L][R] = MIN2(F2_[ij][L][R], F2_[ij1][L][R1]);
+                    }
+                    // from i-1, j -> i, j
+                    for (unsigned int L1 = 0; L1 < pos2nuc_[i + 1].size(); L1++) {
+                        int L1_nuc = pos2nuc_[i + 1][L1];
+                        if (options_.DEPflg && Dep1_[ii2r[L_nuc * 10 + L1_nuc]][i] == 0) {
+                            continue;
+                        }
+                        int i1j = getIndx(i + 1, j, max_bp_distance_final_, indx_);
+                        F2_[ij][L][R] = MIN2(F2_[ij][L][R], F2_[i1j][L1][R]);
+                    }
+
+                    // from C
+                    int au_penalty = 0;
+                    if (type > 2)
+                        au_penalty = P_->TerminalAU;
+                    if (j - i + 1 <= max_bp_distance_final_) {
+                        F2_[ij][L][R] = MIN2(F2_[ij][L][R], C_[ij][L][R] + au_penalty);
+                        // cout << "test:" << F2[ij][L][R] << endl;
+                    }
+
+                    // Bifucation
+                    /* modular decomposition -------------------------------*/
+                    for (int k = i + 2 + TURN; k <= j - TURN - 1; k++) { // Is this correct?
+                        // cout << k << endl;
+                        //			    				if((k - 1) - i + 1 > w_tmp ||
+                        //			    					j - k + 1 > w_tmp)
+                        //			    						continue;
+
+                        for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
+                            int Rk1_nuc = pos2nuc_[k - 1][Rk1];
+
+                            for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
+                                int Lk_nuc = pos2nuc_[k][Lk];
+                                if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
+                                    continue;
+                                } // dependency between k - 1 and k
+
+                                int energy = F2_[getIndx(i, k - 1, max_bp_distance_final_, indx_)][L][Rk1] +
+                                                F2_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][R];
+                                F2_[ij][L][R] = MIN2(F2_[ij][L][R], energy);
+                            }
+                        }
+                    }
+
+                    //							cout << i << "," << j << "," << L << "," << R << "," << F2[ij][L][R]
+                    //<< endl;
+                }
+            }
+        }
+    }
+}
+
+void Problem::fill_F() {
+    for (unsigned int L1 = 0; L1 < pos2nuc_[1].size(); L1++) {
+        int L1_nuc = pos2nuc_[1][L1];
+        if (options_.nucleotide_constraints && i2r[L1_nuc] != NucConst_[1]) {
+            continue;
+        }
+
+        for (int j = 2; j <= nuclen_; j++) {
+            for (unsigned int Rj = 0; Rj < pos2nuc_[j].size(); Rj++) {
+                int Rj_nuc = pos2nuc_[j][Rj];
+                if (options_.nucleotide_constraints && i2r[Rj_nuc] != NucConst_[j]) {
+                    continue;
+                }
+
+                if (options_.DEPflg && j == 2 && Dep1_[ii2r[L1_nuc * 10 + Rj_nuc]][1] == 0) {
+                    continue;
+                }
+                if (options_.DEPflg && j == 3 && Dep2_[ii2r[L1_nuc * 10 + Rj_nuc]][1] == 0) {
+                    continue;
+                }
+
+                F_[j][L1][Rj] = INF;
+
+                int type_L1Rj = BP_pair[i2r[L1_nuc]][i2r[Rj_nuc]];
+                if (type_L1Rj) {
+                    //						if(opt_flg_1 && opt_flg_j){
+                    int au_penalty = 0;
+                    if (type_L1Rj > 2)
+                        au_penalty = P_->TerminalAU;
+                    if (j <= max_bp_distance_final_)
+                        F_[j][L1][Rj] =
+                            MIN2(F_[j][L1][Rj], C_[getIndx(1, j, max_bp_distance_final_, indx_)][L1][Rj] + au_penalty); // recc 1
+                    // F[j][L1][Rj] = MIN2(F[j][L1][Rj], C[indx[j] + 1][L1][Rj] + au_penalty); // recc 1
+                    //						}
+                }
+
+                // create F[j] from F[j-1]
+                for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
+                    int Rj1_nuc = pos2nuc_[j - 1][Rj1];
+                    if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
+                        continue;
+                    }
+                    if (options_.DEPflg && Dep1_[ii2r[Rj1_nuc * 10 + Rj_nuc]][j - 1] == 0) {
+                        continue;
+                    }
+
+                    F_[j][L1][Rj] = MIN2(F_[j][L1][Rj], F_[j - 1][L1][Rj1]); // recc 2
+                }
+
+                // create F[j] from F[k-1] and C[k][j]
+                // for (int k = 2; k <= j - TURN - 1; k++) { // Is this correct?
+                for (int k = MAX2(2, j - max_bp_distance_final_ + 1); k <= j - TURN - 1; k++) { // Is this correct?
+                    for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
+                        int Rk1_nuc = pos2nuc_[k - 1][Rk1];
+                        if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
+                            continue;
+                        }
+                        if (options_.DEPflg && k == 3 && Dep1_[ii2r[L1_nuc * 10 + Rk1_nuc]][1] == 0) {
+                            continue;
+                        } // dependency between 1(i) and 2(k-1)
+                        if (options_.DEPflg && k == 4 && Dep2_[ii2r[L1_nuc * 10 + Rk1_nuc]][1] == 0) {
+                            continue;
+                        } // dependency between 1(i) and 3(k-1)
+
+                        for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
+                            int Lk_nuc = pos2nuc_[k][Lk];
+                            if (options_.nucleotide_constraints && i2r[Lk_nuc] != NucConst_[k]) {
+                                continue;
+                            }
+
+                            if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
+                                continue;
+                            } // dependency between k-1 and k
+
+                            int type_LkRj = BP_pair[i2r[Lk_nuc]][i2r[Rj_nuc]];
+
+                            int au_penalty = 0;
+                            if (type_LkRj > 2) {
+                                au_penalty = P_->TerminalAU;
+                            }
+                            // int kj = indx[j] + k;
+                            int kj = getIndx(k, j, max_bp_distance_final_, indx_);
+
+                            int energy = F_[k - 1][L1][Rk1] + C_[kj][Lk][Rj] + au_penalty; // recc 4
+
+                            F_[j][L1][Rj] = MIN2(F_[j][L1][Rj], energy);
+                        }
+                    }
+                }
+
+                // cout << j << ":" << F[j][L1][Rj] << " " << i2n[L1_nuc] << "-" << i2n[Rj_nuc] << endl;
+
+                // test
+                if (j == nuclen_) {
+                    cout << i2n[L1_nuc] << "-" << i2n[Rj_nuc] << ":" << F_[j][L1][Rj] << endl;
+                }
+            }
+        }
     }
 }
