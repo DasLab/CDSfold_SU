@@ -299,7 +299,7 @@ inline vector<int> Problem::set_ij_indx() {
 
 auto getMemoryUsage(const string &fname) -> int;
 
-inline void fixed_init_matrix(const int &nuclen, const int &size, vector<int> & C, vector<int> & M, int *F, int *DMl, int *DMl1, int *DMl2) {
+inline void fixed_init_matrix(const int &nuclen, const int &size, vector<int> & C, vector<int> & M, vector<int> & F, vector<int> & DMl, vector<int> & DMl1, vector<int> & DMl2) {
     for (int i = 0; i <= nuclen; i++) {
         F[i] = 0;
         DMl[i] = INF;

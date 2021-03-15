@@ -279,12 +279,12 @@ void Problem::calculate() {
                                 //
                                 if (options_.DEPflg && L_nuc > 4 && Dep1_[ii2r[L_nuc * 10 + hL2_nuc]][i] == 0) {
                                     continue;
-                                } // Dependencyをチェックした上でsubstringを求めているので,
-                                    // hpnの内部についてはチェックする必要はない。
+                                } // Since the substring is calculated after checking the Dependency,
+                                    // There is no need to check the inside of hpn.
                                 if (options_.DEPflg && R_nuc > 4 && Dep1_[ii2r[hR2_nuc * 10 + R_nuc]][j - 1] == 0) {
                                     continue;
-                                } // ただし、L_nuc、R_nucがVWXYのときだけは、一つ内側との依存関係をチェックする必要がある。
-                                    // その逆に、一つ内側がVWXYのときはチェックの必要はない。既にチェックされているので。
+                                } // However, only when L_nuc and R_nuc are VWXY, it is necessary to check the dependency with one inside.
+                                    // On the contrary, when one inside is VWXY, there is no need to check. Because it has already been checked.
                                 if (predefHPN_E_.count(hpn) > 0) {
                                     C_[ij][L][R] = MIN2(predefHPN_E_[hpn], C_[ij][L][R]);
 
@@ -380,22 +380,6 @@ void Problem::calculate() {
                                             continue;
                                         }
                                         type_2 = rtype[type_2];
-
-                                        //											if
-                                        //(noGUclosure) 												if ((type_2 ==
-                                        //3)
-                                        //														|| (type_2
-                                        //== 4))
-                                        // if ((p > i + 1)
-                                        //															|| (q < j
-                                        //- 1))
-                                        // continue; /* continue unless stack *//* no_close is removed. It is related
-                                        // with BONUS */
-
-                                        //											if(i==8&&j==19){
-                                        //												cout << "test:" << p << "-" << q
-                                        //<< endl;
-                                        //											}
 
                                         // for each intloops
                                         for (int const L2_nuc : pos2nuc_[i + 1]) {
@@ -500,11 +484,11 @@ void Problem::calculate() {
                                     Dep2_[ii2r[Li1_nuc * 10 + Rj1_nuc]][i + 1] == 0) {
                                     continue;
                                 } // 2014/10/8
-                                    // i-jが近いときは、MLclosingする必要はないのでは。少なくとも3つのステムが含まれなければならない。それには、５＋５＋２（ヘアピン2個分＋2塩基）の長さが必要。
+                                    // When i-j is close, it may not be necessary to ML closing. At least 3 stems must be included. It requires a length of 5 + 5 + 2 (2 hairpins + 2 bases).
 
                                 int energy = DMl2_
                                     [i + 1][Li1]
-                                    [Rj1]; // 長さが2個短いときの、複合マルチループ。i'=i+1を選ぶと、j'=(i+1)+(l-2)-1=i+l-2=j-1(because:j=i+l-1)
+                                    [Rj1]; // Composite multi-loop when the length is two shorter. If i'= i + 1 is selected, j'= (i + 1) + (l-2) -1 = i + l-2 = j-1 (because: j = i + l-1)
                                 int tt = rtype[type];
 
                                 energy += P_->MLintern[tt];
@@ -513,17 +497,9 @@ void Problem::calculate() {
                                 }
 
                                 energy += P_->MLclosing;
-                                // cout << "TEST:" << i << " " << j << " " << energy << endl;
                                 C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
-
-                                //									if(C[ij][L][R] == -1130 && ij
-                                //== 10091){
-                                // exit(0);
-                                //									}
                             }
                         }
-
-                        //							cout << "ok" << endl;
                     }
 
 
@@ -531,10 +507,11 @@ void Problem::calculate() {
                     // create M[ij] from C[ij]
                     if (type) {
                         int energy_M = C_[ij][L][R];
-                        if (type > 2)
+                        if (type > 2) {
                             energy_M += P_->TerminalAU;
-
+                        }
                         energy_M += P_->MLintern[type];
+
                         M_[ij][L][R] = energy_M;
                     }
 
@@ -548,7 +525,6 @@ void Problem::calculate() {
                             continue;
                         }
 
-                        // int energy_M = M[indx[j]+i+1][Li1][R]+P->MLbase;
                         int energy_M = M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][R] + P_->MLbase;
                         M_[ij][L][R] = MIN2(energy_M, M_[ij][L][R]);
                     }
@@ -563,23 +539,17 @@ void Problem::calculate() {
                             continue;
                         }
 
-                        // int energy_M = M[indx[j-1]+i][L][Rj1]+P->MLbase;
                         int energy_M = M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][L][Rj1] + P_->MLbase;
                         M_[ij][L][R] = MIN2(energy_M, M_[ij][L][R]);
                     }
 
                     /* modular decomposition -------------------------------*/
                     for (int k = i + 2 + TURN; k <= j - TURN - 1; k++) { // Is this correct?
-                        // cout << k << endl;
                         for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
                             int Rk1_nuc = pos2nuc_[k - 1][Rk1];
                             if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
                                 continue;
                             }
-                            // if(DEPflg && k == i + 2 && Dep1[ii2r[L_nuc*10+Rk1_nuc]][k-1] == 0){ continue;} //
-                            // dependency between i and k - 1(=i+1) if(DEPflg && k == i + 3 &&
-                            // Dep2[ii2r[L_nuc*10+Rk1_nuc]][k-1] == 0){ continue;} // dependency between i and k -
-                            // 1(=i+2)
 
                             for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
                                 int Lk_nuc = pos2nuc_[k][Lk];
@@ -589,12 +559,7 @@ void Problem::calculate() {
                                 if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
                                     continue;
                                 } // dependency between k - 1 and k
-                                // if(DEPflg && (k-1) - i + 1 == 2 && Dep2[ii2r[Rk1_nuc*10+L_nuc]][k-1] == 0){
-                                // continue;} // dependency between i and k - 1
 
-                                // cout << i << " " << k-1 << ":" << M[indx[k-1]+i][L][Rk1] << "," << k << " " << j
-                                // << ":" << M[indx[j]+k][Lk][R] << endl; int energy_M =
-                                // M[indx[k-1]+i][L][Rk1]+M[indx[j]+k][Lk][R];
                                 int energy_M = M_[getIndx(i, k - 1, max_bp_distance_final_, indx_)][L][Rk1] +
                                                 M_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][R];
                                 DMl_[i][L][R] = MIN2(energy_M, DMl_[i][L][R]);
@@ -603,14 +568,10 @@ void Problem::calculate() {
                         }
                     }
 
-                    //						if(i == 3 && j == 7)
-                    // cout << i << " " << j << ":" << C[ij][L][R] << " " << L << "-" << R << endl;
-                    // vwxyがあるので、ここを複数回訪れることがある。
-                    //なので、MIN2を取っておく。
-                    // if(i2r[L_nuc] == NucConst[i] && i2r[R_nuc] == NucConst[j]){
+                    // Since I have vwxy, I may visit here multiple times.
+                    //So save MIN2.
                     ChkC_[ij] = MIN2(ChkC_[ij], C_[ij][L][R]);
                     ChkM_[ij] = MIN2(ChkM_[ij], M_[ij][L][R]);
-                    //} このループは多分意味がない。
                 }
             }
         }
@@ -655,31 +616,12 @@ void Problem::calculate() {
         exit(1);
     }
 
-    //		string optseq;
-    //		optseq.resize(nuclen+1, 'N');
-    //		optseq[0] = ' ';
-    //		backtrackR(&optseq, &*sector, &*base_pair, C, M, F,
-    //					indx, minL, minR, P, NucConst, pos2nuc, NCflg, i2r, nuclen, w_tmp, BP_pair,
-    //i2n, rtype, ii2r, Dep1, Dep2, DEPflg, predefHPN, predefHPN_E, substr, n2i, NucDef);
-
     array<stack, 500> sector;
     string optseq(nuclen_ + 1, 'N');
     optseq[0] = ' ';
 
     string optseq_org(nuclen_ + 1, 'N');
     optseq_org[0] = ' ';
-
-    // if (options_.random_backtrack) {
-    //     // Fill F2 matrix
-    //     fill_F2();
-    //     backtrack2(&optseq, sector, base_pair_, C_, M_, F2_, indx_, minL, minR, P_, NucConst_, pos2nuc_, options_.nucleotide_constraints, i2r,
-    //                 nuclen_, max_bp_distance_final_, BP_pair, i2n, rtype, ii2r, Dep1_, Dep2_, options_.DEPflg, predefHPN_E_, substr_,
-    //                 n2i, NucDef);
-    // } else {
-    //     backtrack(&optseq, sector, base_pair_, C_, M_, F_, indx_, minL, minR, P_, NucConst_, pos2nuc_, options_.nucleotide_constraints, i2r,
-    //                 nuclen_, max_bp_distance_final_, BP_pair, i2n, rtype, ii2r, Dep1_, Dep2_, options_.DEPflg, predefHPN_E_, substr_, n2i,
-    //                 NucDef);
-    // }
 
     if (options_.random_backtrack) {
         // Fill F2 matrix
@@ -689,29 +631,29 @@ void Problem::calculate() {
         backtrack(&optseq, sector, minL, minR);
     }
 
-    //塩基Nの修正
+    // Correction of base N
     for (int i = 1; i <= nuclen_; i++) {
         if (optseq[i] == 'N') {
             for (unsigned int R = 0; R < pos2nuc_[i].size();
-                    R++) { // check denendency with the previous and next nucleotide
+                    R++) { // check dependency with the previous and next nucleotide
                 int R_nuc = pos2nuc_[i][R];
                 if (options_.nucleotide_constraints == 1 && i2r[R_nuc] != NucConst_[i]) {
                     continue;
                 }
 
-                if (i != 1 && optseq[i - 1] != 'N') { // check consistensy with the previous nucleotide
+                if (i != 1 && optseq[i - 1] != 'N') { // check consistency with the previous nucleotide
                     int R_prev_nuc = n2i.at(optseq[i - 1]);
                     if (options_.DEPflg && Dep1_[ii2r[R_prev_nuc * 10 + R_nuc]][i - 1] == 0) {
                         continue;
                     }
                 }
-                if (i != nuclen_ && optseq[i + 1] != 'N') { // check consistensy with the next nucleotide
+                if (i != nuclen_ && optseq[i + 1] != 'N') { // check consistency with the next nucleotide
                     int R_next_nuc = n2i.at(optseq[i + 1]);
                     if (options_.DEPflg && Dep1_[ii2r[R_nuc * 10 + R_next_nuc]][i] == 0) {
                         continue;
                     }
                 }
-                if (i < nuclen_ - 1 && optseq[i + 2] != 'N') { // check consistensy with the next nucleotide
+                if (i < nuclen_ - 1 && optseq[i + 2] != 'N') { // check consistency with the next nucleotide
                     int R_next_nuc = n2i.at(optseq[i + 2]);
                     if (options_.DEPflg && Dep2_[ii2r[R_nuc * 10 + R_next_nuc]][i] == 0) {
                         continue;
@@ -721,10 +663,9 @@ void Problem::calculate() {
                 optseq[i] = i2n[R_nuc];
                 break;
             }
-            // cout << i << ":" << optseq[i] << endl;
         }
     }
-    //塩基V,W,X,Yの修正
+    //Modification of bases V, W, X, Y
     for (int i = 1; i <= nuclen_; i++) {
 
         if (optseq[i] == 'V' || optseq[i] == 'W') {
@@ -734,7 +675,7 @@ void Problem::calculate() {
         }
     }
 
-    // 2次構造情報の表示
+    // Display of secondary structure information
     string optstr;
     optstr.resize(nuclen_ + 1, '.');
     optstr[0] = ' ';
@@ -748,7 +689,7 @@ void Problem::calculate() {
         cout << aaseq_[i] << "  ";
     }
     cout << endl;
-    // check amino acids of desinged DNA
+    // check amino acids of designed RNA
     int j = 0;
     for (unsigned int i = 1; i < optseq.size(); i = i + 3) {
         char aa = codon_table_.c2a(n2i.at(optseq[i]), n2i.at(optseq[i + 1]), n2i.at(optseq[i + 2]));
@@ -795,7 +736,6 @@ void Problem::calculate() {
             }
         }
         fixed_fold(optseq);
-        // fixed_fold(optseq, indx, w_tmp, predefHPN_E, BP_pair, P, aaseq, codon_table);
     }
 
     if (options_.show_memory_use) {
@@ -816,6 +756,8 @@ void Problem::calculate() {
 
 
 void Problem::fixed_fold(string & optseq) {
+    // Why is this done in locals?
+
     int nuclen = optseq.size() - 1;
     int aalen_ = (optseq.size() - 1) / 3;
     int size = getMatrixSize(nuclen, max_bp_distance_final_);
@@ -844,7 +786,7 @@ void Problem::fixed_fold(string & optseq) {
     }
     //	exit(0);
 
-    fixed_init_matrix(nuclen, size, C, M, &F[0], &DMl[0], &DMl1[0], &DMl2[0]);
+    fixed_init_matrix(nuclen, size, C, M, F, DMl, DMl1, DMl2);
     int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
 
     // investigate mfe
@@ -904,7 +846,6 @@ void Problem::fixed_fold(string & optseq) {
 
                     } /* end q-loop */
                 }     /* end p-loop */
-                // cout << i << "," << j << ":" << C[ij] << endl;
 
                 // multi-loop
                 energy = DMl2[i + 1];
@@ -991,18 +932,11 @@ void Problem::fixed_fold(string & optseq) {
     }
 
     int MFE = F[nuclen];
-    //	showFixedMatrix(C, indx, nuclen, w);
-    //	showFixedMatrix(M, indx, nuclen, w);
-    //	for(int i = 1; i <= nuclen; i++){
-    //		cout << "FMAT: " << i << " " << F[i] << "  " <<  w << endl;
-    //	}
+
 	// Because fixed_fold uses arrays made here, we assume we can only change a few things.
     fixed_backtrack(optseq, &base_pair[0], C, M, &F[0], nuclen, BP_pair);
-    //}
 
-    //	cout << "end" << endl;
-    //	exit(0);
-    // 2次構造情報の表示
+    // Display of secondary structure information
     string optstr;
     optstr.resize(nuclen + 1, '.');
     optstr[0] = ' ';
@@ -1016,7 +950,7 @@ void Problem::fixed_fold(string & optseq) {
         cout << aaseq_[i] << "  ";
     }
     cout << endl;
-    // check amino acids of desinged DNA
+    // check amino acids of designed RNA
     int j = 0;
     for (unsigned int i = 1; i < optseq.size(); i = i + 3) {
         char aa = codon_table_.c2a(n2i[optseq[i]], n2i[optseq[i + 1]], n2i[optseq[i + 2]]);
@@ -1048,7 +982,6 @@ vector<vector<int>> getPossibleNucleotide(string const & aaseq, codon &codon_tab
     for (unsigned int i = 0; i < aaseq.size(); i++) {
         int nucpos = i * 3 + 1;
         char aa = aaseq[i];
-        // cout << "test: " << aa << endl;
         // AMW TODO: should get codons from the codon table, filtering out
         // exclusions, *once* rather than generating new vector<string>s for each
         // aa position. This function is only called once, but it's still silly.
@@ -1593,13 +1526,11 @@ OUTLOOP:
             goto repeat1;
         }
 
-        //	    if (j < i+TURN+1) continue; /* no more pairs in this interval */
-        if (j == i)
+        if (j == i) {
             break;
+        }
 
-        //	    fij = (ml == 1)? m[indx_[j]+i][Li][Rj] : f[j][Li][Rj];
         fij = (ml == 1) ? M_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj] : F_[j][Li][Rj];
-        //	    if(TB_CHK_flg == 1)
         cout << "TB_CHK:" << i << ":" << j << " " << ml << "(" << fij << ")"
              << ":" << *optseq << endl;
 
@@ -1613,7 +1544,6 @@ OUTLOOP:
                 continue;
             }
 
-            //	    	fi  = (ml == 1)? m[indx_[j-1]+i][Li][Rj1] + P->MLbase: f[j-1][Li][Rj1];
             fi = (ml == 1) ? M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][Li][Rj1] + P_->MLbase : F_[j - 1][Li][Rj1];
 
             if (fij == fi) { /* 3' end is unpaired */
@@ -1633,10 +1563,9 @@ OUTLOOP:
                 cerr << "Traceback failure: i must be 1 during bachtrack in f" << endl;
             }
 
-            // f[j]とC[1][j]が一致している時の処理。Vieenaでは、次for文に統合されている。
+            // Processing when f [j] and C [1] [j] match. In Vieena, it is integrated into the following for statement.
             if (type_LiRj && j <= max_bp_distance_final_) {
                 // note i == 1
-                // int en_c = TermAU(type_LiRj, P) +  c[indx_[j]+i][Li][Rj];
                 int en_c = TermAU(type_LiRj, P_) + C_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj];
                 int en_f = F_[j][Li][Rj];
                 if (en_c == en_f) {
@@ -1647,7 +1576,6 @@ OUTLOOP:
                 }
             }
 
-            // for(k=j-TURN-1,traced=0; k>=1; k--){
             for (k = j - TURN - 1, traced = 0; k >= MAX2(2, j - max_bp_distance_final_ + 1); k--) {
 
                 for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
@@ -1705,10 +1633,10 @@ OUTLOOP:
 
             /* trace back the base pair found */
             // [1]
-            i = k;          // iを更新
-            j = traced;     // この代入は多分必要ない。jに関しては不変だから
-            Li = traced_Lk; // Liを更新
-            // Rjは不変
+            i = k;          // update i
+            j = traced;     // This substitution is probably not needed. Because j is immutable
+            Li = traced_Lk; // update Li
+            // Rj is immutable
             base_pair_[++b].i = i;
             base_pair_[b].j = j;
             goto repeat1;
@@ -1723,7 +1651,6 @@ OUTLOOP:
                     continue;
                 } // dependency between k-1 and k
 
-                //	  	if (m[indx_[j]+i+1][Li1][Rj]+P->MLbase == fij) { /* 5' end is unpaired */
                 if (M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][Rj] + P_->MLbase == fij) { /* 5' end is unpaired */
                     sector[++s].i = i + 1;
                     sector[s].j = j;
@@ -1733,7 +1660,6 @@ OUTLOOP:
                     goto OUTLOOP;
                 }
 
-                //	ij  = indx_[j]+i;
                 ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
                 if (fij == C_[ij][Li][Rj] + TermAU(type_LiRj, P_) + P_->MLintern[type_LiRj]) {
@@ -1743,7 +1669,6 @@ OUTLOOP:
                 }
             }
 
-            //		    for(k = i + 1 + TURN; k <= j - 2 - TURN; k++){
             for (k = i + 2 + TURN; k <= j - 1 - TURN; k++) {
 
                 for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
@@ -1761,7 +1686,6 @@ OUTLOOP:
                             continue;
                         } // dependency between k-1 and k
 
-                        // if(fij == (m[indx_[k-1]+i][Li][Rk1]+m[indx_[j]+k][Lk][Rj])){
                         if (fij == (M_[getIndx(i, k - 1, max_bp_distance_final_, indx_)][Li][Rk1] + M_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][Rj])) {
                             sector[++s].i = i;
                             sector[s].j = k - 1;
@@ -1784,35 +1708,20 @@ OUTLOOP:
             }
         }
 
-    repeat1: // いちいちスタックに積まずに、ここで部分的なトレースバックをしてしまう。
-        // continue;
+    repeat1: // Instead of stacking on the stack one by one, I do a partial traceback here.
         /*----- begin of "repeat:" -----*/
         if (j - i + 1 > max_bp_distance_final_) {
             cerr << "backtrack failed at " << i << "," << j << " : the nuclen_ must at most << w << endl";
         }
-        //	    ij = indx_[j]+i; // ここでは元々のi,jから変換していることに注意。jは更新されないこともある[1]
-        ij = getIndx(i, j, max_bp_distance_final_, indx_); // ここでは元々のi,jから変換していることに注意。jは更新されないこともある[1]
-        Li_nuc = pos2nuc_[i][Li]; // Liは更新されている。
-        Rj_nuc = pos2nuc_[j][Rj]; // Rj_nucは更新されていない場合もある[1]。
+        ij = getIndx(i, j, max_bp_distance_final_, indx_); // Note that we are converting from the original i, j here. j may not be updated [1]
+        Li_nuc = pos2nuc_[i][Li]; // Li has been updated.
+        Rj_nuc = pos2nuc_[j][Rj]; // Rj_nuc may not have been updated [1].
         type_LiRj = BP_pair[i2r[Li_nuc]][i2r[Rj_nuc]];
         cij = C_[ij][Li][Rj];
-        (*optseq)[i] = i2n[Li_nuc]; //塩基対部分を記録
+        (*optseq)[i] = i2n[Li_nuc]; //Record base pairing
         (*optseq)[j] = i2n[Rj_nuc];
 
-        //		if(TB_CHK_flg == 1)
-        //			cout << "TB_CHK:" << i << ":" << j << " " << ml << "(" << cij << ")" << ":" << *optseq
-        //<< endl;
-
-        // predefinedなヘアピンのトレースバック
-        //		if ((j-i+1 == 5 ||j-i+1 == 6 ||j-i+1 == 8) &&
-        //   			cij == predefH[i][j-i+1][i2r[Li_nuc]][i2r[Rj_nuc]].first){
-        //			string s1 = predefH[i][j-i+1][i2r[Li_nuc]][i2r[Rj_nuc]].second;
-        //			for(unsigned int k = 0; k < s1.size(); k++){
-        //				(*optseq)[i+k] = s1[k]; //塩基を記録
-        //			}
-        //			cout << "Predefined Hairpin " << s1 << " at " << i << ":" << j << endl;
-        //			goto OUTLOOP;
-        //   	}
+        // Predefined hairpin traceback
         if (j - i + 1 == 5 || j - i + 1 == 6 || j - i + 1 == 8) {
             int l = j - i + 1;
             for (string const & hpn : substr_[i][l]) {
@@ -1820,10 +1729,12 @@ OUTLOOP:
                 int hL2_nuc = n2i.at(hpn[1]);
                 int hR2_nuc = n2i.at(hpn[l - 2]);
                 int hR_nuc = n2i.at(hpn[l - 1]);
-                if (hL_nuc != i2r[Li_nuc])
+                if (hL_nuc != i2r[Li_nuc]) {
                     continue;
-                if (hR_nuc != i2r[Rj_nuc])
+                }
+                if (hR_nuc != i2r[Rj_nuc]) {
                     continue;
+                }
 
                 if (options_.nucleotide_constraints) {
                     string s1 = string(NucDef).substr(i, l);
@@ -1836,27 +1747,24 @@ OUTLOOP:
                 } // Dependency is already checked.
                 if (options_.DEPflg && Rj_nuc > 4 && Dep1_[ii2r[hR2_nuc * 10 + Rj_nuc]][j - 1] == 0) {
                     continue;
-                } // ただし、Li_nuc、Rj_nucがVWXYのときだけは、一つ内側との依存関係をチェックする必要がある。
+                } // However, only when Li_nuc and Rj_nuc are VWXY, it is necessary to check the dependency with one inside.
 
-                // predefinedなヘアピンとの比較
+                // Comparison with predefined hairpins
                 if (predefHPN_E_.count(hpn) > 0) {
                     if (C_[ij][Li][Rj] == predefHPN_E_[hpn]) {
                         cout << "Predefined Hairpin at " << i << "," << j << endl;
                         for (unsigned int k = 0; k < hpn.size(); k++) {
-                            (*optseq)[i + k] = hpn[k]; //塩基を記録
+                            (*optseq)[i + k] = hpn[k]; //Record base
                         }
                         goto OUTLOOP;
                     }
 
-                } else { // 普通のヘアピンとの比較
-                    //					int energy = HairpinE(j - i - 1, type_LiRj,
-                    //							i2r[hL2_nuc], i2r[hR2_nuc],
-                    //							"NNNNNNNNN");
+                } else { // Comparison with ordinary hairpins
                     int energy = E_hairpin(j - i - 1, type_LiRj, i2r[hL2_nuc], i2r[hR2_nuc], "NNNNNNNNN", P_);
 
                     if (C_[ij][Li][Rj] == energy) {
                         for (unsigned int k = 0; k < hpn.size(); k++) {
-                            (*optseq)[i + k] = hpn[k]; //塩基を記録
+                            (*optseq)[i + k] = hpn[k]; //Record base
                         }
                         goto OUTLOOP;
                     }
@@ -1864,7 +1772,7 @@ OUTLOOP:
             }
 
         } else {
-            // 普通のヘアピンのトレースバック
+            // Ordinary hairpin traceback
             for (unsigned int Li1 = 0; Li1 < pos2nuc_[i + 1].size(); Li1++) {
                 int Li1_nuc = pos2nuc_[i + 1][Li1];
                 if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
@@ -1883,9 +1791,8 @@ OUTLOOP:
                         continue;
                     } // dependency between j-1 and j
 
-                    // if (cij == HairpinE(j-i-1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN")){
                     if (cij == E_hairpin(j - i - 1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN", P_)) {
-                        (*optseq)[i + 1] = i2n[Li1_nuc]; //塩基対の内側のミスマッチ塩基を記録
+                        (*optseq)[i + 1] = i2n[Li1_nuc]; // Record mismatched bases inside base pairs
                         (*optseq)[j - 1] = i2n[Rj1_nuc];
                         goto OUTLOOP;
                     } else {
@@ -1894,7 +1801,7 @@ OUTLOOP:
                 }
             }
         }
-        // Hairpinに該当がなければ、Internal loopのトレースバック。もっとも手強い。
+        // If the Hairpin does not apply, trace back the Internal loop. The toughest.
         for (p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); p++) {
             for (unsigned int Lp = 0; Lp < pos2nuc_[p].size(); Lp++) {
                 int Lp_nuc = pos2nuc_[p][Lp];
@@ -1909,8 +1816,9 @@ OUTLOOP:
                 } // dependency between i and q
 
                 int minq = j - i + p - MAXLOOP - 2;
-                if (minq < p + 1 + TURN)
+                if (minq < p + 1 + TURN) {
                     minq = p + 1 + TURN;
+                }
                 for (q = j - 1; q >= minq; q--) {
                     for (unsigned int Rq = 0; Rq < pos2nuc_[q].size(); Rq++) {
                         int Rq_nuc = pos2nuc_[q][Rq];
@@ -1925,8 +1833,9 @@ OUTLOOP:
                         } // dependency between q and j
 
                         int type_LpRq = BP_pair[i2r[Lp_nuc]][i2r[Rq_nuc]];
-                        if (type_LpRq == 0)
+                        if (type_LpRq == 0) {
                             continue;
+                        }
                         type_LpRq = rtype[type_LpRq];
 
                         for (unsigned int Li1 = 0; Li1 < pos2nuc_[i + 1].size(); Li1++) {
@@ -1939,7 +1848,7 @@ OUTLOOP:
                             } // dependency between i and i+1
                             if (i + 1 == p && Li1_nuc != Lp_nuc) {
                                 continue;
-                            } // i,pの時は、i+1の塩基とpの塩基は一致していないといけない。(1)
+                            } // In the case of i and p, the base of i + 1 and the base of p must match. (1)
 
                             for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
                                 int Rj1_nuc = pos2nuc_[j - 1][Rj1];
@@ -1951,7 +1860,7 @@ OUTLOOP:
                                 } // dependency between j-1 and j
                                 if (q == j - 1 && Rj1_nuc != Rq_nuc) {
                                     continue;
-                                } // q,jの時は、qの塩基とj-1の塩基は一致していないといけない。(2)
+                                } // In the case of q and j, the base of q and the base of j-1 must match. (2)
 
                                 for (unsigned int Lp1 = 0; Lp1 < pos2nuc_[p - 1].size(); Lp1++) {
                                     int Lp1_nuc = pos2nuc_[p - 1][Lp1];
@@ -1971,10 +1880,10 @@ OUTLOOP:
 
                                     if (i == p - 1 && Li_nuc != Lp1_nuc) {
                                         continue;
-                                    } // i,pの時は、iの塩基とp-1の塩基は一致していないといけない。(1)の逆
+                                    } // In the case of i and p, the base of i and the base of p-1 must match. Reverse of (1)
                                     if (i == p - 2 && Li1_nuc != Lp1_nuc) {
                                         continue;
-                                    } // i,X,pの時は、i+1の塩基とp-1の塩基(X)は一致していないといけない。
+                                    } // In the case of i, X, p, the base of i + 1 and the base of p-1 (X) must match.
 
                                     for (unsigned int Rq1 = 0; Rq1 < pos2nuc_[q + 1].size(); Rq1++) {
                                         int Rq1_nuc = pos2nuc_[q + 1][Rq1];
@@ -1994,17 +1903,14 @@ OUTLOOP:
 
                                         if (q + 1 == j && Rq1_nuc != Rj_nuc) {
                                             continue;
-                                        } // q,jの時は、q+1の塩基とjの塩基は一致していないといけない。(2)の逆
+                                        } // In the case of q and j, the base of q + 1 and the base of j must match. The reverse of (2)
                                         if (q + 2 == j && Rq1_nuc != Rj1_nuc) {
                                             continue;
-                                        } // q,X,jの時は、q+1の塩基とj-1の塩基は一致していないといけない。
+                                        } // In the case of q, X, j, the base of q + 1 and the base of j-1 must match.
 
-                                        // int energy = LoopEnergy(p-i-1, j-q-1, type_LiRj, type_LpRq,
-                                        // 			i2r[Li1_nuc], i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc]);
                                         int energy = E_intloop(p - i - 1, j - q - 1, type_LiRj, type_LpRq, i2r[Li1_nuc],
                                                                i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc], P_);
 
-                                        //	int energy_new = energy+c[indx_[q]+p][Lp][Rq];
                                         int energy_new = energy + C_[getIndx(p, q, max_bp_distance_final_, indx_)][Lp][Rq];
                                         traced = (cij == energy_new);
                                         if (traced) {
@@ -2019,7 +1925,7 @@ OUTLOOP:
                                             (*optseq)[j - 1] = i2n[Rj1_nuc];
                                             (*optseq)[q + 1] = i2n[Rq1_nuc];
 
-                                            i = p, j = q; // i,jの更新
+                                            i = p, j = q; // i,j update
                                             Li = Lp;
                                             Rj = Rq;
 
@@ -2044,7 +1950,6 @@ OUTLOOP:
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
         int en = cij - TermAU(rtype_LiRj, P_) - P_->MLintern[rtype_LiRj] - P_->MLclosing;
-        //	    for(k = i+2+TURN; k < j-2-TURN; k++){
         int Li1_save, Rk1_save, Lk_save, Rj1_save;
         Li1_save = Rk1_save = Lk_save = Rj1_save = -1;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
@@ -2053,7 +1958,7 @@ OUTLOOP:
                 if (options_.nucleotide_constraints == 1 && i2r[Rk1_nuc] != NucConst_[k - 1]) {
                     continue;
                 }
-                // i,k,jでの塩基の矛盾はチェックする必要がない。なぜなら、i+4<k, k+4<jだから。
+                // There is no need to check for base inconsistencies at i, k, j. Because i + 4 <k, k + 4 <j.
 
                 for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
                     int Lk_nuc = pos2nuc_[k][Lk];
@@ -2082,8 +1987,7 @@ OUTLOOP:
                                 continue;
                             } // dependency between j-1 and j
 
-                            //マルチループを閉じるところと、bifucationを同時に探している。
-                            // if(en == m[indx_[k-1]+i+1][Li1][Rk1] + m[indx_[j-1]+k][Lk][Rj1]){
+                            //I'm looking for bifucation at the same time as closing the multi-loop.
                             if (en ==
                                 M_[getIndx(i + 1, k - 1, max_bp_distance_final_, indx_)][Li1][Rk1] + M_[getIndx(k, j - 1, max_bp_distance_final_, indx_)][Lk][Rj1]) {
                                 Li1_save = Li1;
@@ -2112,20 +2016,12 @@ OUTLOOP:
 
         } else {
             fprintf(stderr, "backtracking failed in repeat %d %d\n", i, j);
-            //	    	exit(1);
         }
     }
 
     base_pair_[0].i = b; /* save the total number of base pairs */
-    //	cout << base_pair_[0].i << endl;
 }
 
-// void backtrack2(string *optseq, array<stack, 500> & sector, vector<bond> & base_pair_, vector<vector<vector<int>>> const &c, vector<vector<vector<int>>> const &m, vector<vector<vector<int>>> const &f2,
-//                 vector<int> const & indx_, const int &initL, const int &initR, paramT *const P, const vector<int> &NucConst_,
-//                 const vector<vector<int>> &pos2nuc_, const int &options_.nucleotide_constraints, array<int, 20> const &i2r, int const &nuclen_, int const &w,
-//                 int const (&BP_pair)[5][5], array<char, 20> const &i2n, int const *const &rtype, array<int, 100> const &ii2r,
-//                 vector<vector<int>> &Dep1_, vector<vector<int>> &Dep2_, bool const options_.DEPflg, map<string, int> &predefHPN_E_,
-//                 vector<vector<vector<string>>> &substr, map<char, int> const & n2i, const char *NucDef) {
 void Problem::backtrack2(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR) {
     InitRand();
 
@@ -2139,10 +2035,9 @@ void Problem::backtrack2(string *optseq, array<stack, 500> & sector, const int &
 
 OUTLOOP:
     while (s > 0) {
-        //	    int fij, fi, ij, cij, traced, traced_Lk, i1, j1, k, p , q;
         int fij, fi, ij, cij, traced, i1, j1, k, p, q;
 
-        //ここでoptseqに値を反映させるべき？
+        //Should the value be reflected in optseq here?
         int i = sector[s].i;
         int j = sector[s].j;
         int Li = sector[s].Li;
@@ -2171,11 +2066,10 @@ OUTLOOP:
             goto repeat1;
         }
 
-        //	    if (j < i+TURN+1) continue; /* no more pairs in this interval */
-        if (j == i + 1)
+        if (j == i + 1) {
             continue;
+        }
 
-        //	    fij = (ml == 1)? m[indx_[j]+i][Li][Rj] : f[j][Li][Rj];
         fij = (ml == 1) ? M_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj] : F2_[ij][Li][Rj];
         cout << "TB_CHK:" << i << ":" << j << " " << ml << "(" << fij << ")"
              << ":" << *optseq << ":" << s << endl;
@@ -2195,7 +2089,6 @@ OUTLOOP:
                     sector[s].Li = Li;
                     sector[s].Rj = Rj1;
                     sector[s].ml = ml;
-                    // continue;
                     goto OUTLOOP;
                 }
             }
@@ -2237,7 +2130,6 @@ OUTLOOP:
                         sector[s].Li = Li;
                         sector[s].Rj = Rj1;
                         sector[s].ml = ml;
-                        // continue;
                         cout << "Traceback path found." << endl;
                         goto OUTLOOP;
                     }
@@ -2260,7 +2152,6 @@ OUTLOOP:
                         sector[s].Li = Li1;
                         sector[s].Rj = Rj;
                         sector[s].ml = ml;
-                        // continue;
                         cout << "Traceback path found." << endl;
                         goto OUTLOOP;
                     }
@@ -2274,12 +2165,8 @@ OUTLOOP:
                     int en_f = F2_[ij][Li][Rj];
                     cout << en_c << "," << en_f << endl;
                     if (en_c == en_f) {
-                        //	    			k = i;
-                        //	    			traced = j;
                         base_pair_[++b].i = i;
                         base_pair_[b].j = j;
-                        //	    			traced_Lk = Li;
-                        //	    			goto LABEL1;
                         cout << "Traceback path found." << endl;
                         goto repeat1;
                     }
@@ -2287,8 +2174,6 @@ OUTLOOP:
                 continue;
 
             F4:
-                //	    		for(k=j-TURN-1; k>= i + TURN + 2; k--){
-                //	    		for(k=j-1; k>= i + 2; k--){
                 for (k = j - 1; k >= i + 2; k--) {
 
                     for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
@@ -2300,13 +2185,8 @@ OUTLOOP:
                             continue;
                         } // dependency between 1(i) and 3(k-1)
 
-                        //	    				if((k - 1) - i + 1 > w ||
-                        //	    					j - k + 1 > w)
-                        //	    						continue;
-
                         for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
                             int Lk_nuc = pos2nuc_[k][Lk];
-                            // if(options_.nucleotide_constraints == 1 && i2r[Lk_nuc] != NucConst_[k]){continue;}
                             if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
                                 continue;
                             } // dependency between k-1 and k
@@ -2314,9 +2194,6 @@ OUTLOOP:
                             int en_f1 = F2_[getIndx(i, k - 1, max_bp_distance_final_, indx_)][Li][Rk1];
                             int en_f2 = F2_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][Rj];
                             if (fij == en_f1 + en_f2) {
-                                //	                    		traced = j;
-                                //	                    		traced_Lk = Lk;
-                                /* push back the remaining f portion */
                                 sector[++s].i = i;
                                 sector[s].j = k - 1;
                                 sector[s].Li = Li;
@@ -2336,25 +2213,10 @@ OUTLOOP:
                 }
                 continue;
             }
-            //	    	LABEL1:
-            //	    	if (!traced){
             fprintf(stderr, "backtrack failed in f2\n");
             fprintf(stderr, "cannot trace f2[%d][%d][%d][%d] Lnuc=%c Rnuc=%c \n", i, j, Li, Rj, i2n[Li_nuc],
                     i2n[Rj_nuc]);
             exit(0);
-            //	    	}
-
-            /* trace back the base pair found */
-            /*
-            // [1]
-            i=k;            // iを更新
-            j=traced;       // この代入は多分必要ない。jに関しては不変だから
-            Li = traced_Lk; // Liを更新
-            //Rjは不変
-            base_pair_[++b].i = i;
-            base_pair_[b].j   = j;
-            goto repeat1;
-            */
         } else { /* trace back in fML array */
 
             for (unsigned int Li1 = 0; Li1 < pos2nuc_[i + 1].size(); Li1++) {
@@ -2366,7 +2228,6 @@ OUTLOOP:
                     continue;
                 } // dependency between k-1 and k
 
-                //	  	if (m[indx_[j]+i+1][Li1][Rj]+P->MLbase == fij) { /* 5' end is unpaired */
                 if (M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][Rj] + P_->MLbase == fij) { /* 5' end is unpaired */
                     sector[++s].i = i + 1;
                     sector[s].j = j;
@@ -2376,7 +2237,6 @@ OUTLOOP:
                     goto OUTLOOP;
                 }
 
-                //	ij  = indx_[j]+i;
                 ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
                 if (fij == C_[ij][Li][Rj] + TermAU(type_LiRj, P_) + P_->MLintern[type_LiRj]) {
@@ -2386,7 +2246,6 @@ OUTLOOP:
                 }
             }
 
-            //		    for(k = i + 1 + TURN; k <= j - 2 - TURN; k++){
             for (k = i + 2 + TURN; k <= j - 1 - TURN; k++) {
 
                 for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
@@ -2404,7 +2263,6 @@ OUTLOOP:
                             continue;
                         } // dependency between k-1 and k
 
-                        // if(fij == (m[indx_[k-1]+i][Li][Rk1]+m[indx_[j]+k][Lk][Rj])){
                         if (fij == (M_[getIndx(i, k - 1, max_bp_distance_final_, indx_)][Li][Rk1] + M_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][Rj])) {
                             sector[++s].i = i;
                             sector[s].j = k - 1;
@@ -2427,35 +2285,21 @@ OUTLOOP:
             }
         }
 
-    repeat1: // いちいちスタックに積まずに、ここで部分的なトレースバックをしてしまう。
+    repeat1: // Instead of stacking on the stack one by one, I do a partial traceback here.
         // continue;
         /*----- begin of "repeat:" -----*/
         if (j - i + 1 > max_bp_distance_final_) {
             cerr << "backtrack failed at " << i << "," << j << " : the nuclen_ must at most << w << endl";
         }
-        //	    ij = indx_[j]+i; // ここでは元々のi,jから変換していることに注意。jは更新されないこともある[1]
-        ij = getIndx(i, j, max_bp_distance_final_, indx_); // ここでは元々のi,jから変換していることに注意。jは更新されないこともある[1]
-        Li_nuc = pos2nuc_[i][Li]; // Liは更新されている。
-        Rj_nuc = pos2nuc_[j][Rj]; // Rj_nucは更新されていない場合もある[1]。
+        ij = getIndx(i, j, max_bp_distance_final_, indx_); // Note that we are converting from the original i, j here. j may not be updated [1]
+        Li_nuc = pos2nuc_[i][Li]; // Li has been updated.
+        Rj_nuc = pos2nuc_[j][Rj]; // Rj_nuc may not have been updated [1].
         type_LiRj = BP_pair[i2r[Li_nuc]][i2r[Rj_nuc]];
         cij = C_[ij][Li][Rj];
-        (*optseq)[i] = i2n[Li_nuc]; //塩基対部分を記録
+        (*optseq)[i] = i2n[Li_nuc]; //Record base pairing
         (*optseq)[j] = i2n[Rj_nuc];
 
-        //		if(TB_CHK_flg == 1)
-        //			cout << "TB_CHK:" << i << ":" << j << " " << ml << "(" << cij << ")" << ":" << *optseq
-        //<< endl;
-
-        // predefinedなヘアピンのトレースバック
-        //		if ((j-i+1 == 5 ||j-i+1 == 6 ||j-i+1 == 8) &&
-        //   			cij == predefH[i][j-i+1][i2r[Li_nuc]][i2r[Rj_nuc]].first){
-        //			string s1 = predefH[i][j-i+1][i2r[Li_nuc]][i2r[Rj_nuc]].second;
-        //			for(unsigned int k = 0; k < s1.size(); k++){
-        //				(*optseq)[i+k] = s1[k]; //塩基を記録
-        //			}
-        //			cout << "Predefined Hairpin " << s1 << " at " << i << ":" << j << endl;
-        //			goto OUTLOOP;
-        //   	}
+        // Predefined hairpin traceback
         if (j - i + 1 == 5 || j - i + 1 == 6 || j - i + 1 == 8) {
             int l = j - i + 1;
             for (string const & hpn : substr_[i][l]) {
@@ -2479,22 +2323,19 @@ OUTLOOP:
                 } // Dependency is already checked.
                 if (options_.DEPflg && Rj_nuc > 4 && Dep1_[ii2r[hR2_nuc * 10 + Rj_nuc]][j - 1] == 0) {
                     continue;
-                } // ただし、Li_nuc、Rj_nucがVWXYのときだけは、一つ内側との依存関係をチェックする必要がある。
+                } // However, only when Li_nuc and Rj_nuc are VWXY, it is necessary to check the dependency with one inside.
 
-                // predefinedなヘアピンとの比較
+                // Comparison with predefined hairpins
                 if (predefHPN_E_.count(hpn) > 0) {
                     if (C_[ij][Li][Rj] == predefHPN_E_[hpn]) {
                         cout << "Predefined Hairpin at " << i << "," << j << endl;
                         for (unsigned int k = 0; k < hpn.size(); k++) {
-                            (*optseq)[i + k] = hpn[k]; //塩基を記録
+                            (*optseq)[i + k] = hpn[k]; //Record base
                         }
                         goto OUTLOOP;
                     }
 
                 } else { // Comparison with ordinary hairpins
-                    //					int energy = HairpinE(j - i - 1, type_LiRj,
-                    //							i2r[hL2_nuc], i2r[hR2_nuc],
-                    //							"NNNNNNNNN");
                     int energy = E_hairpin(j - i - 1, type_LiRj, i2r[hL2_nuc], i2r[hR2_nuc], "NNNNNNNNN", P_);
 
                     if (C_[ij][Li][Rj] == energy) {
@@ -2507,7 +2348,7 @@ OUTLOOP:
             }
 
         } else {
-            // 普通のヘアピンのトレースバック
+            // Ordinary hairpin traceback
             for (int const Li1_nuc : pos2nuc_[i + 1]) {
                 if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
                     continue;
@@ -2524,7 +2365,6 @@ OUTLOOP:
                         continue;
                     } // dependency between j-1 and j
 
-                    // if (cij == HairpinE(j-i-1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN")){
                     if (cij == E_hairpin(j - i - 1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN", P_)) {
                         (*optseq)[i + 1] = i2n[Li1_nuc]; // Record mismatched bases inside base pairs
                         (*optseq)[j - 1] = i2n[Rj1_nuc];
@@ -2535,7 +2375,7 @@ OUTLOOP:
                 }
             }
         }
-        // Hairpinに該当がなければ、Internal loopのトレースバック。もっとも手強い。
+        // If the Hairpin does not apply, trace back the Internal loop. The toughest.
         for (p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); p++) {
             for (unsigned int Lp = 0; Lp < pos2nuc_[p].size(); Lp++) {
                 int const Lp_nuc = pos2nuc_[p][Lp];
@@ -2632,17 +2472,14 @@ OUTLOOP:
 
                                         if (q + 1 == j && Rq1_nuc != Rj_nuc) {
                                             continue;
-                                        } // q,jの時は、q+1の塩基とjの塩基は一致していないといけない。(2)の逆
+                                        } // In the case of q and j, the base of q + 1 and the base of j must match. The reverse of (2)
                                         if (q + 2 == j && Rq1_nuc != Rj1_nuc) {
                                             continue;
-                                        } // q,X,jの時は、q+1の塩基とj-1の塩基は一致していないといけない。
+                                        } // In the case of q, X, j, the base of q + 1 and the base of j-1 must match.
 
-                                        // int energy = LoopEnergy(p-i-1, j-q-1, type_LiRj, type_LpRq,
-                                        // 			i2r[Li1_nuc], i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc]);
                                         int energy = E_intloop(p - i - 1, j - q - 1, type_LiRj, type_LpRq, i2r[Li1_nuc],
                                                                i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc], P_);
 
-                                        //	int energy_new = energy+c[indx_[q]+p][Lp][Rq];
                                         int energy_new = energy + C_[getIndx(p, q, max_bp_distance_final_, indx_)][Lp][Rq];
                                         traced = (cij == energy_new);
                                         if (traced) {
@@ -2657,7 +2494,7 @@ OUTLOOP:
                                             (*optseq)[j - 1] = i2n[Rj1_nuc];
                                             (*optseq)[q + 1] = i2n[Rq1_nuc];
 
-                                            i = p, j = q; // i,jの更新
+                                            i = p, j = q; // i,j update
                                             Li = Lp;
                                             Rj = Rq;
 
@@ -2682,7 +2519,6 @@ OUTLOOP:
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
         int en = cij - TermAU(rtype_LiRj, P_) - P_->MLintern[rtype_LiRj] - P_->MLclosing;
-        //	    for(k = i+2+TURN; k < j-2-TURN; k++){
         int Li1_save, Rk1_save, Lk_save, Rj1_save;
         Li1_save = Rk1_save = Lk_save = Rj1_save = -1;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
@@ -2750,12 +2586,10 @@ OUTLOOP:
 
         } else {
             fprintf(stderr, "backtracking failed in repeat %d %d\n", i, j);
-            //	    	exit(1);
         }
     }
 
     base_pair_[0].i = b; /* save the total number of base pairs */
-    //	cout << base_pair_[0].i << endl;
 }
 
 
@@ -2815,7 +2649,7 @@ OUTLOOP:
                 cerr << "Traceback failure: i must be 1 during bachtrack in f" << endl;
             }
 
-            // f[j]とC[1][j]が一致している時の処理。Vieenaでは、次for文に統合されている。
+            // Processing when f [j] and C [1] [j] match. In Vienna, it is integrated into the following for statement.
             if (type && j <= max_bp_distance_final_) {
                 int en_c = TermAU(type, P_) + c[getIndx(i, j, max_bp_distance_final_, indx_)];
                 int en_f = f[j];
@@ -2853,8 +2687,8 @@ OUTLOOP:
 
             /* trace back the base pair found */
             // [1]
-            i = k;      // iを更新
-            j = traced; // この代入は多分必要ない。jに関しては不変だから
+            i = k;      // i updated
+            j = traced; // This substitution is probably not needed. Because j is immutable
             base_pair_[++b].i = i;
             base_pair_[b].j = j;
             goto repeat1;
@@ -2893,13 +2727,12 @@ OUTLOOP:
             }
         }
 
-    repeat1: // いちいちスタックに積まずに、ここで部分的なトレースバックをしてしまう。
-        // continue;
+    repeat1: // Instead of stacking on the stack one by one, I do a partial traceback here.
         /*----- begin of "repeat:" -----*/
         if (j - i + 1 > max_bp_distance_final_) {
             cerr << "backtrack failed at " << i << "," << j << " : the nuclen_ must at most << w << endl";
         }
-        ij = getIndx(i, j, max_bp_distance_final_, indx_); // ここでは元々のi,jから変換していることに注意。jは更新されないこともある[1]
+        ij = getIndx(i, j, max_bp_distance_final_, indx_); // Note that we are converting from the original i, j here. j may not be updated [1]
         type = BP_pair[ioptseq[i]][ioptseq[j]];
         cij = c[ij];
 
@@ -2909,13 +2742,13 @@ OUTLOOP:
                 hpn += optseq[k];
             }
 
-            // predefinedなヘアピンとの比較
+            // Comparison with predefined hairpins
             if (predefHPN_E_.count(hpn) > 0) {
                 if (c[ij] == predefHPN_E_[hpn]) {
                     cout << "Predefined Hairpin at " << i << "," << j << endl;
                     goto OUTLOOP;
                 }
-            } else { // 普通のヘアピンとの比較
+            } else { // Comparison with ordinary hairpins
                 int energy = E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN", P_);
 
                 if (c[ij] == energy) {
@@ -2924,12 +2757,12 @@ OUTLOOP:
             }
 
         } else {
-            // 普通のヘアピンのトレースバック
+            // Ordinary hairpin traceback
             if (cij == E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN", P_)) {
                 goto OUTLOOP;
             }
         }
-        // Hairpinに該当がなければ、Internal loopのトレースバック。もっとも手強い。
+        // If the Hairpin does not apply, trace back the Internal loop. The toughest.
         for (p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); p++) {
             int minq = j - i + p - MAXLOOP - 2;
             if (minq < p + 1 + TURN)
@@ -2950,7 +2783,7 @@ OUTLOOP:
                     base_pair_[++b].i = p;
                     base_pair_[b].j = q;
 
-                    i = p, j = q; // i,jの更新
+                    i = p, j = q; // i,j update
                     goto repeat1;
                 }
             }
@@ -2967,7 +2800,7 @@ OUTLOOP:
 
         int en = cij - TermAU(type_rev, P_) - P_->MLintern[type_rev] - P_->MLclosing;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
-            //マルチループを閉じるところと、bifucationを同時に探している。
+            //I'm looking for bifucation at the same time as closing the multi-loop.
             if (en == m[getIndx(i + 1, k - 1, max_bp_distance_final_, indx_)] + m[getIndx(k, j - 1, max_bp_distance_final_, indx_)]) {
                 goto LABEL2;
             }
@@ -2983,10 +2816,8 @@ OUTLOOP:
 
         } else {
             fprintf(stderr, "fixed_backtracking failed in repeat %d %d\n", i, j);
-            //	    	exit(1);
         }
     }
 
     base_pair_[0].i = b; /* save the total number of base pairs */
-    //	cout << base_pair_[0].i << endl;
 }
