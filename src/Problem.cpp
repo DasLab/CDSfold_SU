@@ -773,9 +773,7 @@ void Problem::fixed_fold(string & optseq) {
     ioptseq[0] = 0;
     for (int i = 1; i <= nuclen; i++) {
         ioptseq[i] = n2i[optseq[i]];
-        //		cout << optseq[i] << endl;
     }
-    //	exit(0);
 
     fixed_init_matrix(nuclen, size, C, M, F, DMl, DMl1, DMl2);
     int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
@@ -785,15 +783,12 @@ void Problem::fixed_fold(string & optseq) {
     for (int l = 5; l <= nuclen; l++) {
         if (l > max_bp_distance_final_)
             break;
-        // cout << "process:" << l << endl;
 
-        //	  for(int l = 5; l <= 5; l++){
         for (int i = 1; i <= nuclen - l + 1; i++) {
             int j = i + l - 1;
             int ij = getIndx(i, j, max_bp_distance_final_, indx_);
             C[ij] = INF;
             M[ij] = INF;
-            //			cout << "test:" << j << endl;
             int type = BP_pair[ioptseq[i]][ioptseq[j]];
 
             if (type) {
@@ -806,7 +801,6 @@ void Problem::fixed_fold(string & optseq) {
                     for (int k = i; k <= j; k++) {
                         hpn += optseq[k];
                     }
-                    // cout << i << ":" << j << "=" << hpn << endl;
                     if (predefHPN_E_.count(hpn) > 0) {
                         C[ij] = predefHPN_E_[hpn];
                     }
@@ -1111,7 +1105,7 @@ auto Problem::rev_fold_step1() -> string {
     // Ntab.A = 0; Ntab.C = 0; Ntab.G = 0; Ntab.U = 0;
     // Ctab.AU = 0;Ctab.GC = 0;Ctab.GU = 0;
 
-    //最初のコドンはランダムに選ぶ。
+    //The first codon is chosen randomly.
     std::mt19937 *genp = nullptr;
     // std::unique_ptr< std::mt19937 > gen = nullptr;
     if (options_.fixed_seed) {
@@ -1135,9 +1129,8 @@ auto Problem::rev_fold_step1() -> string {
     addCtable(Ctab, optseq_r[2], optseq_r[3]);
     addCtable(Ctab, optseq_r[1], optseq_r[3]);
 
-    // 2個目以降のコドン
+    // Second and subsequent codons
     for (int i = 1; i < aalen_; i++) {
-        // cout << "ENTER" << endl;
         float maxP = -INF;
         string maxPcodon = "";
         Ntable maxN;
@@ -1147,10 +1140,6 @@ auto Problem::rev_fold_step1() -> string {
         for (auto codon : cand_codons) {
             Ntable N = Ntab;
             Ctable C = Ctab;
-            //			Ntable N = {0,0,0,0};
-            //			Ctable C = {0,0,0};
-            //			N = Ntab;
-            //			C = Ctab;
 
             for (int j = 0; j <= 2; j++) {
                 int nuc_pos = i * 3 + j + 1;
@@ -1162,7 +1151,6 @@ auto Problem::rev_fold_step1() -> string {
             }
 
             float P = calcPseudoEnergy(N, C);
-            // cout << Pe << endl;
             if (P > maxP) {
                 maxP = P;
                 maxPcodon = codon;
@@ -1177,12 +1165,7 @@ auto Problem::rev_fold_step1() -> string {
         optseq_r[i * 3 + 3] = maxPcodon[2];
     }
 
-    // showNtable(Ntab);
-    // showCtable(Ctab);
-
     cout << "step1:" << optseq_r << endl;
-
-    // cout << "ok" << endl;
     return optseq_r;
 }
 
@@ -1206,19 +1189,17 @@ void Problem::rev_fold_step2(string & optseq_r) {
     int cycle = 0;
     while (cycle <= MAX_CYCLE) {
         for (int i = 0; i < aalen_; i++) {
-            // cout << aalen << endl;
             vector<string> codons = codon_table_.getCodons(aaseq_[i], options_.codons_excluded);
-            if (codons.size() == 1)
-                continue; // コドンが一つしか無いところは変異しない。
+            if (codons.size() == 1) {
+                continue; // Where there is only one codon, it does not mutate.
+            }
 
             int codon_fm = i * 3 + 1;
             int codon_to = i * 3 + 3;
             int local_fm = MAX2(1, codon_fm - 3);
             int local_to = MIN2(optseq_r.size() - 1, codon_to + 3);
 
-            //			cout << "TEST fm=" << local_fm << ":" << local_to << endl;
-
-            // 変異前情報の整理
+            // Arrangement of pre-mutation information
             string local_region_org;
             for (int j = local_fm; j <= local_to; j++) {
                 local_region_org.push_back(optseq_r[j]);
@@ -1229,17 +1210,13 @@ void Problem::rev_fold_step2(string & optseq_r) {
             codon_org.push_back(optseq_r[codon_fm + 1]);
             codon_org.push_back(optseq_r[codon_fm + 2]);
 
-            //					if(i == 1){
-            //						cout << codon_org << endl;
-            //					}
-
             Ctable C_local_org = countCtable(local_region_org, 0);
 
             for (auto const &codon : codons) {
-                // 変異後情報の整理
+                // Arrangement of post-mutation information
                 string local_region = local_region_org;
-                // コドン部分の上書き
-                if (i == 0) { // 最初のコドンを置換する
+                // Overwriting the codon part
+                if (i == 0) { // Replace the first codon
                     local_region[0] = codon[0];
                     local_region[1] = codon[1];
                     local_region[2] = codon[2];
@@ -1279,21 +1256,17 @@ void Problem::rev_fold_step2(string & optseq_r) {
         }
         cycle++;
 
-        // 配列のアップデート
+        // Array update
         int codon_fm = max_i * 3 + 1;
         int codon_to = max_i * 3 + 3;
         int j = 0;
         for (int i = codon_fm; i <= codon_to; i++) {
-            // cout << "ok:" << (*optseq_r)[i]  << "->" << max_codon[j] << endl;
             optseq_r[i] = max_codon[j++];
         }
         Ntab = max_N;
         Ctab = max_C;
         cout << "pos = " << max_i << "," << max_codon_from << "->" << max_codon << endl;
         cout << optseq_r << "\t" << max_energy << endl;
-
-        //		showNtable(Ntab);
-        // 		showCtable(Ctab);
 
         if (max_energy == max_energy_prev)
             break;
@@ -1353,11 +1326,6 @@ void Problem::fill_F2() {
                     // Bifucation
                     /* modular decomposition -------------------------------*/
                     for (int k = i + 2 + TURN; k <= j - TURN - 1; k++) { // Is this correct?
-                        // cout << k << endl;
-                        //			    				if((k - 1) - i + 1 > w_tmp ||
-                        //			    					j - k + 1 > w_tmp)
-                        //			    						continue;
-
                         for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
                             int Rk1_nuc = pos2nuc_[k - 1][Rk1];
 
@@ -1373,9 +1341,6 @@ void Problem::fill_F2() {
                             }
                         }
                     }
-
-                    //							cout << i << "," << j << "," << L << "," << R << "," << F2[ij][L][R]
-                    //<< endl;
                 }
             }
         }
@@ -1601,12 +1566,8 @@ OUTLOOP:
 
                         int type_LkRj = BP_pair[i2r[Lk_nuc]][i2r[Rj_nuc]];
                         if (type_LkRj) {
-                            //	int en_c = TermAU(type_LkRj, P) +  c[indx_[j]+k][Lk][Rj];
                             int en_c = TermAU(type_LkRj, P_) + C_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][Rj];
                             int en_f = F_[k - 1][Li][Rk1];
-                            //	                    	int test = en_c + en_f;
-                            //	                    	cout << fij << "=" << test << "(" << en_c << "+" << en_f << ")"
-                            //<< i << ":" << k << ":" << j << endl;
                             if (fij == en_c + en_f) {
                                 traced = j;
                                 traced_Lk = Lk;
@@ -1644,7 +1605,7 @@ OUTLOOP:
 
             for (unsigned int Li1 = 0; Li1 < pos2nuc_[i + 1].size(); Li1++) {
                 int Li1_nuc = pos2nuc_[i + 1][Li1];
-                if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
+                if (options_.nucleotide_constraints && i2r[Li1_nuc] != NucConst_[i + 1]) {
                     continue;
                 }
                 if (options_.DEPflg && Dep1_[ii2r[Li_nuc * 10 + Li1_nuc]][i] == 0) {
@@ -1673,13 +1634,13 @@ OUTLOOP:
 
                 for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
                     int Rk1_nuc = pos2nuc_[k - 1][Rk1];
-                    if (options_.nucleotide_constraints == 1 && i2r[Rk1_nuc] != NucConst_[k - 1]) {
+                    if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
                         continue;
                     }
                     // check dependency is not needed because i+2<k,k+2<J
                     for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
                         int Lk_nuc = pos2nuc_[k][Lk];
-                        if (options_.nucleotide_constraints == 1 && i2r[Lk_nuc] != NucConst_[k]) {
+                        if (options_.nucleotide_constraints && i2r[Lk_nuc] != NucConst_[k]) {
                             continue;
                         }
                         if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
@@ -1775,7 +1736,7 @@ OUTLOOP:
             // Ordinary hairpin traceback
             for (unsigned int Li1 = 0; Li1 < pos2nuc_[i + 1].size(); Li1++) {
                 int Li1_nuc = pos2nuc_[i + 1][Li1];
-                if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
+                if (options_.nucleotide_constraints && i2r[Li1_nuc] != NucConst_[i + 1]) {
                     continue;
                 }
                 if (options_.DEPflg && Dep1_[ii2r[Li_nuc * 10 + Li1_nuc]][i] == 0) {
@@ -1784,7 +1745,7 @@ OUTLOOP:
 
                 for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
                     int Rj1_nuc = pos2nuc_[j - 1][Rj1];
-                    if (options_.nucleotide_constraints == 1 && i2r[Rj1_nuc] != NucConst_[j - 1]) {
+                    if (options_.nucleotide_constraints&& i2r[Rj1_nuc] != NucConst_[j - 1]) {
                         continue;
                     }
                     if (options_.DEPflg && Dep1_[ii2r[Rj1_nuc * 10 + Rj_nuc]][j - 1] == 0) {
@@ -1805,7 +1766,7 @@ OUTLOOP:
         for (p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); p++) {
             for (unsigned int Lp = 0; Lp < pos2nuc_[p].size(); Lp++) {
                 int Lp_nuc = pos2nuc_[p][Lp];
-                if (options_.nucleotide_constraints == 1 && i2r[Lp_nuc] != NucConst_[p]) {
+                if (options_.nucleotide_constraints && i2r[Lp_nuc] != NucConst_[p]) {
                     continue;
                 }
                 if (options_.DEPflg && p == i + 1 && Dep1_[ii2r[Li_nuc * 10 + Lp_nuc]][i] == 0) {
@@ -1822,7 +1783,7 @@ OUTLOOP:
                 for (q = j - 1; q >= minq; q--) {
                     for (unsigned int Rq = 0; Rq < pos2nuc_[q].size(); Rq++) {
                         int Rq_nuc = pos2nuc_[q][Rq];
-                        if (options_.nucleotide_constraints == 1 && i2r[Rq_nuc] != NucConst_[q]) {
+                        if (options_.nucleotide_constraints && i2r[Rq_nuc] != NucConst_[q]) {
                             continue;
                         }
                         if (options_.DEPflg && q == j - 1 && Dep1_[ii2r[Rq_nuc * 10 + Rj_nuc]][q] == 0) {
@@ -1840,7 +1801,7 @@ OUTLOOP:
 
                         for (unsigned int Li1 = 0; Li1 < pos2nuc_[i + 1].size(); Li1++) {
                             int Li1_nuc = pos2nuc_[i + 1][Li1];
-                            if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
+                            if (options_.nucleotide_constraints && i2r[Li1_nuc] != NucConst_[i + 1]) {
                                 continue;
                             }
                             if (options_.DEPflg && Dep1_[ii2r[Li_nuc * 10 + Li1_nuc]][i] == 0) {
@@ -1852,7 +1813,7 @@ OUTLOOP:
 
                             for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
                                 int Rj1_nuc = pos2nuc_[j - 1][Rj1];
-                                if (options_.nucleotide_constraints == 1 && i2r[Rj1_nuc] != NucConst_[j - 1]) {
+                                if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
                                     continue;
                                 }
                                 if (options_.DEPflg && Dep1_[ii2r[Rj1_nuc * 10 + Rj_nuc]][j - 1] == 0) {
@@ -1864,7 +1825,7 @@ OUTLOOP:
 
                                 for (unsigned int Lp1 = 0; Lp1 < pos2nuc_[p - 1].size(); Lp1++) {
                                     int Lp1_nuc = pos2nuc_[p - 1][Lp1];
-                                    if (options_.nucleotide_constraints == 1 && i2r[Lp1_nuc] != NucConst_[p - 1]) {
+                                    if (options_.nucleotide_constraints && i2r[Lp1_nuc] != NucConst_[p - 1]) {
                                         continue;
                                     }
 
@@ -1887,7 +1848,7 @@ OUTLOOP:
 
                                     for (unsigned int Rq1 = 0; Rq1 < pos2nuc_[q + 1].size(); Rq1++) {
                                         int Rq1_nuc = pos2nuc_[q + 1][Rq1];
-                                        if (options_.nucleotide_constraints == 1 && i2r[Rq1_nuc] != NucConst_[q + 1]) {
+                                        if (options_.nucleotide_constraints && i2r[Rq1_nuc] != NucConst_[q + 1]) {
                                             continue;
                                         }
                                         if (options_.DEPflg && Dep1_[ii2r[Rq_nuc * 10 + Rq1_nuc]][q] == 0) {
@@ -1955,14 +1916,14 @@ OUTLOOP:
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
             for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
                 int Rk1_nuc = pos2nuc_[k - 1][Rk1];
-                if (options_.nucleotide_constraints == 1 && i2r[Rk1_nuc] != NucConst_[k - 1]) {
+                if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
                     continue;
                 }
                 // There is no need to check for base inconsistencies at i, k, j. Because i + 4 <k, k + 4 <j.
 
                 for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
                     int Lk_nuc = pos2nuc_[k][Lk];
-                    if (options_.nucleotide_constraints == 1 && i2r[Lk_nuc] != NucConst_[k]) {
+                    if (options_.nucleotide_constraints && i2r[Lk_nuc] != NucConst_[k]) {
                         continue;
                     }
                     if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
@@ -1971,7 +1932,7 @@ OUTLOOP:
 
                     for (unsigned int Li1 = 0; Li1 < pos2nuc_[i + 1].size(); Li1++) {
                         int Li1_nuc = pos2nuc_[i + 1][Li1];
-                        if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
+                        if (options_.nucleotide_constraints && i2r[Li1_nuc] != NucConst_[i + 1]) {
                             continue;
                         }
                         if (options_.DEPflg && Dep1_[ii2r[Li_nuc * 10 + Li1_nuc]][i] == 0) {
@@ -1980,7 +1941,7 @@ OUTLOOP:
 
                         for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
                             int Rj1_nuc = pos2nuc_[j - 1][Rj1];
-                            if (options_.nucleotide_constraints == 1 && i2r[Rj1_nuc] != NucConst_[j - 1]) {
+                            if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
                                 continue;
                             }
                             if (options_.DEPflg && Dep1_[ii2r[Rj1_nuc * 10 + Rj_nuc]][j - 1] == 0) {
@@ -2025,7 +1986,6 @@ OUTLOOP:
 void Problem::backtrack2(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR) {
 
     std::mt19937 *genp = nullptr;
-    // std::unique_ptr< std::mt19937 > gen = nullptr;
     if (options_.fixed_seed) {
         genp = new std::mt19937(0);
     } else {
@@ -2259,13 +2219,13 @@ OUTLOOP:
 
                 for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
                     int Rk1_nuc = pos2nuc_[k - 1][Rk1];
-                    if (options_.nucleotide_constraints == 1 && i2r[Rk1_nuc] != NucConst_[k - 1]) {
+                    if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
                         continue;
                     }
                     // check dependency is not needed because i+2<k,k+2<J
                     for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
                         int Lk_nuc = pos2nuc_[k][Lk];
-                        if (options_.nucleotide_constraints == 1 && i2r[Lk_nuc] != NucConst_[k]) {
+                        if (options_.nucleotide_constraints && i2r[Lk_nuc] != NucConst_[k]) {
                             continue;
                         }
                         if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
@@ -2359,7 +2319,7 @@ OUTLOOP:
         } else {
             // Ordinary hairpin traceback
             for (int const Li1_nuc : pos2nuc_[i + 1]) {
-                if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
+                if (options_.nucleotide_constraints && i2r[Li1_nuc] != NucConst_[i + 1]) {
                     continue;
                 }
                 if (options_.DEPflg && Dep1_[ii2r[Li_nuc * 10 + Li1_nuc]][i] == 0) {
@@ -2367,7 +2327,7 @@ OUTLOOP:
                 } // dependency between i and i+1
 
                 for (int const Rj1_nuc : pos2nuc_[j - 1]) {
-                    if (options_.nucleotide_constraints == 1 && i2r[Rj1_nuc] != NucConst_[j - 1]) {
+                    if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
                         continue;
                     }
                     if (options_.DEPflg && Dep1_[ii2r[Rj1_nuc * 10 + Rj_nuc]][j - 1] == 0) {
@@ -2388,7 +2348,7 @@ OUTLOOP:
         for (p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); p++) {
             for (unsigned int Lp = 0; Lp < pos2nuc_[p].size(); Lp++) {
                 int const Lp_nuc = pos2nuc_[p][Lp];
-                if (options_.nucleotide_constraints == 1 && i2r[Lp_nuc] != NucConst_[p]) {
+                if (options_.nucleotide_constraints && i2r[Lp_nuc] != NucConst_[p]) {
                     continue;
                 }
                 if (options_.DEPflg && p == i + 1 && Dep1_[ii2r[Li_nuc * 10 + Lp_nuc]][i] == 0) {
@@ -2404,7 +2364,7 @@ OUTLOOP:
                 for (q = j - 1; q >= minq; q--) {
                     for (unsigned int Rq = 0; Rq < pos2nuc_[q].size(); Rq++) {
                         int const Rq_nuc = pos2nuc_[q][Rq];
-                        if (options_.nucleotide_constraints == 1 && i2r[Rq_nuc] != NucConst_[q]) {
+                        if (options_.nucleotide_constraints && i2r[Rq_nuc] != NucConst_[q]) {
                             continue;
                         }
                         if (options_.DEPflg && q == j - 1 && Dep1_[ii2r[Rq_nuc * 10 + Rj_nuc]][q] == 0) {
@@ -2420,7 +2380,7 @@ OUTLOOP:
                         type_LpRq = rtype[type_LpRq];
 
                         for (int const Li1_nuc : pos2nuc_[i + 1]) {
-                            if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
+                            if (options_.nucleotide_constraints && i2r[Li1_nuc] != NucConst_[i + 1]) {
                                 continue;
                             }
                             if (options_.DEPflg && Dep1_[ii2r[Li_nuc * 10 + Li1_nuc]][i] == 0) {
@@ -2431,7 +2391,7 @@ OUTLOOP:
                             } // In the case of i and p, the base of i + 1 and the base of p must match. (1)
 
                             for (int const Rj1_nuc : pos2nuc_[j - 1]) {
-                                if (options_.nucleotide_constraints == 1 && i2r[Rj1_nuc] != NucConst_[j - 1]) {
+                                if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
                                     continue;
                                 }
                                 if (options_.DEPflg && Dep1_[ii2r[Rj1_nuc * 10 + Rj_nuc]][j - 1] == 0) {
@@ -2442,7 +2402,7 @@ OUTLOOP:
                                 } // In the case of q and j, the base of q and the base of j-1 must match. (2)
 
                                 for (int const Lp1_nuc : pos2nuc_[p - 1]) {
-                                    if (options_.nucleotide_constraints == 1 && i2r[Lp1_nuc] != NucConst_[p - 1]) {
+                                    if (options_.nucleotide_constraints && i2r[Lp1_nuc] != NucConst_[p - 1]) {
                                         continue;
                                     }
 
@@ -2465,7 +2425,7 @@ OUTLOOP:
                                     } // In the case of i, X, p, the base of i + 1 and the base of p-1 (X) must match.
 
                                     for (int const Rq1_nuc : pos2nuc_[q + 1]) {
-                                        if (options_.nucleotide_constraints == 1 && i2r[Rq1_nuc] != NucConst_[q + 1]) {
+                                        if (options_.nucleotide_constraints && i2r[Rq1_nuc] != NucConst_[q + 1]) {
                                             continue;
                                         }
                                         if (options_.DEPflg && Dep1_[ii2r[Rq_nuc * 10 + Rq1_nuc]][q] == 0) {
@@ -2533,14 +2493,14 @@ OUTLOOP:
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
             for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
                 int Rk1_nuc = pos2nuc_[k - 1][Rk1];
-                if (options_.nucleotide_constraints == 1 && i2r[Rk1_nuc] != NucConst_[k - 1]) {
+                if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
                     continue;
                 }
                 // There is no need to check for base inconsistencies at i, k, j. Because i + 4 <k, k + 4 <j.
 
                 for (unsigned int Lk = 0; Lk < pos2nuc_[k].size(); Lk++) {
                     int Lk_nuc = pos2nuc_[k][Lk];
-                    if (options_.nucleotide_constraints == 1 && i2r[Lk_nuc] != NucConst_[k]) {
+                    if (options_.nucleotide_constraints && i2r[Lk_nuc] != NucConst_[k]) {
                         continue;
                     }
                     if (options_.DEPflg && Dep1_[ii2r[Rk1_nuc * 10 + Lk_nuc]][k - 1] == 0) {
@@ -2549,7 +2509,7 @@ OUTLOOP:
 
                     for (unsigned int Li1 = 0; Li1 < pos2nuc_[i + 1].size(); Li1++) {
                         int Li1_nuc = pos2nuc_[i + 1][Li1];
-                        if (options_.nucleotide_constraints == 1 && i2r[Li1_nuc] != NucConst_[i + 1]) {
+                        if (options_.nucleotide_constraints && i2r[Li1_nuc] != NucConst_[i + 1]) {
                             continue;
                         }
                         if (options_.DEPflg && Dep1_[ii2r[Li_nuc * 10 + Li1_nuc]][i] == 0) {
@@ -2558,7 +2518,7 @@ OUTLOOP:
 
                         for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
                             int Rj1_nuc = pos2nuc_[j - 1][Rj1];
-                            if (options_.nucleotide_constraints == 1 && i2r[Rj1_nuc] != NucConst_[j - 1]) {
+                            if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
                                 continue;
                             }
                             if (options_.DEPflg && Dep1_[ii2r[Rj1_nuc * 10 + Rj_nuc]][j - 1] == 0) {
