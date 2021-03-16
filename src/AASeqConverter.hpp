@@ -19,6 +19,11 @@
 
 using namespace std;
 
+enum class Alphabet {
+    BASE_ORIGINAL = 0,
+    BASE_EXTENDED = 1
+};
+
 class AASeqConverter {
   public:
     AASeqConverter() {
@@ -245,9 +250,6 @@ class AASeqConverter {
     static const map<string, int> pairNumberMap;
     map<string, int> baseEnergy;
 
-    const static int BASE_ORIGINAL = 0;
-    const static int BASE_EXTENDED = 1;
-
     auto getBaseNumber(const string &base) -> int {
         auto itr = baseNumberMap.find(base);
         return itr->second;
@@ -288,24 +290,24 @@ class AASeqConverter {
 
     void initResultExtendedBaseEnergyVector(int inputBaseLength, int getBaseLength,
                                             vector<vector<vector<vector<pair<int, string>>>>> &result) {
-        initResultBaseEnergyVectorBase(inputBaseLength, getBaseLength, result, BASE_EXTENDED);
+        initResultBaseEnergyVectorBase(inputBaseLength, getBaseLength, result, Alphabet::BASE_EXTENDED);
     }
 
     void initResultOriginalBaseEnergyVector(int inputBaseLength, int getBaseLength,
                                             vector<vector<vector<vector<pair<int, string>>>>> &result) {
-        initResultBaseEnergyVectorBase(inputBaseLength, getBaseLength, result, BASE_ORIGINAL);
+        initResultBaseEnergyVectorBase(inputBaseLength, getBaseLength, result, Alphabet::BASE_ORIGINAL);
     }
 
     void initResultBaseEnergyVectorBase(int inputBaseLength, int getBaseLength,
-                                        vector<vector<vector<vector<pair<int, string>>>>> &result, int flag) {
+                                        vector<vector<vector<vector<pair<int, string>>>>> &result, Alphabet const & flag) {
         pair<int, string> baseEnergy;
         baseEnergy.first = numeric_limits<int>::max();
         baseEnergy.second = "";
-        // 塩基数
-        int baseNumber;
-        if (flag == BASE_ORIGINAL) {
+        // Number of bases
+        int baseNumber = 4;
+        if (flag == Alphabet::BASE_ORIGINAL) {
             baseNumber = 4;
-        } else if (flag == BASE_EXTENDED) {
+        } else if (flag == Alphabet::BASE_EXTENDED) {
             baseNumber = 8;
         }
         vector<pair<int, string>> resEndBase;
@@ -325,7 +327,7 @@ class AASeqConverter {
         result.assign(inputBaseLength + 1, resLength);
     }
 
-    void getBasesBase(string aminoAcid, unsigned int maxLength, vector<vector<vector<string>>> &result, int flag,
+    void getBasesBase(string aminoAcid, unsigned int maxLength, vector<vector<vector<string>>> &result, Alphabet const & flag,
                       const string &exceptedCodons) {
         int baseLength = aminoAcid.size() * 3;
 
@@ -352,12 +354,12 @@ class AASeqConverter {
                     }
 
                     vector<string> codons;
-                    if (flag == BASE_ORIGINAL) {
+                    if (flag == Alphabet::BASE_ORIGINAL) {
                         codons = codonTable.getCodons(aminoAcid.at(j), exceptedCodons);
-                    } else if (flag == BASE_EXTENDED) {
+                    } else if (flag == Alphabet::BASE_EXTENDED) {
                         codons = codonTable.getExtendedCodons(aminoAcid.at(j), exceptedCodons);
                     } else {
-                        cout << "Error: getBasesBase () flag is an invalid value:" << flag << endl;
+                        cout << "Error: getBasesBase () flag is an invalid value:" << static_cast<int>(flag) << endl;
                         exit(1);
                     }
 
@@ -429,7 +431,7 @@ class AASeqConverter {
     }
 
     void addBasesBase(string aminoAcid, int startElement, unsigned int maxLength,
-                      vector<vector<vector<string>>> &result, int flag, const string &exceptedCodons) {
+                      vector<vector<vector<string>>> &result, Alphabet const & flag, const string &exceptedCodons) {
         int baseLength = aminoAcid.size() * 3;
 
         // Create a base sequence with a length of maxLength
@@ -454,12 +456,12 @@ class AASeqConverter {
                     }
 
                     vector<string> codons;
-                    if (flag == BASE_ORIGINAL) {
+                    if (flag == Alphabet::BASE_ORIGINAL) {
                         codons = codonTable.getCodons(aminoAcid.at(j), exceptedCodons);
-                    } else if (flag == BASE_EXTENDED) {
+                    } else if (flag == Alphabet::BASE_EXTENDED) {
                         codons = codonTable.getExtendedCodons(aminoAcid.at(j), exceptedCodons);
                     } else {
-                        cout << "Error: The flag in addBasesBase () is an invalid value:" << flag << endl;
+                        cout << "Error: The flag in addBasesBase () is an invalid value:" << static_cast<int>(flag) << endl;
                         exit(1);
                     }
 
@@ -541,15 +543,15 @@ class AASeqConverter {
 
     void addExtendedBases(string aminoAcid, int startElement, unsigned int maxLength,
                           vector<vector<vector<string>>> &result, string exceptedCodons) {
-        addBasesBase(std::move(aminoAcid), startElement, maxLength, result, BASE_EXTENDED, std::move(exceptedCodons));
+        addBasesBase(std::move(aminoAcid), startElement, maxLength, result, Alphabet::BASE_EXTENDED, std::move(exceptedCodons));
     }
 
     void addOriginalBases(string aminoAcid, int startElement, unsigned int maxLength,
                           vector<vector<vector<string>>> &result, string exceptedCodons) {
-        addBasesBase(std::move(aminoAcid), startElement, maxLength, result, BASE_ORIGINAL, std::move(exceptedCodons));
+        addBasesBase(std::move(aminoAcid), startElement, maxLength, result, Alphabet::BASE_ORIGINAL, std::move(exceptedCodons));
     }
 
-    auto calcEachBaseEnergyBase(const string &aminoAcid, vector<vector<vector<string>>> &bases, int flag)
+    auto calcEachBaseEnergyBase(const string &aminoAcid, vector<vector<vector<string>>> &bases, Alphabet const & flag)
         -> vector<vector<vector<vector<pair<int, string>>>>> {
         // Initialize the result storage vector
         int baseLength = aminoAcid.size() * 3;
@@ -569,7 +571,7 @@ class AASeqConverter {
 
                     // Search for free energy from arrays and energy maps
                     string originalBase = base;
-                    if (flag == BASE_EXTENDED) {
+                    if (flag == Alphabet::BASE_EXTENDED) {
                         // When using extended bases, V and W are converted to U, and X and Y are converted to G.
                         Util::baseReplace(originalBase, "V", "U");
                         Util::baseReplace(originalBase, "W", "U");
@@ -607,25 +609,25 @@ class AASeqConverter {
 
     auto calcEachExtendedBaseEnergy(string aminoAcid, vector<vector<vector<string>>> &bases)
         -> vector<vector<vector<vector<pair<int, string>>>>> {
-        return calcEachBaseEnergyBase(std::move(aminoAcid), bases, BASE_EXTENDED);
+        return calcEachBaseEnergyBase(std::move(aminoAcid), bases, Alphabet::BASE_EXTENDED);
     }
 
     auto calcEachOriginalBaseEnergy(string aminoAcid, vector<vector<vector<string>>> &bases)
         -> vector<vector<vector<vector<pair<int, string>>>>> {
-        return calcEachBaseEnergyBase(std::move(aminoAcid), bases, BASE_ORIGINAL);
+        return calcEachBaseEnergyBase(std::move(aminoAcid), bases, Alphabet::BASE_ORIGINAL);
     }
 
     auto getSelectedLengthExtendedBases(string aminoAcid, unsigned int maxLength, string exceptedCodons)
         -> vector<vector<vector<string>>> {
         vector<vector<vector<string>>> result;
-        getBasesBase(std::move(aminoAcid), maxLength, result, BASE_EXTENDED, std::move(exceptedCodons));
+        getBasesBase(std::move(aminoAcid), maxLength, result, Alphabet::BASE_EXTENDED, std::move(exceptedCodons));
         return result;
     }
 
     auto getSelectedLengthOriginalBases(string aminoAcid, unsigned int maxLength, string exceptedCodons)
         -> vector<vector<vector<string>>> {
         vector<vector<vector<string>>> result;
-        getBasesBase(std::move(aminoAcid), maxLength, result, BASE_ORIGINAL, std::move(exceptedCodons));
+        getBasesBase(std::move(aminoAcid), maxLength, result, Alphabet::BASE_ORIGINAL, std::move(exceptedCodons));
         return result;
     }
 
