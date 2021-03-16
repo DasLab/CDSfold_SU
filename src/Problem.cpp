@@ -341,7 +341,7 @@ void Problem::calculate() {
 
                                 for (unsigned int Lp = 0; Lp < pos2nuc_[p].size(); Lp++) {
                                     int Lp_nuc = pos2nuc_[p][Lp];
-                                    if (options_.nucleotide_constraints == 1 && i2r[Lp_nuc] != NucConst_[p]) {
+                                    if (options_.nucleotide_constraints && i2r[Lp_nuc] != NucConst_[p]) {
                                         continue;
                                     }
 
@@ -354,7 +354,7 @@ void Problem::calculate() {
 
                                     for (unsigned int Rq = 0; Rq < pos2nuc_[q].size(); Rq++) { // nucleotide for p, q
                                         int Rq_nuc = pos2nuc_[q][Rq];
-                                        if (options_.nucleotide_constraints == 1 && i2r[Rq_nuc] != NucConst_[q]) {
+                                        if (options_.nucleotide_constraints && i2r[Rq_nuc] != NucConst_[q]) {
                                             continue;
                                         }
 
@@ -374,7 +374,7 @@ void Problem::calculate() {
 
                                         // for each intloops
                                         for (int const L2_nuc : pos2nuc_[i + 1]) {
-                                            if (options_.nucleotide_constraints == 1 && i2r[L2_nuc] != NucConst_[i + 1]) {
+                                            if (options_.nucleotide_constraints && i2r[L2_nuc] != NucConst_[i + 1]) {
                                                 continue;
                                             }
 
@@ -392,7 +392,7 @@ void Problem::calculate() {
                                                 }
 
                                                 for (int const Lp2_nuc : pos2nuc_[p - 1]) {
-                                                    if (options_.nucleotide_constraints == 1 && i2r[Lp2_nuc] != NucConst_[p - 1]) {
+                                                    if (options_.nucleotide_constraints && i2r[Lp2_nuc] != NucConst_[p - 1]) {
                                                         continue;
                                                     }
 
