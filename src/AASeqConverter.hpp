@@ -191,35 +191,21 @@ class AASeqConverter {
             preMaxLength = maxLength;
         }
 
-        //		// (n-8+1)～(n-6)要素の部分塩基配列を取得
-        //		int preMaxLength = 8;
-        //		int maxLength = 6;
-        //		int startElement = aminoAcid.size() * 3 - preMaxLength + 1;
-        //		addOriginalBases(aminoAcid, startElement, maxLength, bases,
-        //				exceptedCodons);
-        //
-        //		// (n-6+1)～(n-5)要素の部分塩基配列を取得
-        //		preMaxLength = maxLength;
-        //		maxLength = 5;
-        //		startElement = aminoAcid.size() * 3 - preMaxLength + 1;
-        //		addOriginalBases(aminoAcid, startElement, maxLength, bases,
-        //				exceptedCodons);
-
         return bases;
     }
 
     /*
-     * アミノ酸配列の部分塩基配列部位の自由エネルギーを取得する
+     * Obtain the free energy of the partial base sequence site of the amino acid sequence
      *
-     * @param　aminoAcid　アミノ酸配列
-     * @return　各塩基配列における自由エネルギーのベクター
-     * 　要素1次元：開始位置（0～アミノ酸配列の塩基数、実際には要素番号1以降を使用）
-     * 　要素2次元：部分配列長（0～8、実際には要素番号は、5,6,8のみ使用）
-     * 　要素3次元：開始位置塩基番号（0～4、実際には要素番号1以降を使用）
-     * 　要素4次元：終了位置塩基番号（0～4、実際には要素番号1以降を使用）
-     * 　　（塩基番号：A=1, C=2, G=3, U=4)
+     * @param　aminoAcid　Amino acid sequence
+     * @return　Free energy vector in each base sequence
+     * 　Element 1D: Start position (number of bases from 0 to amino acid sequence, actually use element number 1 or later)
+     * 　Element 2D: Partial array length (0-8, actually element numbers are only 5,6,8 used)
+     * 　Element 3D: Start position base number (0-4, actually use element number 1 or later)
+     * 　Element 4D: End position base number (0-4, actually element number 1 or later is used)
+     * 　　(Base number: A = 1, C = 2, G = 3, U = 4)
      *
-     * （使用例）
+     * (Example of use)
      *   string seq = "MLYF";
      * 	 AASeqConverter conv;
      *	 vector<vector<vector<vector<pair<int, string> > > > > result
@@ -326,16 +312,16 @@ class AASeqConverter {
         vector<vector<pair<int, string>>> resStartBase;
         vector<vector<vector<pair<int, string>>>> resLength;
 
-        // resEndBaseに適切な数のbaseEnergyを追加（実際に使用するのは、要素1以降）
+        // Add an appropriate number of baseEnergy to resEndBase (actually use element 1 or later)
         resEndBase.assign(baseNumber + 1, baseEnergy);
 
-        // resStartBaseに適切な数のresEndBaseを追加（実際に使用するのは、要素1以降）
+        // Add an appropriate number of resEndBase to resStartBase (actually use element 1 and later)
         resStartBase.assign(baseNumber + 1, resEndBase);
 
-        // resLengthに適切な数のresStartBaseを追加（実際に使用するのは、要素1以降）
+        // Add an appropriate number of resStartBase to resLength (actually use element 1 and above
         resLength.assign(getBaseLength + 1, resStartBase);
 
-        // resultに適切な数のresLengthを追加（実際に使用するのは、要素1以降）
+        // Add an appropriate number of resLength to result (actually use element 1 and later)
         result.assign(inputBaseLength + 1, resLength);
     }
 
@@ -644,7 +630,7 @@ class AASeqConverter {
     }
 
     /*
-     * デバッグ用
+     * For debugging
      */
     void printTime(const string &msg, clock_t start, clock_t end) {
         double margin = (double)(end - start) / CLOCKS_PER_SEC;

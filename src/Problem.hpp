@@ -256,10 +256,6 @@ inline void showFixedMatrix(const int *m, vector<int> const & indx, const int le
     }
 }
 
-
-
-
-
 inline vector<int> createNucConstraint(const char *s, unsigned int const len, map<char, int> const & n2i) {
     vector<int> v(len + 1);
     for (int i = 1; i <= len; i++) {
@@ -267,15 +263,6 @@ inline vector<int> createNucConstraint(const char *s, unsigned int const len, ma
     }
     return v;
 }
-
-// inline vector<int> set_ij_indx(int length) {
-//     vector<int> a( length + 1, 0 );
-//     for (int n = 1; n <= length; n++) {
-//         a[n] = (n * (n - 1)) / 2;
-//     }
-//     return a;
-// }
-
 
 inline vector<int> Problem::set_ij_indx() {
     vector<int> a( nuclen_ + 1, 0 );
