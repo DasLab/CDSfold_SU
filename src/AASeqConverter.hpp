@@ -123,9 +123,7 @@ class AASeqConverter {
     auto getBases(const string &aminoAcid, const string &exceptedCodons, Alphabet const & flag) -> vector<vector<vector<string>>> {
         // Obtain the partial base sequence of 0 to (n-8) elements
         unsigned int maxLength = 8;
-        vector<vector<vector<string>>> bases = flag == Alphabet::BASE_EXTENDED
-            ? getSelectedLengthExtendedBases(aminoAcid, maxLength, exceptedCodons);
-            : getSelectedLengthOriginalBases(aminoAcid, maxLength, exceptedCodons);
+        vector<vector<vector<string>>> bases = getSelectedLengthBases(aminoAcid, maxLength, exceptedCodons, flag);
 
         // Obtain the partial base sequence after (n-8 + 1)
         int preMaxLength = maxLength;
@@ -138,68 +136,6 @@ class AASeqConverter {
         }
 
         return bases;
-    }
-
-    auto getOriginalBases(const string &aminoAcid, const string &exceptedCodons) -> vector<vector<vector<string>>> {
-        // Obtain the partial base sequence of 0 to (n-8) elements
-        unsigned int maxLength = 8;
-        vector<vector<vector<string>>> bases = getSelectedLengthOriginalBases(aminoAcid, maxLength, exceptedCodons);
-
-        // Obtain the partial base sequence after (n-8 + 1)
-        int preMaxLength = maxLength;
-        for (int i = maxLength - 1; i > 0; --i) {
-            maxLength = i;
-            int startElement = aminoAcid.size() * 3 - preMaxLength + 1;
-            addExtendedBases(aminoAcid, startElement, maxLength, bases, exceptedCodons);
-            preMaxLength = maxLength;
-        }
-
-        return bases;
-    }
-
-    /*
-     * アミノ酸配列の部分塩基配列部位の自由エネルギーを取得する
-     *
-     * @param　aminoAcid　アミノ酸配列
-     * @return　各塩基配列における自由エネルギーのベクター
-     * 　要素1次元：開始位置（0～アミノ酸配列の塩基数、実際には要素番号1以降を使用）
-     * 　要素2次元：部分配列長（0～8、実際には要素番号は、5,6,8のみ使用）
-     * 　要素3次元：開始位置塩基番号（0～8、実際には要素番号1以降を使用）
-     * 　要素4次元：終了位置塩基番号（0～8、実際には要素番号1以降を使用）
-     * 　　（塩基番号：A=1, C=2, G=3, U=4, V=5, W=6, X=7, Y=8)
-     *
-     * （使用例）
-     *   string seq = "MLYF";
-     * 	 AASeqConverter conv;
-     *	 vector<vector<vector<vector<pair<int, string> > > > > result
-     *	   = conv.calcQueryBaseEnergy(seq);
-     *	 vector<int> baseLengths;
-     *	 baseLengths.push_back(5);
-     *	 baseLengths.push_back(6);
-     *	 baseLengths.push_back(8);
-     *	 for (unsigned int start = 1; start <= result.size(); start++) {
-     *	 	for (unsigned int size = 0; size < baseLengths.size(); size++) {
-     *	 		int baseSize = baseLengths[size];
-     *	 		for (int sBase = 1; sBase <= 8; sBase++) {
-     *	 			for (int eBase = 1; eBase <= 8; eBase++) {
-     *	 				int energy = result[start][baseSize][sBase][eBase].first;
-     *	 				string seq = result[start][baseSize][sBase][eBase].second;
-     *	 				cout << start << "\t" << baseSize << "\t" << sBase << "\t" << eBase
-     *	 						<< "\t" << energy << "\t" << seq << endl;
-     *	 			}
-     *	 		}
-     *	 	}
-     *	 }
-     */
-    auto calcQueryExtendedBaseEnergy(const string &aminoAcid, string exceptedCodons)
-        -> vector<vector<vector<vector<pair<int, string>>>>> {
-        // Get a partial array
-        vector<vector<vector<string>>> bases = getExtendedBases(aminoAcid, std::move(exceptedCodons), Alphabet::BASE_EXTENDED);
-
-        // Get the minimum energy of each part
-        vector<vector<vector<vector<pair<int, string>>>>> result = calcEachExtendedBaseEnergy(aminoAcid, bases);
-
-        return result;
     }
 
     /*
@@ -236,13 +172,13 @@ class AASeqConverter {
      *	 	}
      *	 }
      */
-    auto calcQueryOriginalBaseEnergy(const string &aminoAcid, string exceptedCodons)
+    auto calcQueryBaseEnergy(const string &aminoAcid, string exceptedCodons, Alphabet const & flag)
         -> vector<vector<vector<vector<pair<int, string>>>>> {
         // Get partial base sequence
-        vector<vector<vector<string>>> bases = getOriginalBases(aminoAcid, std::move(exceptedCodons), Alphabet::BASE_ORIGINAL);
+        vector<vector<vector<string>>> bases = getBases(aminoAcid, std::move(exceptedCodons), flag);
 
         // Get the minimum energy of each part
-        vector<vector<vector<vector<pair<int, string>>>>> result = calcEachOriginalBaseEnergy(aminoAcid, bases);
+        vector<vector<vector<vector<pair<int, string>>>>> result = calcEachBaseEnergy(aminoAcid, bases, flag);
 
         return result;
     }
@@ -610,27 +546,15 @@ class AASeqConverter {
         return result;
     }
 
-    auto calcEachExtendedBaseEnergy(string aminoAcid, vector<vector<vector<string>>> &bases)
+    auto calcEachBaseEnergy(string aminoAcid, vector<vector<vector<string>>> &bases, Alphabet const & flag)
         -> vector<vector<vector<vector<pair<int, string>>>>> {
-        return calcEachBaseEnergyBase(std::move(aminoAcid), bases, Alphabet::BASE_EXTENDED);
+        return calcEachBaseEnergyBase(std::move(aminoAcid), bases, flag);
     }
 
-    auto calcEachOriginalBaseEnergy(string aminoAcid, vector<vector<vector<string>>> &bases)
-        -> vector<vector<vector<vector<pair<int, string>>>>> {
-        return calcEachBaseEnergyBase(std::move(aminoAcid), bases, Alphabet::BASE_ORIGINAL);
-    }
-
-    auto getSelectedLengthExtendedBases(string aminoAcid, unsigned int maxLength, string exceptedCodons)
+    auto getSelectedLengthBases(string aminoAcid, unsigned int maxLength, string exceptedCodons, Alphabet const & flag)
         -> vector<vector<vector<string>>> {
         vector<vector<vector<string>>> result;
-        getBasesBase(std::move(aminoAcid), maxLength, result, Alphabet::BASE_EXTENDED, std::move(exceptedCodons));
-        return result;
-    }
-
-    auto getSelectedLengthOriginalBases(string aminoAcid, unsigned int maxLength, string exceptedCodons)
-        -> vector<vector<vector<string>>> {
-        vector<vector<vector<string>>> result;
-        getBasesBase(std::move(aminoAcid), maxLength, result, Alphabet::BASE_ORIGINAL, std::move(exceptedCodons));
+        getBasesBase(std::move(aminoAcid), maxLength, result, flag, std::move(exceptedCodons));
         return result;
     }
 

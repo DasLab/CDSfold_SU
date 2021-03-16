@@ -94,7 +94,7 @@ Problem::Problem(Options const & options, string const & aaseq):
 
     //		w_tmp = 50;// test!
     //		vector<vector<vector<string> > >  substr = conv.getBases(string(aaseq),8, exc);
-    substr_ = conv.getOriginalBases(aaseq_, options_.codons_excluded);
+    substr_ = conv.getBases(aaseq_, options_.codons_excluded, Alphabet::BASE_ORIGINAL);
     float ptotal_Mb_base = 0;
 
     if (options_.estimate_memory_use) {
@@ -106,23 +106,13 @@ Problem::Problem(Options const & options, string const & aaseq):
 
     predefHPN_E_ = conv.getBaseEnergy();
 
-    // vector<int> NucConst = createNucConstraint(NucDef, nuclen, n2i);
-
     if (options_.nucleotide_constraints) {
         NucConst_ = createNucConstraint(NucDef, nuclen_, n2i);
     }
-    //		for(int i = 1; i <= nuclen; i++)
-    //		printf("%d %d\n", i, NucConst[i]);
-
-    // createNucConstraint
 
     cout << aaseq_ << endl;
-    //		cout << aalen_ << endl;
 
     pos2nuc_ = getPossibleNucleotide(aaseq_, codon_table_, n2i, options_.codons_excluded);
-    //		vector<vector<int> > pos2nuc = getPossibleNucleotide(aaseq, aalen_, codon_table, n2i, 'R');
-    //		showPos2Nuc(pos2nuc, i2n);
-    //		exit(0);
 
     indx_ = set_ij_indx();
 
