@@ -41,7 +41,7 @@ auto main(int argc, char *argv[]) -> int {
     Options options;
     {
         int opt;
-        while ((opt = getopt(argc, argv, "w:e:f:t:rMUR")) != -1) {
+        while ((opt = getopt(argc, argv, "w:e:f:t:rMURs")) != -1) {
             switch (opt) {
             case 'w':
                 options.max_bp_distance = atoi(optarg);
@@ -68,6 +68,9 @@ auto main(int argc, char *argv[]) -> int {
             case 't':
                 options.opt_to = atoi(optarg);
                 options.partial_opt = true;
+                break;
+            case 's':
+                options.fixed_seed = true;
                 break;
             }
         }

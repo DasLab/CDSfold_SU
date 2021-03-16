@@ -12,6 +12,8 @@
 
 #include <iosfwd>
 #include <vector>
+#include <random>
+#include <memory>
 
 extern "C" {
     #include <climits>
@@ -24,38 +26,24 @@ class Util {
         static void baseReplace(string &base, const string& from, const string& to);
 };
 
-
-inline void InitRand() { srand((unsigned int)time(nullptr)); }
-
-
-inline void shuffleStr(vector<string>(*ary), int size) {
+inline void shuffleStr(vector<string>(*ary), int size, std::unique_ptr< std::mt19937 > const & gen) {
+    std::uniform_int_distribution<> distrib(0, size - 1);
     for (int i = 0; i < size; i++) {
-        int j = rand() % size;
+        int j = distrib(*gen);
         string t = (*ary)[i];
         (*ary)[i] = (*ary)[j];
         (*ary)[j] = t;
     }
 }
 
-inline void shuffle(int ary[], int size) {
+inline void shuffle(int ary[], int size, std::unique_ptr< std::mt19937 > const & gen) {
+    std::uniform_int_distribution<> distrib(0, size - 1);
     for (int i = 0; i < size; i++) {
-        int j = rand() % size;
+        int j = distrib(*gen);
         int t = ary[i];
         ary[i] = ary[j];
         ary[j] = t;
     }
-}
-
-inline vector<pair<int, int>> shufflePair(vector<pair<int, int>> ary, int size) {
-    for (int i = 0; i < size; i++) {
-        int j = rand() % size;
-        // cout << rand() << ":" << j << endl;
-        pair<int, int> t = ary[i];
-        ary[i] = ary[j];
-        ary[j] = t;
-    }
-
-    return ary;
 }
 
 inline auto predict_memory(int len, int w, vector<vector<int>> &pos2nuc) -> float {

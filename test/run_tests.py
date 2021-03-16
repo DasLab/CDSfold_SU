@@ -20,7 +20,7 @@ def run_all_tests(fn):
     system('./src/CDSfold -r -e CCA example/mev.faa >> {}'.format(fn))
     system('./src/CDSfold -r -w 20 -e CCA example/mev.faa >> {}'.format(fn))
 
-    #system('./src/CDSfold -R example/mev.faa >> {}'.format(fn))
+    system('./src/CDSfold -R -s example/mev.faa >> {}'.format(fn))
 
 def diff_output():
     with open('test/output/gold_standard_output.txt') as f, open('test/output/new_output.txt') as g:

@@ -2,6 +2,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <random>
 #include <unistd.h>
 
 #include "Problem.hpp"
@@ -1111,9 +1112,18 @@ auto Problem::rev_fold_step1() -> string {
     // Ctab.AU = 0;Ctab.GC = 0;Ctab.GU = 0;
 
     //最初のコドンはランダムに選ぶ。
-    InitRand();
+    std::mt19937 *genp = nullptr;
+    // std::unique_ptr< std::mt19937 > gen = nullptr;
+    if (options_.fixed_seed) {
+        genp = new std::mt19937(0);
+    } else {
+        std::random_device r;
+        genp = new std::mt19937(r());
+    }
+    std::unique_ptr< std::mt19937 > gen(genp);
+
     vector<string> codons1 = codon_table_.getCodons(aaseq_[0], options_.codons_excluded);
-    shuffleStr(&codons1, codons1.size());
+    shuffleStr(&codons1, codons1.size(), gen);
 
     optseq_r[1] = codons1[0][0];
     addNtable(Ntab, optseq_r[1]);
@@ -2013,7 +2023,16 @@ OUTLOOP:
 }
 
 void Problem::backtrack2(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR) {
-    InitRand();
+
+    std::mt19937 *genp = nullptr;
+    // std::unique_ptr< std::mt19937 > gen = nullptr;
+    if (options_.fixed_seed) {
+        genp = new std::mt19937(0);
+    } else {
+        std::random_device r;
+        genp = new std::mt19937(r());
+    }
+    std::unique_ptr< std::mt19937 > gen(genp);
 
     int s = 0;
     int b = 0;
@@ -2090,7 +2109,7 @@ OUTLOOP:
             for (int l = 0; l < 4; l++) {
                 label[l] = l;
             }
-            shuffle(label, 4);
+            shuffle(label, 4, gen);
 
             for (int l : label) {
                 cout << "go to label F" << label[l] + 1 << endl;

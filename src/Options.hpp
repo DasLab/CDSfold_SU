@@ -14,4 +14,5 @@ struct Options {
     unsigned int opt_to = 0;       // -t
     bool DEPflg = true;
     bool nucleotide_constraints = false;
+    bool fixed_seed = false;
 };
