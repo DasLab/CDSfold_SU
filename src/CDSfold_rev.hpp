@@ -156,6 +156,3 @@ inline auto countCtable(string &seq, int F) -> Ctable {
 
     return C;
 }
-
-void rev_fold_step2(string *optseq_r, const char *aaseq, const int aalen, codon &codon_table,
-                    const string &exc_codons);

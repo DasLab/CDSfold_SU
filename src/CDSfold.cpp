@@ -26,7 +26,6 @@ extern "C" {
 #include "utils.h"
 }
 
-#include "CDSfold.hpp"
 #include "CDSfold_rev.hpp"
 #include "fasta.hpp"
 #include "Problem.hpp"

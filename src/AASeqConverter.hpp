@@ -118,8 +118,6 @@ class AASeqConverter {
         return result;
     }
 
-    // AMW: what differentiates extended vs. original here -- if just the function
-    // calls they use, then we can exploit that and merge the functions.
     auto getBases(const string &aminoAcid, const string &exceptedCodons, Alphabet const & flag) -> vector<vector<vector<string>>> {
         // Obtain the partial base sequence of 0 to (n-8) elements
         unsigned int maxLength = 8;
