@@ -1,7 +1,12 @@
 from os import system, path
 
 def run_all_tests(fn):
-    #with open(fn, 'w') as f:
+    """
+    Conduct simple tests of the CDSfold executable, accumulating one logfile.
+    Tests currently hit "regular" mode, bp width limit, codon exclusion,
+    both, and 'reverse' mode.
+    """
+
     system('./src/CDSfold example/mev.faa > {}'.format(fn))
     system('./src/CDSfold -w 20 example/mev.faa >> {}'.format(fn))
     system('./src/CDSfold -e GGU example/mev.faa >> {}'.format(fn))
@@ -12,6 +17,8 @@ def run_all_tests(fn):
 def diff_output():
     with open('test/output/gold_standard_output.txt') as f, open('test/output/new_output.txt') as g:
         for ii, (line1, line2) in enumerate(zip(f.readlines(), g.readlines())):
+            # Filter a run-time line -- currently off for development to check
+            # if we improve or degrade performance.
             # if 'Runing' in line1 and 'Runing' in line2: continue
             if line1 != line2:
                 print('{} --- {}'.format(ii, line1.strip()))
