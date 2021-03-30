@@ -7,7 +7,10 @@ Install:
    in this directory by yourself. You need to rewrite the VIENNA 
    variable to the directory where the Vienna RNA package is 
    installed.
-   
+
+   When building ViennaRNA you must use the option:
+   ./configure --prefix BUILD_DIR/ViennaRNA-2.4.9/src/ViennaRNA
+
    Then, please type the following command:
    make
 
