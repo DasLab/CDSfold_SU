@@ -21,6 +21,9 @@ link: $(CDSFOLD_OBJS)
 %.o: %.cpp *.hpp
 	$(CXX) $(CXXFLAGS) $(OTHERFLAGS) -c $<
 
+example:
+	./CDSfold ../example/test.faa
+
 clean:
 	-rm *.o
 	-rm CDSfold
