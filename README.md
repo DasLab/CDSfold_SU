@@ -6,18 +6,34 @@ Before compiling the source codes, you need to install
 the Vienna RNA package (version 2.4.9), which is available  
 from the [University of Vienna](http://www.tbi.univie.ac.at/RNA/)
 
-After the package is installed, please modify the "Makefile" 
-in this directory by yourself. You need to rewrite the VIENNA 
-variable to the directory where the Vienna RNA package is 
-installed.
-
-When building ViennaRNA you must use the option:
+As part of installing ViennaRNA, you will run their ```configure``` script.
+During this step you must use the option:
 
 ```
 ./configure --prefix BUILD_DIR/ViennaRNA-2.4.9/src/ViennaRNA
 ```
 
-Then, please type the following command:
+where ```BUILD_DIR``` is the directory where ```ViennaRNA-2.4.9``` is located.
+
+Next, add the following lines to your ```~/.bashrc``` file:
+
+```bash
+# environment variables for CDSFold
+export VIENNA_INSTALL="BUILD_DIR/ViennaRNA-2.4.9/src/ViennaRNA"
+export CDS_HOME="CDS_PATH/cdsfold_update"
+```
+
+where ```BUILD_DIR``` is the same path where ViennaRNA-2.4.9 is located and
+```CDS_PATH``` is the path to where the ```cdsfold_update``` directory lives. Both
+of these environment variables should be absolute paths.
+
+Source your ~/.bashrc script:
+
+```
+source ~/.bashrc
+```
+
+Finally, run the following commands to build CDSfold:
 ``` 
 cd cdsfold_update/src
 make
