@@ -1,5 +1,6 @@
 ######## Please set this valuable BY YOURSELF ##############
-VIENNA=/afs/.ir/users/t/i/timsliu/RNA/ViennaRNA-2.4.9/src/ViennaRNA
+VIENNA=${VIENNA_INSTALL}
+CDSHOME=${CDS_HOME}
 ############################################################
 
 all: compile link
@@ -22,7 +23,10 @@ link: $(CDSFOLD_OBJS)
 	$(CXX) $(CXXFLAGS) $(OTHERFLAGS) -c $<
 
 example:
-	./CDSfold ../example/test.faa
+	$(CDSHOME)/src/CDSfold $(CDSHOME)/example/test.faa
+
+test:
+	python3 $(CDSHOME)/test/run_tests.py
 
 clean:
 	-rm *.o
