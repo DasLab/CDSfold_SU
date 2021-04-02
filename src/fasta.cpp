@@ -4,46 +4,55 @@
 
 #include "fasta.hpp"
 
-fasta::fasta(const char *fname) { // DPマトリクスの動的メモリ確保
+/* Constructor for the fasta class representing an amino acid
+ * sequence or an RNA strand
+ */
+fasta::fasta(const char *fname) {
 
-    initP();
-    numSeq = 0;
+    initP();               /* set index into sequences to 0 */
+    numSeq = 0;            /* initialize number of sequences */
 
     ifstream ifs(fname);
+   
+    /* file can be opened - try to parse it */
     if (ifs) {
         string line;
         string tmp_desc;
         string tmp_seq;
-        // int id = 0;
+       
+        /* read the first line, which should contain a comment starting w/ '<' */
         getline(ifs, line);
         if (line[0] != '>') {
             cerr << "Invalid fasta format." << endl;
             exit(1);
         } else {
-            line.erase(0, 1); // ">"を削除
-            tmp_desc = line;
+            line.erase(0, 1);           /* drop the comment char '<' */
+            tmp_desc = line;            /* save the description */
         }
-        while (getline(ifs, line)) { // 行の読み込み
-            // cout << line << endl;
-            if (line[0] == '>') {
+        
+        /* repeatedly loop reading sequences from the file */
+        while (getline(ifs, line)) {
+             
+            if (line[0] == '>') {        /* hit another description line - save the sequence */
                 eachseq e;
-                // cout << "ok1" << endl;
                 e.seq = tmp_seq;
-                e.desc = tmp_desc;
-                data.push_back(e); //
-                numSeq++; // 配列数
+                e.desc = tmp_desc;       /* save the description we've built up */
+                data.push_back(e);
+                numSeq++; 
 
-                line.erase(0, 1); // ">"を削除
+                line.erase(0, 1);
                 tmp_desc = line;
-            } else {
+            } else {                   /* line w/ the sequence - build up the sequence */
                 tmp_seq += line;
             }
         }
-        // 一番最後の配列
+        /* finished parsing - save the rest of the sequence */ 
         eachseq e;
         e.seq = tmp_seq;
         e.desc = tmp_desc;
         data.push_back(e);
+    
+    /* file could not be opened */ 
     } else {
         if (fname == nullptr) {
             cerr << "Error: no input file" << endl;
