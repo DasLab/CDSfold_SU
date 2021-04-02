@@ -31,10 +31,6 @@ auto codon::getCodons(char a, string exceptedCodons) -> vector<string> {
         /* exception not found in the map - add it in */ 
         if (exceptMap.find(tmp) == exceptMap.end()) {
             exceptMap[tmp] = 1;
-        /* exception already added - increment count */ 
-        } else {
-            int count = exceptMap[tmp] + 1;
-            exceptMap[tmp] = count;    /* count number of occurences  - TODO probably not needed */
         }
     }
 
@@ -75,7 +71,7 @@ auto codon::getExtendedCodons(char a, string exceptedCodons) -> vector<string> {
     
     map<string, int> exceptMap;
     for (const auto& exceptCodon : exceptVector) {
-        string convertedExceptCodon = exceptCodon;   // this is already a string
+        string convertedExceptCodon = exceptCodon;   // TODO this is already a string
         map<string, string>::const_iterator itr;
         
         /* if codon appears in the CodonofCodon table, use the table entry */
@@ -86,9 +82,6 @@ auto codon::getExtendedCodons(char a, string exceptedCodons) -> vector<string> {
         /* convert the list of exceptions to a map */
         if (exceptMap.find(convertedExceptCodon) == exceptMap.end()) {
             exceptMap[convertedExceptCodon] = 1;
-        } else {
-            int count = exceptMap[convertedExceptCodon] + 1;
-            exceptMap[convertedExceptCodon] = count;
         }
     }
 
