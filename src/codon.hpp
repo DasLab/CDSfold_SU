@@ -33,10 +33,10 @@ class codon {
     codon();
 
     /* Get codons that express a certain amino acid */
-    auto getCodons(char c, string exceptedCodons) -> vector<string>;
+    auto getCodons(char a, string exceptedCodons) -> vector<string>;
     
     /* Get codons that express a certain amino acid using the extended table */
-    auto getExtendedCodons(char c, string exceptedCodons) -> vector<string>;
+    auto getExtendedCodons(char a, string exceptedCodons) -> vector<string>;
 
     auto c2a(int p1, int p2, int p3) const -> char { return table_rev[p1][p2][p3]; }
 
