@@ -4,10 +4,11 @@
 #include <cmath>
 #include <memory>
 
-extern "C" {
-#include "params.h"
-#include "utils.h"
-}
+#include "EnergyModel.hpp"
+//extern "C" {
+//#include "params.h"
+//#include "utils.h"
+//}
 
 inline auto TermAU(int const &type, std::unique_ptr<paramT> const & P) -> int {
     if (type > 2) {

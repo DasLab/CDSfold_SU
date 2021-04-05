@@ -8,11 +8,12 @@
 #include "CDSfold_rev.hpp"
 #include "AASeqConverter.hpp"
 #include "Options.hpp"
+#include "EnergyModel.hpp"
 
-extern "C" {
-#include "params.h"
-#include "energy_const.h"
-}
+//extern "C" {
+//#include "params.h"       // not included through previous includes - keep
+//#include "energy_const.h" // included through CDSfold_rev.hpp - can remove
+//}
 
 using namespace std;
 
@@ -113,11 +114,13 @@ public:
     
 private:
 
+    /* instantiation of a EnergyModel class */
     Options options_;
     std::string aaseq_;
     unsigned int aalen_ = 0;
     unsigned int nuclen_ = 0;
     int max_bp_distance_final_ = 0;
+    /* replace with a struct from the EnergyModel class */
     unique_ptr<paramT> P_ = nullptr;
     vector<vector<int>> Dep1_;
     vector<vector<int>> Dep2_;

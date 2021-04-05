@@ -13,12 +13,10 @@
 
 extern "C" {
 #include <cctype>
-#include "fold.h"
-// #include "fold_vars.h"
+//#include "fold.h"
 #include <climits>
 #include <cmath>
-#include "params.h"
-// #include "part_func.h"
+// #include "params.h"   // included through Problem.hpp - not needed
 #include <cstdio>
 #include <cstdlib>
 #include "utils.h"
@@ -40,7 +38,7 @@ const array<int, 100> Problem::ii2r = make_ii2r();
 Problem::Problem(Options const & options, string const & aaseq):
     options_( options ),
     aaseq_( aaseq ),
-    P_(scale_parameters())
+    P_(scale_parameters())          // paramT type initialized by some function
 {
     aalen_ = aaseq_.size();
 
