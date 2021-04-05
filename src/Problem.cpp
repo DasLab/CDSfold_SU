@@ -124,7 +124,7 @@ Problem::Problem(Options const & options, string const & aaseq):
         exit(0);
     }
 
-    update_fold_params();
+    update_fold_params();   // from Vienna fold.h
 }
 
 void Problem::calculate() {

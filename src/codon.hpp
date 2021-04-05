@@ -55,7 +55,7 @@ class codon {
     static const map<char, vector<string>> table;           /* amino acids -> all possible codons */
     static const map<char, vector<string>> extendedTable;   /* amino acids -> codons w/ extended table */
     static const map<string, string> expectedCodonOfCodon;  /* codon to extended table codon */
-    char table_rev[5][5][5];                                /* ??? */
+    char table_rev[5][5][5];                                /* table mapping codons to amino acids  */
 
-    auto split(string &str, char delim) -> vector<string>;  /* ??? */
+    auto split(string &str, char delim) -> vector<string>;  /* convert string into  a vector */
 };

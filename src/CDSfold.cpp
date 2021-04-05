@@ -15,15 +15,10 @@
 
 extern "C" {
 #include <cctype>
-#include "fold.h"
-// #include "fold_vars.h"
 #include <climits>
 #include <cmath>
-#include "params.h"
-// #include "part_func.h"
 #include <cstdio>
 #include <cstdlib>
-#include "utils.h"
 }
 
 #include "CDSfold_rev.hpp"
