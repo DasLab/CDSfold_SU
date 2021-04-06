@@ -37,10 +37,13 @@ const array<int, 100> Problem::ii2r = make_ii2r();
 
 Problem::Problem(Options const & options, string const & aaseq):
     options_( options ),
-    aaseq_( aaseq ),
-    P_(scale_parameters())          // paramT type initialized by some function
+    aaseq_( aaseq )
+    //P_(scale_parameters())          // paramT type initialized by some function
 {
     aalen_ = aaseq_.size();
+
+    energyModel_ = ViennaEnergyModel();
+    P_ = move(energyModel_.P_); 
 
     if (aalen_ <= 2) {
         cerr << "The amino acid sequence is too short.\n";

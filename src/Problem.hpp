@@ -114,14 +114,14 @@ public:
     
 private:
 
-    /* instantiation of a EnergyModel class */
+    EnergyModel energyModel_;        /* energy model */
     Options options_;
     std::string aaseq_;
     unsigned int aalen_ = 0;
     unsigned int nuclen_ = 0;
     int max_bp_distance_final_ = 0;
     /* replace with a struct from the EnergyModel class */
-    unique_ptr<paramT> P_ = nullptr;
+    unique_ptr<scaledEnergyParams> P_ = nullptr;
     vector<vector<int>> Dep1_;
     vector<vector<int>> Dep2_;
     map<string, int> predefHPN_E_;

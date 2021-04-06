@@ -10,14 +10,14 @@
 //#include "utils.h"
 //}
 
-inline auto TermAU(int const &type, std::unique_ptr<paramT> const & P) -> int {
+inline auto TermAU(int const &type, std::unique_ptr<scaledEnergyParams> const & P) -> int {
     if (type > 2) {
         return P->TerminalAU;
     }
     return 0;
 }
 
-inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, std::unique_ptr<paramT> const & P) -> int {
+inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, std::unique_ptr<scaledEnergyParams> const & P) -> int {
     int energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30] + (int)(P->lxc * log((size) / 30.));
     // fprintf(stderr, "ok\n");
     if (P->model_details.special_hp) {
@@ -45,7 +45,7 @@ inline auto E_hairpin(int size, int type, int si1, int sj1, const char *string, 
     return energy;
 }
 
-inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, std::unique_ptr<paramT> const & P) -> int {
+inline auto E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, std::unique_ptr<scaledEnergyParams> const & P) -> int {
     /* compute energy of degree 2 loop (stack bulge or interior) */
     // AMW: trying to reduce the scope of the variable energy surprisingly reduces performance a small amount.
     // Might be an inlining issue.
