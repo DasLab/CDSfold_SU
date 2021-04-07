@@ -23,8 +23,8 @@ def run_all_tests(fn):
         ['-r -e CCA', 'example/mev.faa'],
         ['-r -w 20 -e CCA', 'example/mev.faa'],
         ['-R -s', 'example/mev.faa'],
-    #    ['', 'example/random_seq.faa'],
-    #    ['-w 10', 'example/random_seq.faa'],
+        ['', 'example/random_seq.faa'],
+        ['-w 10', 'example/random_seq.faa'],
     ]
 
     system("rm -rf {}".format(fn))  # clear the file being output to
