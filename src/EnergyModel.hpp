@@ -81,7 +81,8 @@ class EnergyModel {
 
 public:
     unique_ptr<scaledEnergyParams> P_;  // TODO - make this protected
-    EnergyModel(scaledEnergyParams* p = nullptr) : P_(p) {}
+    EnergyModel(scaledEnergyParams* p = nullptr) : P_(p) {};
+    virtual void repr() = 0;
     //virtual void update_fold_params() = 0;
 
 };
@@ -103,6 +104,10 @@ public:
 
     /* constructor - initialize the energy parameters here */
     ViennaEnergyModel() : EnergyModel((scaledEnergyParams*) scale_parameters()) {};
+   
+    void repr() override {
+        std::cout << "Vienna Energy Model" << std::endl;
+    }
     //void update_fold_params() override {
     //    update_fold_params;
     //}

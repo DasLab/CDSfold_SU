@@ -42,8 +42,9 @@ Problem::Problem(Options const & options, string const & aaseq):
 {
     aalen_ = aaseq_.size();
 
-    energyModel_ = ViennaEnergyModel();
-    P_ = move(energyModel_.P_); 
+    energyModel_ = unique_ptr<EnergyModel>(new ViennaEnergyModel());
+    P_ = move(energyModel_->P_);
+    energyModel_->repr();
     
     if (aalen_ <= 2) {
         cerr << "The amino acid sequence is too short.\n";

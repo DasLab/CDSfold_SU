@@ -114,7 +114,7 @@ public:
     
 private:
 
-    EnergyModel energyModel_;        /* energy model TODO change to unique ptr to access derived methods */
+    unique_ptr<EnergyModel> energyModel_;        /* energy model TODO change to unique ptr to access derived methods */
     Options options_;
     std::string aaseq_;
     unsigned int aalen_ = 0;
