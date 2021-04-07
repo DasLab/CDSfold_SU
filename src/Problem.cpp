@@ -19,7 +19,7 @@ extern "C" {
 // #include "params.h"   // included through Problem.hpp - not needed
 #include <cstdio>
 #include <cstdlib>
-#include "utils.h"
+//#include "utils.h"
 }
 
 using namespace std;
@@ -38,13 +38,18 @@ const array<int, 100> Problem::ii2r = make_ii2r();
 Problem::Problem(Options const & options, string const & aaseq):
     options_( options ),
     aaseq_( aaseq )
-    //P_(scale_parameters())          // paramT type initialized by some function
 {
     aalen_ = aaseq_.size();
 
+#ifdef USE_VIENNA_ENERGY_MODEL
     energyModel_ = unique_ptr<EnergyModel>(new ViennaEnergyModel());
-    P_ = move(energyModel_->P_);
-    energyModel_->repr();
+#endif
+
+#ifndef USE_VIENNA_ENERGY_MODEL
+    energyModel_ = unique_ptr<EnergyModel>(new DummyEnergyModel());
+#endif
+
+    P_ = energyModel_->moveEnergyParams();
     
     if (aalen_ <= 2) {
         cerr << "The amino acid sequence is too short.\n";
@@ -126,7 +131,8 @@ Problem::Problem(Options const & options, string const & aaseq):
         exit(0);
     }
 
-    update_fold_params();   // from Vienna fold.h
+    energyModel_->updateEnergyFoldParams();
+    //update_fold_params();   // from Vienna fold.h
 }
 
 void Problem::calculate() {
