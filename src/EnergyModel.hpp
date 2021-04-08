@@ -4,6 +4,9 @@
  */
 
 #include "constants.hpp"
+#include <iostream>
+#include <ostream>
+#include <memory>
 
 /* Preprocessor directives for compiling an energy model
  */ 
@@ -132,7 +135,7 @@ typedef struct scaledEnergyParams {
 /* base class representing an energy model */
 class EnergyModel {
 protected:
-    unique_ptr<scaledEnergyParams> energyParams_;  // TODO - make this protected
+    std::shared_ptr<scaledEnergyParams> energyParams_;  // TODO - make this protected
 
 public:
     /* constructor 
@@ -142,8 +145,8 @@ public:
    
     /* moveEnergyParams - moves the unique pointer to energyParams
      */
-    unique_ptr<scaledEnergyParams> moveEnergyParams () {
-        return std::move(energyParams_);
+    std::shared_ptr<scaledEnergyParams> getEnergyParams () {
+        return energyParams_;
     }
     
     /* repr function - prints name of the class */
@@ -151,6 +154,10 @@ public:
 
     /* updateEnergyFoldParams - updates the fold parameters */
     virtual void updateEnergyFoldParams() = 0;
+
+    virtual int TermAU(int const &type) = 0;
+    virtual int E_hairpin(int size, int type, int si1, int sj1, const char *string) = 0;
+    virtual int E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1) = 0;
 
 };
 
@@ -188,6 +195,10 @@ public:
     void updateEnergyFoldParams() override {
         update_fold_params();
     }
+    
+    int TermAU(int const &type);
+    int E_hairpin(int size, int type, int si1, int sj1, const char *string);
+    int E_intloop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1);
 };
 
 #endif

@@ -49,7 +49,7 @@ Problem::Problem(Options const & options, string const & aaseq):
     energyModel_ = unique_ptr<EnergyModel>(new DummyEnergyModel());
 #endif
 
-    P_ = energyModel_->moveEnergyParams();
+    P_ = energyModel_->getEnergyParams();
     
     if (aalen_ <= 2) {
         cerr << "The amino acid sequence is too short.\n";
@@ -131,7 +131,8 @@ Problem::Problem(Options const & options, string const & aaseq):
         exit(0);
     }
 
-    energyModel_->updateEnergyFoldParams();
+    //energyModel_->updateEnergyFoldParams();// calls function from Vienna RNA, but things
+    // still work when it's commented out??
     //update_fold_params();   // from Vienna fold.h
 }
 
@@ -1539,7 +1540,7 @@ OUTLOOP:
             // Processing when f [j] and C [1] [j] match. In Vieena, it is integrated into the following for statement.
             if (type_LiRj && j <= max_bp_distance_final_) {
                 // note i == 1
-                int en_c = TermAU(type_LiRj, P_) + C_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj];
+                int en_c = energyModel_->TermAU(type_LiRj) + C_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj];
                 int en_f = F_[j][Li][Rj];
                 if (en_c == en_f) {
                     k = i;
@@ -1574,7 +1575,7 @@ OUTLOOP:
 
                         int type_LkRj = BP_pair[i2r[Lk_nuc]][i2r[Rj_nuc]];
                         if (type_LkRj) {
-                            int en_c = TermAU(type_LkRj, P_) + C_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][Rj];
+                            int en_c = energyModel_->TermAU(type_LkRj) + C_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][Rj];
                             int en_f = F_[k - 1][Li][Rk1];
                             if (fij == en_c + en_f) {
                                 traced = j;
@@ -1631,7 +1632,7 @@ OUTLOOP:
 
                 ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-                if (fij == C_[ij][Li][Rj] + TermAU(type_LiRj, P_) + P_->MLintern[type_LiRj]) {
+                if (fij == C_[ij][Li][Rj] + energyModel_->TermAU(type_LiRj) + P_->MLintern[type_LiRj]) {
                     base_pair_[++b].i = i;
                     base_pair_[b].j = j;
                     goto repeat1;
@@ -1918,7 +1919,7 @@ OUTLOOP:
 
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
-        int en = cij - TermAU(rtype_LiRj, P_) - P_->MLintern[rtype_LiRj] - P_->MLclosing;
+        int en = cij - energyModel_->TermAU(rtype_LiRj) - P_->MLintern[rtype_LiRj] - P_->MLclosing;
         int Li1_save, Rk1_save, Lk_save, Rj1_save;
         Li1_save = Rk1_save = Lk_save = Rj1_save = -1;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
@@ -2138,7 +2139,7 @@ OUTLOOP:
             F3:
                 // trace i,j from C(i,j)
                 if (type_LiRj && j - i + 1 <= max_bp_distance_final_) {
-                    int en_c = TermAU(type_LiRj, P_) + C_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj];
+                    int en_c = energyModel_->TermAU(type_LiRj) + C_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj];
                     int en_f = F2_[ij][Li][Rj];
                     cout << en_c << "," << en_f << endl;
                     if (en_c == en_f) {
@@ -2216,7 +2217,7 @@ OUTLOOP:
 
                 ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-                if (fij == C_[ij][Li][Rj] + TermAU(type_LiRj, P_) + P_->MLintern[type_LiRj]) {
+                if (fij == C_[ij][Li][Rj] + energyModel_->TermAU(type_LiRj) + P_->MLintern[type_LiRj]) {
                     base_pair_[++b].i = i;
                     base_pair_[b].j = j;
                     goto repeat1;
@@ -2495,7 +2496,7 @@ OUTLOOP:
 
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
-        int en = cij - TermAU(rtype_LiRj, P_) - P_->MLintern[rtype_LiRj] - P_->MLclosing;
+        int en = cij - energyModel_->TermAU(rtype_LiRj) - P_->MLintern[rtype_LiRj] - P_->MLclosing;
         int Li1_save, Rk1_save, Lk_save, Rj1_save;
         Li1_save = Rk1_save = Lk_save = Rj1_save = -1;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
@@ -2628,7 +2629,7 @@ OUTLOOP:
 
             // Processing when f [j] and C [1] [j] match. In Vienna, it is integrated into the following for statement.
             if (type && j <= max_bp_distance_final_) {
-                int en_c = TermAU(type, P_) + c[getIndx(i, j, max_bp_distance_final_, indx_)];
+                int en_c = energyModel_->TermAU(type) + c[getIndx(i, j, max_bp_distance_final_, indx_)];
                 int en_f = f[j];
                 if (en_c == en_f) {
                     k = i;
@@ -2641,7 +2642,7 @@ OUTLOOP:
 
                 int type_kj = BP_pair[ioptseq[k]][ioptseq[j]];
                 if (type_kj) {
-                    int en_c = TermAU(type_kj, P_) + c[getIndx(k, j, max_bp_distance_final_, indx_)];
+                    int en_c = energyModel_->TermAU(type_kj) + c[getIndx(k, j, max_bp_distance_final_, indx_)];
                     int en_f = f[k - 1];
                     if (fij == en_c + en_f) {
                         traced = j;
@@ -2680,7 +2681,7 @@ OUTLOOP:
 
             ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-            if (fij == c[ij] + TermAU(type, P_) + P_->MLintern[type]) {
+            if (fij == c[ij] + energyModel_->TermAU(type) + P_->MLintern[type]) {
                 base_pair_[++b].i = i;
                 base_pair_[b].j = j;
                 goto repeat1;
@@ -2775,7 +2776,7 @@ OUTLOOP:
 
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
-        int en = cij - TermAU(type_rev, P_) - P_->MLintern[type_rev] - P_->MLclosing;
+        int en = cij - energyModel_->TermAU(type_rev) - P_->MLintern[type_rev] - P_->MLclosing;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
             //I'm looking for bifucation at the same time as closing the multi-loop.
             if (en == m[getIndx(i + 1, k - 1, max_bp_distance_final_, indx_)] + m[getIndx(k, j - 1, max_bp_distance_final_, indx_)]) {
