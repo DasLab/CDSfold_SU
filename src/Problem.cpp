@@ -9,7 +9,6 @@
 #include "Options.hpp"
 #include "AASeqConverter.hpp"
 #include "codon.hpp"
-#include "energy.hpp"
 
 extern "C" {
 #include <cctype>
@@ -42,11 +41,11 @@ Problem::Problem(Options const & options, string const & aaseq):
     aalen_ = aaseq_.size();
 
 #ifdef USE_VIENNA_ENERGY_MODEL
-    energyModel_ = unique_ptr<EnergyModel>(new ViennaEnergyModel());
+    energyModel_ = unique_ptr<ViennaEnergyModel>(new ViennaEnergyModel());
 #endif
 
 #ifndef USE_VIENNA_ENERGY_MODEL
-    energyModel_ = unique_ptr<EnergyModel>(new DummyEnergyModel());
+    energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
 #endif
 
     P_ = energyModel_->getEnergyParams();
@@ -294,7 +293,7 @@ void Problem::calculate() {
                                     // i2r[hL2_nuc], i2r[hR2_nuc],
                                     // dummy_str);
                                     int energy =
-                                        E_hairpin(j - i - 1, type, i2r[hL2_nuc], i2r[hR2_nuc], dummy_str, P_);
+                                        energyModel_->E_hairpin(j - i - 1, type, i2r[hL2_nuc], i2r[hR2_nuc], dummy_str);
                                     C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
                                 }
                             }
@@ -326,7 +325,7 @@ void Problem::calculate() {
                                     // i2r[L2_nuc],
                                     // i2r[R2_nuc],
                                     // dummy_str);
-                                    energy = E_hairpin(j - i - 1, type, i2r[L2_nuc], i2r[R2_nuc], dummy_str, P_);
+                                    energy = energyModel_->E_hairpin(j - i - 1, type, i2r[L2_nuc], i2r[R2_nuc], dummy_str);
                                     // cout << "HairpinE(" << j-i-1 << "," << type << "," << i2r[L2_nuc] << "," <<
                                     // i2r[R2_nuc] << ")" << " at " << i << "," << j << ":" << energy << endl; cout
                                     // << i << " " << j  << " " << energy << ":" << i2n[L_nuc] << "-" << i2n[R_nuc]
@@ -436,9 +435,9 @@ void Problem::calculate() {
                                                             continue;
                                                         } // check dependency between q+1, j-1 (q,X,X,j)
 
-                                                        int int_energy = E_intloop(p - i - 1, j - q - 1, type,
+                                                        int int_energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type,
                                                                                     type_2, i2r[L2_nuc], i2r[R2_nuc],
-                                                                                    i2r[Lp2_nuc], i2r[Rq2_nuc], P_);
+                                                                                    i2r[Lp2_nuc], i2r[Rq2_nuc]);
                                                         // LoopEnergy(p- i- 1,j- q-
                                                         // 1,type,type_2,i2r[L2_nuc],i2r[R2_nuc],i2r[Lp2_nuc],i2r[Rq2_nuc]);
 
@@ -802,7 +801,7 @@ void Problem::fixed_fold(string & optseq) {
 
             if (type) {
                 // hairpin
-                int energy = E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], dummy_str, P_);
+                int energy = energyModel_->E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], dummy_str);
                 C[ij] = MIN2(energy, C[ij]);
 
                 if (l == 5 || l == 6 || l == 8) {
@@ -832,8 +831,8 @@ void Problem::fixed_fold(string & optseq) {
                         }
                         type_2 = rtype[type_2];
 
-                        int int_energy = E_intloop(p - i - 1, j - q - 1, type, type_2, ioptseq[i + 1], ioptseq[j - 1],
-                                                   ioptseq[p - 1], ioptseq[q + 1], P_);
+                        int int_energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type, type_2, ioptseq[i + 1], ioptseq[j - 1],
+                                                   ioptseq[p - 1], ioptseq[q + 1]);
 
                         int energy = int_energy + C[pq];
                         C[ij] = MIN2(energy, C[ij]);
@@ -1730,7 +1729,7 @@ OUTLOOP:
                     }
 
                 } else { // Comparison with ordinary hairpins
-                    int energy = E_hairpin(j - i - 1, type_LiRj, i2r[hL2_nuc], i2r[hR2_nuc], "NNNNNNNNN", P_);
+                    int energy = energyModel_->E_hairpin(j - i - 1, type_LiRj, i2r[hL2_nuc], i2r[hR2_nuc], "NNNNNNNNN");
 
                     if (C_[ij][Li][Rj] == energy) {
                         for (unsigned int k = 0; k < hpn.size(); k++) {
@@ -1761,7 +1760,7 @@ OUTLOOP:
                         continue;
                     } // dependency between j-1 and j
 
-                    if (cij == E_hairpin(j - i - 1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN", P_)) {
+                    if (cij == energyModel_->E_hairpin(j - i - 1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN")) {
                         (*optseq)[i + 1] = i2n[Li1_nuc]; // Record mismatched bases inside base pairs
                         (*optseq)[j - 1] = i2n[Rj1_nuc];
                         goto OUTLOOP;
@@ -1878,8 +1877,8 @@ OUTLOOP:
                                             continue;
                                         } // In the case of q, X, j, the base of q + 1 and the base of j-1 must match.
 
-                                        int energy = E_intloop(p - i - 1, j - q - 1, type_LiRj, type_LpRq, i2r[Li1_nuc],
-                                                               i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc], P_);
+                                        int energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type_LiRj, type_LpRq, i2r[Li1_nuc],
+                                                               i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc]);
 
                                         int energy_new = energy + C_[getIndx(p, q, max_bp_distance_final_, indx_)][Lp][Rq];
                                         traced = (cij == energy_new);
@@ -2314,7 +2313,7 @@ OUTLOOP:
                     }
 
                 } else { // Comparison with ordinary hairpins
-                    int energy = E_hairpin(j - i - 1, type_LiRj, i2r[hL2_nuc], i2r[hR2_nuc], "NNNNNNNNN", P_);
+                    int energy = energyModel_->E_hairpin(j - i - 1, type_LiRj, i2r[hL2_nuc], i2r[hR2_nuc], "NNNNNNNNN");
 
                     if (C_[ij][Li][Rj] == energy) {
                         for (unsigned int k = 0; k < hpn.size(); k++) {
@@ -2343,7 +2342,7 @@ OUTLOOP:
                         continue;
                     } // dependency between j-1 and j
 
-                    if (cij == E_hairpin(j - i - 1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN", P_)) {
+                    if (cij == energyModel_->E_hairpin(j - i - 1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN")) {
                         (*optseq)[i + 1] = i2n[Li1_nuc]; // Record mismatched bases inside base pairs
                         (*optseq)[j - 1] = i2n[Rj1_nuc];
                         goto OUTLOOP;
@@ -2455,8 +2454,8 @@ OUTLOOP:
                                             continue;
                                         } // In the case of q, X, j, the base of q + 1 and the base of j-1 must match.
 
-                                        int energy = E_intloop(p - i - 1, j - q - 1, type_LiRj, type_LpRq, i2r[Li1_nuc],
-                                                               i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc], P_);
+                                        int energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type_LiRj, type_LpRq, i2r[Li1_nuc],
+                                                               i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc]);
 
                                         int energy_new = energy + C_[getIndx(p, q, max_bp_distance_final_, indx_)][Lp][Rq];
                                         traced = (cij == energy_new);
@@ -2727,7 +2726,7 @@ OUTLOOP:
                     goto OUTLOOP;
                 }
             } else { // Comparison with ordinary hairpins
-                int energy = E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN", P_);
+                int energy = energyModel_->E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN");
 
                 if (c[ij] == energy) {
                     goto OUTLOOP;
@@ -2736,7 +2735,7 @@ OUTLOOP:
 
         } else {
             // Ordinary hairpin traceback
-            if (cij == E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN", P_)) {
+            if (cij == energyModel_->E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN")) {
                 goto OUTLOOP;
             }
         }
@@ -2752,8 +2751,8 @@ OUTLOOP:
                     continue;
                 type_pq = rtype[type_pq];
 
-                int energy = E_intloop(p - i - 1, j - q - 1, type, type_pq, ioptseq[i + 1], ioptseq[j - 1],
-                                       ioptseq[p - 1], ioptseq[q + 1], P_);
+                int energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type, type_pq, ioptseq[i + 1], ioptseq[j - 1],
+                                       ioptseq[p - 1], ioptseq[q + 1]);
 
                 int energy_new = energy + c[getIndx(p, q, max_bp_distance_final_, indx_)];
                 traced = (cij == energy_new);

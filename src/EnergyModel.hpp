@@ -134,6 +134,7 @@ typedef struct scaledEnergyParams {
 
 /* base class representing an energy model */
 class EnergyModel {
+
 protected:
     std::shared_ptr<scaledEnergyParams> energyParams_;  // TODO - make this protected
 
@@ -142,8 +143,8 @@ public:
      * inputs: p - pointer to a scaledEnergyParams struct that will be copied
      *             into the energyParams_ attribute */ 
     EnergyModel(scaledEnergyParams* p = nullptr) : energyParams_(p) {};
-   
-    /* moveEnergyParams - moves the unique pointer to energyParams
+    
+    /* getEnergyParams - returns a shared pointer to the energy parameters
      */
     std::shared_ptr<scaledEnergyParams> getEnergyParams () {
         return energyParams_;
@@ -191,7 +192,7 @@ public:
     void repr() override {
         std::cout << "Vienna Energy Model" << std::endl;
     }
-    
+  
     void updateEnergyFoldParams() override {
         update_fold_params();
     }
