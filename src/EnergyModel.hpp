@@ -9,10 +9,6 @@
 #include <ostream>
 #include <memory>
 
-#ifdef USE_VIENNA_ENERGY_MODEL
-
-
-#endif
 
 /* energyParams
  *
@@ -33,10 +29,6 @@ public:
     /* constructor */ 
     EnergyModel() {};
     
-    /* getEnergyParams - returns a raw pointer to the energy parameters
-     */
-    virtual energyParams* getEnergyParams () = 0;
-    
     /* repr function - prints name of the class */
     virtual void repr() = 0;
 
@@ -56,22 +48,4 @@ public:
 
 };
 
-
-/* DummyEnergyModel
- *
- * Empty energy model that is another child of EnergyModel; sibling of ViennaEnergyModel */
-class DummyEnergyModel: public EnergyModel {
-
-public:
-    DummyEnergyModel() {};
-
-    void repr() override {
-        std::cout << "Dummy Energy Model" << std::endl;
-    }
-
-    void updateEnergyFoldParams() override {
-
-    }
-
-};
 
