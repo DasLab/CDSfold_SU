@@ -27,7 +27,7 @@ public:
 class DummyEnergyModel: public EnergyModel {
 
 protected:
-   dummyEnergyParams* energyParams_; 
+    std::unique_ptr<dummyEnergyParams> energyParams_; 
 
 public:
     DummyEnergyModel() {};

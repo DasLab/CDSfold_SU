@@ -12,7 +12,7 @@ extern "C" {
 class ViennaEnergyModel: public EnergyModel {
 
 protected:
-    vrna_param_s* energyParams_;
+    std::unique_ptr<vrna_param_s> energyParams_;
 
 public:
     /* constructor - initialize the energy parameters here */
