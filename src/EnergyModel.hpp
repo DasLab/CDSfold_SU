@@ -2,26 +2,15 @@
  * Class for the energy model
  *
  */
+#pragma once
 
 #include "constants.hpp"
 #include <iostream>
 #include <ostream>
 #include <memory>
 
-/* Preprocessor directives for compiling an energy model
- */ 
-#pragma once
-
-#define USE_VIENNA_ENERGY_MODEL
-
 #ifdef USE_VIENNA_ENERGY_MODEL
 
-extern "C" {
-    #include "params.h"
-    #include "utils.h"
-    #include "energy_const.h"
-    #include "fold.h"
-}
 
 #endif
 

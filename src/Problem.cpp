@@ -11,14 +11,11 @@
 #include "codon.hpp"
 
 extern "C" {
-#include <cctype>
-//#include "fold.h"
-#include <climits>
-#include <cmath>
-// #include "params.h"   // included through Problem.hpp - not needed
-#include <cstdio>
-#include <cstdlib>
-//#include "utils.h"
+    #include <cctype>
+    #include <climits>
+    #include <cmath>
+    #include <cstdio>
+    #include <cstdlib>
 }
 
 using namespace std;
@@ -48,7 +45,6 @@ Problem::Problem(Options const & options, string const & aaseq):
     energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
 #endif
 
-    P_ = (scaledEnergyParams*) energyModel_->getEnergyParams();
     
     if (aalen_ <= 2) {
         cerr << "The amino acid sequence is too short.\n";

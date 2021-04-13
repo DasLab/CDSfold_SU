@@ -3,18 +3,19 @@
 #include <iosfwd>
 #include <iostream>
 #include <memory>
-// maybe convert to unique_ptr to avoid need for whole headers
+
 #include "codon.hpp"
 #include "CDSfold_rev.hpp"
 #include "AASeqConverter.hpp"
 #include "Options.hpp"
-#include "EnergyModel.hpp"
-#include "ViennaEnergyModel.hpp"
 
-//extern "C" {
-//#include "params.h"       // not included through previous includes - keep
-//#include "energy_const.h" // included through CDSfold_rev.hpp - can remove
-//}
+#ifdef USE_VIENNA_ENERGY_MODEL
+#include "ViennaEnergyModel.hpp"
+#endif
+
+#ifndef USE_VIENNA_ENERGY_MODEL
+#include "DummyEnergyModel.hpp"
+#endif
 
 using namespace std;
 
@@ -115,14 +116,13 @@ public:
     
 private:
 
-    unique_ptr<EnergyModel> energyModel_;        /* energy model TODO change to unique ptr to access derived methods */
+    unique_ptr<EnergyModel> energyModel_;        /* energy model */
     Options options_;
     std::string aaseq_;
     unsigned int aalen_ = 0;
     unsigned int nuclen_ = 0;
     int max_bp_distance_final_ = 0;
     /* replace with a struct from the EnergyModel class */
-    scaledEnergyParams* P_ = nullptr;
     vector<vector<int>> Dep1_;
     vector<vector<int>> Dep2_;
     map<string, int> predefHPN_E_;

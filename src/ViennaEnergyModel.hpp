@@ -2,7 +2,12 @@
 
 #pragma once
 
-#ifdef USE_VIENNA_ENERGY_MODEL
+extern "C" {
+    #include "params.h"
+    #include "utils.h"
+    #include "energy_const.h"
+    #include "fold.h"
+}
 
 /*
  * struct for holding RNA scaled energy parameters
@@ -89,4 +94,3 @@ public:
 
 };
 
-#endif
