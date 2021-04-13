@@ -48,7 +48,7 @@ Problem::Problem(Options const & options, string const & aaseq):
     energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
 #endif
 
-    P_ = energyModel_->getEnergyParams();
+    P_ = (scaledEnergyParams*) energyModel_->getEnergyParams();
     
     if (aalen_ <= 2) {
         cerr << "The amino acid sequence is too short.\n";

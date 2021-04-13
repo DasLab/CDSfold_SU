@@ -122,7 +122,7 @@ private:
     unsigned int nuclen_ = 0;
     int max_bp_distance_final_ = 0;
     /* replace with a struct from the EnergyModel class */
-    shared_ptr<scaledEnergyParams> P_ = nullptr;
+    scaledEnergyParams* P_ = nullptr;
     vector<vector<int>> Dep1_;
     vector<vector<int>> Dep2_;
     map<string, int> predefHPN_E_;

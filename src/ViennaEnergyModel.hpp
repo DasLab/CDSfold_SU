@@ -5,12 +5,18 @@
 #ifdef USE_VIENNA_ENERGY_MODEL
 
 class ViennaEnergyModel: public EnergyModel {
+protected:
+    scaledEnergyParams* energyParams_;
 
 public:
 
     /* constructor - initialize the energy parameters here */
-    ViennaEnergyModel() : EnergyModel((scaledEnergyParams*) scale_parameters()) {};
-   
+    ViennaEnergyModel() : energyParams_((scaledEnergyParams*) scale_parameters()) {};
+  
+    scaledEnergyParams* getEnergyParams () override {
+        return energyParams_;
+    }
+    
     void repr() override {
         std::cout << "Vienna Energy Model" << std::endl;
     }
