@@ -9,6 +9,7 @@
 #include "AASeqConverter.hpp"
 #include "Options.hpp"
 #include "EnergyModel.hpp"
+#include "ViennaEnergyModel.hpp"
 
 //extern "C" {
 //#include "params.h"       // not included through previous includes - keep

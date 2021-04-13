@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "EnergyModel.hpp"
+#include "ViennaEnergyModel.hpp"
 //extern "C" {
 //#include "params.h"
 //#include "utils.h"
