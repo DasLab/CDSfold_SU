@@ -9,14 +9,12 @@ extern "C" {
     #include "fold.h"
 }
 
-
 class ViennaEnergyModel: public EnergyModel {
 
 protected:
     vrna_param_s* energyParams_;
 
 public:
-
     /* constructor - initialize the energy parameters here */
     ViennaEnergyModel() : energyParams_(scale_parameters()) {};
     

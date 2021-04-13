@@ -11,7 +11,7 @@ template <typename... Targs>
 void DUMMY_CODE(Targs &&... /* unused */){}
 
 
-class dummyEnergyParams : public energyParams {
+class dummyEnergyParams {
 public:
     int       MLbase;
     int       MLintern[NBPAIRS + 1];
@@ -37,10 +37,6 @@ public:
     }
 
     void updateEnergyFoldParams() override {}
-    
-    //dummyEnergyParams* getEnergyParams() override {
-    //    return energyParams_;
-    //}
 
     /* energy functions */
     int TermAU(int const &type) override {

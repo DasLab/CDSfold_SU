@@ -10,17 +10,6 @@
 #include <memory>
 
 
-/* energyParams
- *
- * base class for energy parameters for other models. This class is empty
- * but is inherited by the energy parameters for other energy models. The
- * energyParams dummy class is needed so that the return type of getEnergyParams
- * in energyModel can be covariant. */
-
-class energyParams {
-
-};
-
 
 /* base class representing an energy model */
 class EnergyModel {
