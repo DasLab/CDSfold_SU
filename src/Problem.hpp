@@ -9,6 +9,7 @@
 #include "AASeqConverter.hpp"
 #include "Options.hpp"
 #include "EnergyModel.hpp"
+#include "ViennaEnergyModel.hpp"
 
 //extern "C" {
 //#include "params.h"       // not included through previous includes - keep
@@ -120,8 +121,8 @@ private:
     unsigned int aalen_ = 0;
     unsigned int nuclen_ = 0;
     int max_bp_distance_final_ = 0;
-    /* replace with a struct from the EnergyModel class */
-    shared_ptr<scaledEnergyParams> P_ = nullptr;
+    /* replace with a struct from the EnergyModel class; no longer directly access - must be through class */
+    // shared_ptr<EnergyParams> P_ = nullptr;
     vector<vector<int>> Dep1_;
     vector<vector<int>> Dep2_;
     map<string, int> predefHPN_E_;

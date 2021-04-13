@@ -48,8 +48,8 @@ Problem::Problem(Options const & options, string const & aaseq):
     energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
 #endif
 
-    P_ = energyModel_->getEnergyParams();
-    
+    energyModel_->repr();
+
     if (aalen_ <= 2) {
         cerr << "The amino acid sequence is too short.\n";
         exit(1);
@@ -490,12 +490,12 @@ void Problem::calculate() {
                                     [Rj1]; // Composite multi-loop when the length is two shorter. If i'= i + 1 is selected, j'= (i + 1) + (l-2) -1 = i + l-2 = j-1 (because: j = i + l-1)
                                 int tt = rtype[type];
 
-                                energy += P_->MLintern[tt];
+                                energy += energyModel_->getEnergyParams()->MLintern[tt];
                                 if (tt > 2) {
-                                    energy += P_->TerminalAU;
+                                    energy += energyModel_->getEnergyParams()->TerminalAU;
                                 }
 
-                                energy += P_->MLclosing;
+                                energy += energyModel_->getEnergyParams()->MLclosing;
                                 C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
                             }
                         }
@@ -507,9 +507,9 @@ void Problem::calculate() {
                     if (type) {
                         int energy_M = C_[ij][L][R];
                         if (type > 2) {
-                            energy_M += P_->TerminalAU;
+                            energy_M += energyModel_->getEnergyParams()->TerminalAU;
                         }
-                        energy_M += P_->MLintern[type];
+                        energy_M += energyModel_->getEnergyParams()->MLintern[type];
 
                         M_[ij][L][R] = energy_M;
                     }
@@ -524,7 +524,7 @@ void Problem::calculate() {
                             continue;
                         }
 
-                        int energy_M = M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][R] + P_->MLbase;
+                        int energy_M = M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][R] + energyModel_->getEnergyParams()->MLbase;
                         M_[ij][L][R] = MIN2(energy_M, M_[ij][L][R]);
                     }
 
@@ -538,7 +538,7 @@ void Problem::calculate() {
                             continue;
                         }
 
-                        int energy_M = M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][L][Rj1] + P_->MLbase;
+                        int energy_M = M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][L][Rj1] + energyModel_->getEnergyParams()->MLbase;
                         M_[ij][L][R] = MIN2(energy_M, M_[ij][L][R]);
                     }
 
@@ -844,11 +844,11 @@ void Problem::fixed_fold(string & optseq) {
                 energy = DMl2[i + 1];
                 int tt = rtype[type];
 
-                energy += P_->MLintern[tt];
+                energy += energyModel_->getEnergyParams()->MLintern[tt];
                 if (tt > 2)
-                    energy += P_->TerminalAU;
+                    energy += energyModel_->getEnergyParams()->TerminalAU;
 
-                energy += P_->MLclosing;
+                energy += energyModel_->getEnergyParams()->MLclosing;
                 C[ij] = MIN2(energy, C[ij]);
             } else
                 C[ij] = INF;
@@ -858,19 +858,19 @@ void Problem::fixed_fold(string & optseq) {
             if (type) {
                 int energy_M = C[ij];
                 if (type > 2) {
-                    energy_M += P_->TerminalAU;
+                    energy_M += energyModel_->getEnergyParams()->TerminalAU;
                 }
 
-                energy_M += P_->MLintern[type];
+                energy_M += energyModel_->getEnergyParams()->MLintern[type];
                 M[ij] = energy_M;
             }
 
             // create M[ij] from M[i+1][j]
-            int energy_M = M[getIndx(i + 1, j, max_bp_distance_final_, indx_)] + P_->MLbase;
+            int energy_M = M[getIndx(i + 1, j, max_bp_distance_final_, indx_)] + energyModel_->getEnergyParams()->MLbase;
             M[ij] = MIN2(energy_M, M[ij]);
 
             // create M[ij] from M[i][j-1]
-            energy_M = M[getIndx(i, j - 1, max_bp_distance_final_, indx_)] + P_->MLbase;
+            energy_M = M[getIndx(i, j - 1, max_bp_distance_final_, indx_)] + energyModel_->getEnergyParams()->MLbase;
             M[ij] = MIN2(energy_M, M[ij]);
 
             /* modular decomposition -------------------------------*/
@@ -903,7 +903,7 @@ void Problem::fixed_fold(string & optseq) {
         if (type) {
             int au_penalty = 0;
             if (type > 2)
-                au_penalty = P_->TerminalAU;
+                au_penalty = energyModel_->getEnergyParams()->TerminalAU;
             if (j <= max_bp_distance_final_)
                 F[j] = MIN2(F[j], C[getIndx(1, j, max_bp_distance_final_, indx_)] + au_penalty); // recc 1
         }
@@ -916,7 +916,7 @@ void Problem::fixed_fold(string & optseq) {
 
             int au_penalty = 0;
             if (type_k > 2)
-                au_penalty = P_->TerminalAU;
+                au_penalty = energyModel_->getEnergyParams()->TerminalAU;
             int kj = getIndx(k, j, max_bp_distance_final_, indx_);
 
             int energy = F[k - 1] + C[kj] + au_penalty; // recc 4
@@ -1325,7 +1325,7 @@ void Problem::fill_F2() {
                     // from C
                     int au_penalty = 0;
                     if (type > 2)
-                        au_penalty = P_->TerminalAU;
+                        au_penalty = energyModel_->getEnergyParams()->TerminalAU;
                     if (j - i + 1 <= max_bp_distance_final_) {
                         F2_[ij][L][R] = MIN2(F2_[ij][L][R], C_[ij][L][R] + au_penalty);
                         // cout << "test:" << F2[ij][L][R] << endl;
@@ -1383,7 +1383,7 @@ void Problem::fill_F() {
                     //						if(opt_flg_1 && opt_flg_j){
                     int au_penalty = 0;
                     if (type_L1Rj > 2)
-                        au_penalty = P_->TerminalAU;
+                        au_penalty = energyModel_->getEnergyParams()->TerminalAU;
                     if (j <= max_bp_distance_final_)
                         F_[j][L1][Rj] =
                             MIN2(F_[j][L1][Rj], C_[getIndx(1, j, max_bp_distance_final_, indx_)][L1][Rj] + au_penalty); // recc 1
@@ -1433,7 +1433,7 @@ void Problem::fill_F() {
 
                             int au_penalty = 0;
                             if (type_LkRj > 2) {
-                                au_penalty = P_->TerminalAU;
+                                au_penalty = energyModel_->getEnergyParams()->TerminalAU;
                             }
                             // int kj = indx[j] + k;
                             int kj = getIndx(k, j, max_bp_distance_final_, indx_);
@@ -1517,7 +1517,7 @@ OUTLOOP:
                 continue;
             }
 
-            fi = (ml == 1) ? M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][Li][Rj1] + P_->MLbase : F_[j - 1][Li][Rj1];
+            fi = (ml == 1) ? M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][Li][Rj1] + energyModel_->getEnergyParams()->MLbase : F_[j - 1][Li][Rj1];
 
             if (fij == fi) { /* 3' end is unpaired */
                 sector[++s].i = i;
@@ -1620,7 +1620,7 @@ OUTLOOP:
                     continue;
                 } // dependency between k-1 and k
 
-                if (M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][Rj] + P_->MLbase == fij) { /* 5' end is unpaired */
+                if (M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][Rj] + energyModel_->getEnergyParams()->MLbase == fij) { /* 5' end is unpaired */
                     sector[++s].i = i + 1;
                     sector[s].j = j;
                     sector[s].Li = Li1;
@@ -1631,7 +1631,7 @@ OUTLOOP:
 
                 ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-                if (fij == C_[ij][Li][Rj] + energyModel_->TermAU(type_LiRj) + P_->MLintern[type_LiRj]) {
+                if (fij == C_[ij][Li][Rj] + energyModel_->TermAU(type_LiRj) + energyModel_->getEnergyParams()->MLintern[type_LiRj]) {
                     base_pair_[++b].i = i;
                     base_pair_[b].j = j;
                     goto repeat1;
@@ -1918,7 +1918,7 @@ OUTLOOP:
 
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
-        int en = cij - energyModel_->TermAU(rtype_LiRj) - P_->MLintern[rtype_LiRj] - P_->MLclosing;
+        int en = cij - energyModel_->TermAU(rtype_LiRj) - energyModel_->getEnergyParams()->MLintern[rtype_LiRj] - energyModel_->getEnergyParams()->MLclosing;
         int Li1_save, Rk1_save, Lk_save, Rj1_save;
         Li1_save = Rk1_save = Lk_save = Rj1_save = -1;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
@@ -2058,7 +2058,7 @@ OUTLOOP:
                 if (Dep1_[ii2r[Rj1_nuc * 10 + Rj_nuc]][j - 1] == 0) {
                     continue;
                 }
-                int mi = M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][Li][Rj1] + P_->MLbase;
+                int mi = M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][Li][Rj1] + energyModel_->getEnergyParams()->MLbase;
 
                 if (fij == mi) { /* 3' end is unpaired */
                     sector[++s].i = i;
@@ -2205,7 +2205,7 @@ OUTLOOP:
                     continue;
                 } // dependency between k-1 and k
 
-                if (M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][Rj] + P_->MLbase == fij) { /* 5' end is unpaired */
+                if (M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][Rj] + energyModel_->getEnergyParams()->MLbase == fij) { /* 5' end is unpaired */
                     sector[++s].i = i + 1;
                     sector[s].j = j;
                     sector[s].Li = Li1;
@@ -2216,7 +2216,7 @@ OUTLOOP:
 
                 ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-                if (fij == C_[ij][Li][Rj] + energyModel_->TermAU(type_LiRj) + P_->MLintern[type_LiRj]) {
+                if (fij == C_[ij][Li][Rj] + energyModel_->TermAU(type_LiRj) + energyModel_->getEnergyParams()->MLintern[type_LiRj]) {
                     base_pair_[++b].i = i;
                     base_pair_[b].j = j;
                     goto repeat1;
@@ -2495,7 +2495,7 @@ OUTLOOP:
 
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
-        int en = cij - energyModel_->TermAU(rtype_LiRj) - P_->MLintern[rtype_LiRj] - P_->MLclosing;
+        int en = cij - energyModel_->TermAU(rtype_LiRj) - energyModel_->getEnergyParams()->MLintern[rtype_LiRj] - energyModel_->getEnergyParams()->MLclosing;
         int Li1_save, Rk1_save, Lk_save, Rj1_save;
         Li1_save = Rk1_save = Lk_save = Rj1_save = -1;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
@@ -2610,7 +2610,7 @@ OUTLOOP:
         fij = (ml == 1) ? m[getIndx(i, j, max_bp_distance_final_, indx_)] : f[j];
         cout << "TB_CHK:" << i << ":" << j << " " << ml << "(" << fij << ")" << endl;
 
-        fi = (ml == 1) ? m[getIndx(i, j - 1, max_bp_distance_final_, indx_)] + P_->MLbase : f[j - 1];
+        fi = (ml == 1) ? m[getIndx(i, j - 1, max_bp_distance_final_, indx_)] + energyModel_->getEnergyParams()->MLbase : f[j - 1];
 
         if (fij == fi) { /* 3' end is unpaired */
             sector[++s].i = i;
@@ -2671,7 +2671,7 @@ OUTLOOP:
             goto repeat1;
         } else { /* trace back in fML array */
 
-            if (m[getIndx(i + 1, j, max_bp_distance_final_, indx_)] + P_->MLbase == fij) { /* 5' end is unpaired */
+            if (m[getIndx(i + 1, j, max_bp_distance_final_, indx_)] + energyModel_->getEnergyParams()->MLbase == fij) { /* 5' end is unpaired */
                 sector[++s].i = i + 1;
                 sector[s].j = j;
                 sector[s].ml = ml;
@@ -2680,7 +2680,7 @@ OUTLOOP:
 
             ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-            if (fij == c[ij] + energyModel_->TermAU(type) + P_->MLintern[type]) {
+            if (fij == c[ij] + energyModel_->TermAU(type) + energyModel_->getEnergyParams()->MLintern[type]) {
                 base_pair_[++b].i = i;
                 base_pair_[b].j = j;
                 goto repeat1;
@@ -2775,7 +2775,7 @@ OUTLOOP:
 
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
-        int en = cij - energyModel_->TermAU(type_rev) - P_->MLintern[type_rev] - P_->MLclosing;
+        int en = cij - energyModel_->TermAU(type_rev) - energyModel_->getEnergyParams()->MLintern[type_rev] - energyModel_->getEnergyParams()->MLclosing;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
             //I'm looking for bifucation at the same time as closing the multi-loop.
             if (en == m[getIndx(i + 1, k - 1, max_bp_distance_final_, indx_)] + m[getIndx(k, j - 1, max_bp_distance_final_, indx_)]) {
