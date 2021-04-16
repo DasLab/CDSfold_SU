@@ -1,13 +1,16 @@
+/* ViennaEnergyModel.cpp
+ *
+ * Implementation of energy model methods for ViennaEnergyModel. These methods
+ * give the energy of different structures such as loops and hairpins. This
+ * file is based on energy.cpp
+ */
+
 #include <cstring>
 #include <cmath>
 #include <memory>
 
-#include "EnergyModel.hpp"
 #include "ViennaEnergyModel.hpp"
-//extern "C" {
-//#include "params.h"
-//#include "utils.h"
-//}
+
 
 int ViennaEnergyModel::TermAU(int const &type){
     if (type > 2) {

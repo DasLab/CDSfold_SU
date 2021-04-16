@@ -1,15 +1,14 @@
 /*
- * Class for the energy model
- *
+ * Base class for the energy model. The Problem class will create an instance
+ * of a class derived from the EnergyModel.
  */
+
 #pragma once
 
 #include "constants.hpp"
 #include <iostream>
 #include <ostream>
 #include <memory>
-
-
 
 /* base class representing an energy model */
 class EnergyModel {

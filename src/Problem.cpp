@@ -125,10 +125,6 @@ Problem::Problem(Options const & options, string const & aaseq):
         cout << "Estimated memory usage: " << ptotal_Mb << " Mb" << endl;
         exit(0);
     }
-
-    //energyModel_->updateEnergyFoldParams();// calls function from Vienna RNA, but things
-    // still work when it's commented out??
-    //update_fold_params();   // from Vienna fold.h
 }
 
 void Problem::calculate() {

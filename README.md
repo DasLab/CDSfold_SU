@@ -24,7 +24,7 @@ export CDS_HOME="CDS_PATH/cdsfold_update"
 ```
 
 where ```BUILD_DIR``` is the same path where ViennaRNA-2.4.9 is located and
-```CDS_PATH``` is the path to where the ```cdsfold_update``` directory lives. Both
+```CDS_PATH``` is the path to where the ```cdsfold_update``` directory is. Both
 of these environment variables should be absolute paths.
 
 Source your ~/.bashrc script:

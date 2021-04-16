@@ -1,16 +1,22 @@
+/*
+ * DummyEnergyModel.hpp
+ *
+ * Header file for a dummy energy model. This class is an alternative to 
+ * the ViennaEnergyModel and demonstrates building and compiling cdsfold
+ * without Vienna RNA. This energy model will not correctly backtrace
+ */
+
 #include "EnergyModel.hpp"
 
 #pragma once
 
-/*
- * struct for holding RNA energy parameters for the dummy model
- */
 
 /* template dummy code to suppress argument not used warnings */
 template <typename... Targs>
 void DUMMY_CODE(Targs &&... /* unused */){}
 
 
+/* minimum required energy parameters*/
 class dummyEnergyParams {
 public:
     int       MLbase;
@@ -22,11 +28,12 @@ public:
 
 /* DummyEnergyModel
  *
- * Empty energy model that is another child of EnergyModel; sibling of ViennaEnergyModel 
- * used to demonstrate that CDSFold can be used without Vienna */
+ */
+
 class DummyEnergyModel: public EnergyModel {
 
 protected:
+    /* pointer to energy parameters */
     std::unique_ptr<dummyEnergyParams> energyParams_; 
 
 public:
@@ -38,7 +45,7 @@ public:
 
     void updateEnergyFoldParams() override {}
 
-    /* energy functions */
+    /* dummy energy functions - all return 0 */
     int TermAU(int const &type) override {
         DUMMY_CODE(type); 
         return 0;

@@ -109,20 +109,16 @@ vector<vector<int>> getPossibleNucleotide(std::string const & aaseq, codon &codo
 class Problem {
 public:
     Problem(Options const & options, std::string const & aaseq);
-    ~Problem() {
-        // free(P_);
-    }
     void calculate();
     
 private:
 
-    unique_ptr<EnergyModel> energyModel_;        /* energy model */
+    unique_ptr<EnergyModel> energyModel_;
     Options options_;
     std::string aaseq_;
     unsigned int aalen_ = 0;
     unsigned int nuclen_ = 0;
     int max_bp_distance_final_ = 0;
-    /* replace with a struct from the EnergyModel class */
     vector<vector<int>> Dep1_;
     vector<vector<int>> Dep2_;
     map<string, int> predefHPN_E_;
