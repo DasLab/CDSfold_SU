@@ -39,9 +39,7 @@ Problem::Problem(Options const & options, string const & aaseq):
 
 #ifdef USE_VIENNA_ENERGY_MODEL
     energyModel_ = unique_ptr<ViennaEnergyModel>(new ViennaEnergyModel());
-#endif
-
-#ifndef USE_VIENNA_ENERGY_MODEL
+#else 
     energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
 #endif
 

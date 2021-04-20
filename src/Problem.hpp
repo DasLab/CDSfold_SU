@@ -11,9 +11,7 @@
 
 #ifdef USE_VIENNA_ENERGY_MODEL
 #include "ViennaEnergyModel.hpp"
-#endif
-
-#ifndef USE_VIENNA_ENERGY_MODEL
+#else
 #include "DummyEnergyModel.hpp"
 #endif
 
