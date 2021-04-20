@@ -1,41 +1,46 @@
 #include <map>
-// #include <string>
-// #include <iostream>
-#include <iosfwd>
+#include <iostream>
 #include <vector>
 
 #pragma once
 
 using namespace std;
 
-/* tableとextendedTableはL、Rが異なる
+/* The table and extended table have differing L and R
  table	extendedTable
  L UUA <-> UVA
- UUG <-> UVG
- CUA <-> CVA
- CUC <-> CWC
- CUG <-> CVG
- CUU <-> CWU
+   UUG <-> UVG
+   CUA <-> CVA
+   CUC <-> CWC
+   CUG <-> CVG
+   CUU <-> CWU
  R AGA <-> AXA
- AGG <-> AXG
- CGU <-> CYU
- CGC <-> CYC
- CGA <-> CXA
- CGG <-> CXG
+   AGG <-> AXG
+   CGU <-> CYU
+   CGC <-> CYC
+   CGA <-> CXA
+   CGG <-> CXG
 
- V、X：次の塩基はAまたはG
- W、Y：次の塩基はCまたはU
+ V, X：The next base is A or G
+ W, Y：The next base is C or U
  */
 
+/* class containing information */
 class codon {
   public:
+    
+    /* constructor */
     codon();
 
-    auto getCodons(char c, string exceptedCodons) -> vector<string>;
-    auto getExtendedCodons(char c, string exceptedCodons) -> vector<string>;
+    /* Get codons that express a certain amino acid */
+    auto getCodons(char a, string exceptedCodons) -> vector<string>;
+    
+    /* Get codons that express a certain amino acid using the extended table */
+    auto getExtendedCodons(char a, string exceptedCodons) -> vector<string>;
 
     auto c2a(int p1, int p2, int p3) const -> char { return table_rev[p1][p2][p3]; }
 
+    /* print out the table mapping amino acids to codons */
     void showTable() {
         for (auto & it : table) {
             char aa = it.first;
@@ -47,10 +52,10 @@ class codon {
     }
 
   private:
-    static const map<char, vector<string>> table;
-    static const map<char, vector<string>> extendedTable;
-    static const map<string, string> expectedCodonOfCodon;
-    char table_rev[5][5][5];
+    static const map<char, vector<string>> table;           /* amino acids -> all possible codons */
+    static const map<char, vector<string>> extendedTable;   /* amino acids -> codons w/ extended table */
+    static const map<string, string> expectedCodonOfCodon;  /* codon to extended table codon */
+    char table_rev[5][5][5];                                /* table mapping codons to amino acids  */
 
-    auto split(string &str, char delim) -> vector<string>;
+    auto split(string &str, char delim) -> vector<string>;  /* convert string into  a vector */
 };

@@ -34,3 +34,7 @@ CDSfold
 
 # Test output
 test/output/*
+
+# Swap files
+*.swp
+*.swo
