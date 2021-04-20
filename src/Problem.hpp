@@ -3,16 +3,17 @@
 #include <iosfwd>
 #include <iostream>
 #include <memory>
-// maybe convert to unique_ptr to avoid need for whole headers
+
 #include "codon.hpp"
 #include "CDSfold_rev.hpp"
 #include "AASeqConverter.hpp"
 #include "Options.hpp"
 
-extern "C" {
-#include "params.h"
-#include "energy_const.h"
-}
+#ifdef USE_VIENNA_ENERGY_MODEL
+#include "ViennaEnergyModel.hpp"
+#else
+#include "DummyEnergyModel.hpp"
+#endif
 
 using namespace std;
 
@@ -106,19 +107,16 @@ vector<vector<int>> getPossibleNucleotide(std::string const & aaseq, codon &codo
 class Problem {
 public:
     Problem(Options const & options, std::string const & aaseq);
-    ~Problem() {
-        // free(P_);
-    }
     void calculate();
     
 private:
 
+    unique_ptr<EnergyModel> energyModel_;
     Options options_;
     std::string aaseq_;
     unsigned int aalen_ = 0;
     unsigned int nuclen_ = 0;
     int max_bp_distance_final_ = 0;
-    unique_ptr<paramT> P_ = nullptr;
     vector<vector<int>> Dep1_;
     vector<vector<int>> Dep2_;
     map<string, int> predefHPN_E_;

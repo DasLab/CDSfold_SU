@@ -15,15 +15,10 @@
 
 extern "C" {
 #include <cctype>
-#include "fold.h"
-// #include "fold_vars.h"
 #include <climits>
 #include <cmath>
-#include "params.h"
-// #include "part_func.h"
 #include <cstdio>
 #include <cstdlib>
-#include "utils.h"
 }
 
 #include "CDSfold_rev.hpp"
@@ -39,6 +34,8 @@ auto main(int argc, char *argv[]) -> int {
     // printf("%d\n%ld", INT_MAX, LONG_MAX);
     // get options
     Options options;
+    
+    // TODO this doesn't need to be in brackets
     {
         int opt;
         while ((opt = getopt(argc, argv, "w:e:f:t:rMURs")) != -1) {
@@ -77,7 +74,7 @@ auto main(int argc, char *argv[]) -> int {
     }
     // exit(0);
 
-    // -R Check for options
+    // Check that -R option isn't used with other options
     if (options.random_backtrack) {
         if (options.max_bp_distance != 0 || options.codons_excluded != "" || options.show_memory_use || options.estimate_memory_use || options.maximize_mfe || options.partial_opt) {
             cerr << "The -R option must not be used together with other options." << endl;
@@ -85,8 +82,8 @@ auto main(int argc, char *argv[]) -> int {
         }
     }
 
+    // Check that partial optimization options are used correctly
     if (options.partial_opt) {
-        // Partial optimization was specified.
         if (options.opt_from == 0 || options.opt_to == 0) {
             cerr << "The -f and -t option must be used together." << endl;
             exit(1);
@@ -105,10 +102,10 @@ auto main(int argc, char *argv[]) -> int {
         }
     }
 
-    fasta all_aaseq(argv[optind]); // get all sequences
+    fasta all_aaseq(argv[optind]);       // get all sequences
+    cout << "-w [max base pair distance] = " << options.max_bp_distance << endl;   // display max distance
+    cout << "-e [excluded codons]        = " << options.codons_excluded << endl;   // display excluded codons
 
-    cout << "W = " << options.max_bp_distance << endl;
-    cout << "e = " << options.codons_excluded << endl;
     do {
         string aaseq = string(all_aaseq.getSeq());
 

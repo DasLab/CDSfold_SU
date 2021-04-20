@@ -2,10 +2,12 @@
 
 #include "codon.hpp"
 #include "Util.hpp"
+#include "EnergyModel.hpp"
 
-extern "C" {
-#include "energy_const.h"
-}
+
+//extern "C" {
+//#include "energy_const.h"
+//}
 
 struct Ntable {
     int A;

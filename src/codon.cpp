@@ -3,26 +3,42 @@
 #include <string>
 #include "codon.hpp"
 
-auto codon::getCodons(char c, string exceptedCodons) -> vector<string> {
-    if (table.count(c) == 0) {
-        cerr << "ERR: table doesn't have " << c << "." << endl;
+/*  Given an amino acid, returns the list of codons that express it.
+ *
+ *  Inputs:
+ *  a - amino acid
+ *  exceptedCodons - comma delimited list of codons to ignore
+ *
+ *  Returns:
+ *  Vector of codons that are expressed to the amino acid
+ */
+
+auto codon::getCodons(char a, string exceptedCodons) -> vector<string> {
+   
+    /* check that passed character is an amino acid */
+    if (table.count(a) == 0) {
+        cerr << "ERR: table doesn't have " << a << "." << endl;
         exit(1);
     }
 
+    /* create vector of codons to skip over */
     char delim = ',';
     vector<string> exceptVector = split(exceptedCodons, delim);
+   
+    /* map between the codon to skip and the number of times it appears in exceptVector */
     map<string, int> exceptMap;
     for (auto const & tmp : exceptVector) {
+        /* exception not found in the map - add it in */ 
         if (exceptMap.find(tmp) == exceptMap.end()) {
             exceptMap[tmp] = 1;
-        } else {
-            int count = exceptMap[tmp] + 1;
-            exceptMap[tmp] = count;
         }
     }
 
     vector<string> filterTable;
-    for (auto const & codon : table.at(c)) {
+    /* iterate through the codons the express this amino acid */ 
+    for (auto const & codon : table.at(a)) {
+        
+        /* if this codon shouldn't be filtered, then added to the table */
         if (exceptMap.find(codon) == exceptMap.end()) {
             filterTable.push_back(codon);
         }
@@ -31,38 +47,63 @@ auto codon::getCodons(char c, string exceptedCodons) -> vector<string> {
     return filterTable;
 }
 
-auto codon::getExtendedCodons(char c, string exceptedCodons) -> vector<string> {
-    if (extendedTable.count(c) == 0) {
-        cerr << "ERR: extended table doesn't have " << c << "." << endl;
+/*  Given an amino acid, returns the list of codons that express it using
+ *  the extended codon table
+ *
+ *  Inputs:
+ *  a - amino acid
+ *  exceptedCodons - comma delimited list of codons to ignore
+ *
+ *  Returns:
+ *  Vector of codons that are expressed to the amino acid
+ */
+
+auto codon::getExtendedCodons(char a, string exceptedCodons) -> vector<string> {
+    
+    /* Check if the amino acid is in the table */
+    if (extendedTable.count(a) == 0) {
+        cerr << "ERR: extended table doesn't have " << a << "." << endl;
         exit(1);
     }
+    /* create a vector of codons to skip */ 
     char delim = ',';
     vector<string> exceptVector = split(exceptedCodons, delim);
+    
     map<string, int> exceptMap;
     for (const auto& exceptCodon : exceptVector) {
-        string convertedExceptCodon = exceptCodon;
+        string convertedExceptCodon = exceptCodon;   // TODO this is already a string
         map<string, string>::const_iterator itr;
+        
+        /* if codon appears in the CodonofCodon table, use the table entry */
         if ((itr = codon::expectedCodonOfCodon.find(exceptCodon)) != codon::expectedCodonOfCodon.end()) {
             convertedExceptCodon = itr->second;
         }
 
+        /* convert the list of exceptions to a map */
         if (exceptMap.find(convertedExceptCodon) == exceptMap.end()) {
             exceptMap[convertedExceptCodon] = 1;
-        } else {
-            int count = exceptMap[convertedExceptCodon] + 1;
-            exceptMap[convertedExceptCodon] = count;
         }
     }
 
-    // 除外コドンを除いたコドンテーブルを作成
+    // create a codon table excluding codons in exceptedCodons
     vector<string> filterTable;
-    for (auto const & codon : extendedTable.at(c)) {
+    for (auto const & codon : extendedTable.at(a)) {
         if (exceptMap.find(codon) == exceptMap.end()) {
             filterTable.push_back(codon);
         }
     }
     return filterTable;
 }
+
+
+/*  Parses a string of codons and converts it to a vector of strings
+ *  Inputs:
+ *  str - string holding a list of codons
+ *  delim - character separating codons in the string
+ *
+ *  Return:
+ *  vector of strings, each entry representing a codon
+ */
 
 auto codon::split(string &str, char delim) -> vector<string> {
     istringstream iss(str);
@@ -75,7 +116,7 @@ auto codon::split(string &str, char delim) -> vector<string> {
     return res;
 }
 
-
+/* map between codons and codons in the extended table */
 const map<string, string> codon::expectedCodonOfCodon{
 	{"UUA", "UVA"},
 	{"UUG", "UVG"},
@@ -91,6 +132,7 @@ const map<string, string> codon::expectedCodonOfCodon{
 	{"AGG", "AXG"},
 };
 
+/* map between amino acids and codons that express it */
 const map<char, vector<string>> codon::table{
 	{'F', {
 		"UUU", "UUC"
@@ -157,6 +199,7 @@ const map<char, vector<string>> codon::table{
 	}}
 };
 
+/* map between amino acids and codons that express it using the extended table*/
 const map<char, vector<string>> codon::extendedTable{
 	{'F', {
 		"UUU", "UUC"
@@ -223,6 +266,14 @@ const map<char, vector<string>> codon::extendedTable{
 	}}
 };
 
+/* Table mapping codons to amino acids. The dimensions represent the 
+ * 1st, 2nd, and 3rd nucleotide in the codon respectively and the index
+ * represents which nucleotide is at that position:
+ * 1 - A
+ * 2 - C
+ * 3 - G
+ * 4 - U
+ */
 codon::codon() {
     table_rev[4][4][4] = 'F';
     table_rev[4][4][2] = 'F';

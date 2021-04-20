@@ -9,19 +9,13 @@
 #include "Options.hpp"
 #include "AASeqConverter.hpp"
 #include "codon.hpp"
-#include "energy.hpp"
 
 extern "C" {
-#include <cctype>
-#include "fold.h"
-// #include "fold_vars.h"
-#include <climits>
-#include <cmath>
-#include "params.h"
-// #include "part_func.h"
-#include <cstdio>
-#include <cstdlib>
-#include "utils.h"
+    #include <cctype>
+    #include <climits>
+    #include <cmath>
+    #include <cstdio>
+    #include <cstdlib>
 }
 
 using namespace std;
@@ -39,11 +33,17 @@ const array<int, 100> Problem::ii2r = make_ii2r();
 
 Problem::Problem(Options const & options, string const & aaseq):
     options_( options ),
-    aaseq_( aaseq ),
-    P_(scale_parameters())
+    aaseq_( aaseq )
 {
     aalen_ = aaseq_.size();
 
+#ifdef USE_VIENNA_ENERGY_MODEL
+    energyModel_ = unique_ptr<ViennaEnergyModel>(new ViennaEnergyModel());
+#else 
+    energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
+#endif
+
+    
     if (aalen_ <= 2) {
         cerr << "The amino acid sequence is too short.\n";
         exit(1);
@@ -123,8 +123,6 @@ Problem::Problem(Options const & options, string const & aaseq):
         cout << "Estimated memory usage: " << ptotal_Mb << " Mb" << endl;
         exit(0);
     }
-
-    update_fold_params();
 }
 
 void Problem::calculate() {
@@ -285,7 +283,7 @@ void Problem::calculate() {
                                     // i2r[hL2_nuc], i2r[hR2_nuc],
                                     // dummy_str);
                                     int energy =
-                                        E_hairpin(j - i - 1, type, i2r[hL2_nuc], i2r[hR2_nuc], dummy_str, P_);
+                                        energyModel_->E_hairpin(j - i - 1, type, i2r[hL2_nuc], i2r[hR2_nuc], dummy_str);
                                     C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
                                 }
                             }
@@ -317,7 +315,7 @@ void Problem::calculate() {
                                     // i2r[L2_nuc],
                                     // i2r[R2_nuc],
                                     // dummy_str);
-                                    energy = E_hairpin(j - i - 1, type, i2r[L2_nuc], i2r[R2_nuc], dummy_str, P_);
+                                    energy = energyModel_->E_hairpin(j - i - 1, type, i2r[L2_nuc], i2r[R2_nuc], dummy_str);
                                     // cout << "HairpinE(" << j-i-1 << "," << type << "," << i2r[L2_nuc] << "," <<
                                     // i2r[R2_nuc] << ")" << " at " << i << "," << j << ":" << energy << endl; cout
                                     // << i << " " << j  << " " << energy << ":" << i2n[L_nuc] << "-" << i2n[R_nuc]
@@ -427,9 +425,9 @@ void Problem::calculate() {
                                                             continue;
                                                         } // check dependency between q+1, j-1 (q,X,X,j)
 
-                                                        int int_energy = E_intloop(p - i - 1, j - q - 1, type,
+                                                        int int_energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type,
                                                                                     type_2, i2r[L2_nuc], i2r[R2_nuc],
-                                                                                    i2r[Lp2_nuc], i2r[Rq2_nuc], P_);
+                                                                                    i2r[Lp2_nuc], i2r[Rq2_nuc]);
                                                         // LoopEnergy(p- i- 1,j- q-
                                                         // 1,type,type_2,i2r[L2_nuc],i2r[R2_nuc],i2r[Lp2_nuc],i2r[Rq2_nuc]);
 
@@ -482,12 +480,12 @@ void Problem::calculate() {
                                     [Rj1]; // Composite multi-loop when the length is two shorter. If i'= i + 1 is selected, j'= (i + 1) + (l-2) -1 = i + l-2 = j-1 (because: j = i + l-1)
                                 int tt = rtype[type];
 
-                                energy += P_->MLintern[tt];
+                                energy += energyModel_->getMLintern(tt);
                                 if (tt > 2) {
-                                    energy += P_->TerminalAU;
+                                    energy += energyModel_->getTerminalAU();
                                 }
 
-                                energy += P_->MLclosing;
+                                energy += energyModel_->getMLclosing();
                                 C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
                             }
                         }
@@ -499,9 +497,9 @@ void Problem::calculate() {
                     if (type) {
                         int energy_M = C_[ij][L][R];
                         if (type > 2) {
-                            energy_M += P_->TerminalAU;
+                            energy_M += energyModel_->getTerminalAU();
                         }
-                        energy_M += P_->MLintern[type];
+                        energy_M += energyModel_->getMLintern(type);
 
                         M_[ij][L][R] = energy_M;
                     }
@@ -516,7 +514,7 @@ void Problem::calculate() {
                             continue;
                         }
 
-                        int energy_M = M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][R] + P_->MLbase;
+                        int energy_M = M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][R] + energyModel_->getMLbase();
                         M_[ij][L][R] = MIN2(energy_M, M_[ij][L][R]);
                     }
 
@@ -530,7 +528,7 @@ void Problem::calculate() {
                             continue;
                         }
 
-                        int energy_M = M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][L][Rj1] + P_->MLbase;
+                        int energy_M = M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][L][Rj1] + energyModel_->getMLbase();
                         M_[ij][L][R] = MIN2(energy_M, M_[ij][L][R]);
                     }
 
@@ -793,7 +791,7 @@ void Problem::fixed_fold(string & optseq) {
 
             if (type) {
                 // hairpin
-                int energy = E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], dummy_str, P_);
+                int energy = energyModel_->E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], dummy_str);
                 C[ij] = MIN2(energy, C[ij]);
 
                 if (l == 5 || l == 6 || l == 8) {
@@ -823,8 +821,8 @@ void Problem::fixed_fold(string & optseq) {
                         }
                         type_2 = rtype[type_2];
 
-                        int int_energy = E_intloop(p - i - 1, j - q - 1, type, type_2, ioptseq[i + 1], ioptseq[j - 1],
-                                                   ioptseq[p - 1], ioptseq[q + 1], P_);
+                        int int_energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type, type_2, ioptseq[i + 1], ioptseq[j - 1],
+                                                   ioptseq[p - 1], ioptseq[q + 1]);
 
                         int energy = int_energy + C[pq];
                         C[ij] = MIN2(energy, C[ij]);
@@ -836,11 +834,11 @@ void Problem::fixed_fold(string & optseq) {
                 energy = DMl2[i + 1];
                 int tt = rtype[type];
 
-                energy += P_->MLintern[tt];
+                energy += energyModel_->getMLintern(tt);
                 if (tt > 2)
-                    energy += P_->TerminalAU;
+                    energy += energyModel_->getTerminalAU();
 
-                energy += P_->MLclosing;
+                energy += energyModel_->getMLclosing();
                 C[ij] = MIN2(energy, C[ij]);
             } else
                 C[ij] = INF;
@@ -850,19 +848,19 @@ void Problem::fixed_fold(string & optseq) {
             if (type) {
                 int energy_M = C[ij];
                 if (type > 2) {
-                    energy_M += P_->TerminalAU;
+                    energy_M += energyModel_->getTerminalAU();
                 }
 
-                energy_M += P_->MLintern[type];
+                energy_M += energyModel_->getMLintern(type);
                 M[ij] = energy_M;
             }
 
             // create M[ij] from M[i+1][j]
-            int energy_M = M[getIndx(i + 1, j, max_bp_distance_final_, indx_)] + P_->MLbase;
+            int energy_M = M[getIndx(i + 1, j, max_bp_distance_final_, indx_)] + energyModel_->getMLbase();
             M[ij] = MIN2(energy_M, M[ij]);
 
             // create M[ij] from M[i][j-1]
-            energy_M = M[getIndx(i, j - 1, max_bp_distance_final_, indx_)] + P_->MLbase;
+            energy_M = M[getIndx(i, j - 1, max_bp_distance_final_, indx_)] + energyModel_->getMLbase();
             M[ij] = MIN2(energy_M, M[ij]);
 
             /* modular decomposition -------------------------------*/
@@ -895,7 +893,7 @@ void Problem::fixed_fold(string & optseq) {
         if (type) {
             int au_penalty = 0;
             if (type > 2)
-                au_penalty = P_->TerminalAU;
+                au_penalty = energyModel_->getTerminalAU();
             if (j <= max_bp_distance_final_)
                 F[j] = MIN2(F[j], C[getIndx(1, j, max_bp_distance_final_, indx_)] + au_penalty); // recc 1
         }
@@ -908,7 +906,7 @@ void Problem::fixed_fold(string & optseq) {
 
             int au_penalty = 0;
             if (type_k > 2)
-                au_penalty = P_->TerminalAU;
+                au_penalty = energyModel_->getTerminalAU();
             int kj = getIndx(k, j, max_bp_distance_final_, indx_);
 
             int energy = F[k - 1] + C[kj] + au_penalty; // recc 4
@@ -1317,7 +1315,7 @@ void Problem::fill_F2() {
                     // from C
                     int au_penalty = 0;
                     if (type > 2)
-                        au_penalty = P_->TerminalAU;
+                        au_penalty = energyModel_->getTerminalAU();
                     if (j - i + 1 <= max_bp_distance_final_) {
                         F2_[ij][L][R] = MIN2(F2_[ij][L][R], C_[ij][L][R] + au_penalty);
                         // cout << "test:" << F2[ij][L][R] << endl;
@@ -1375,7 +1373,7 @@ void Problem::fill_F() {
                     //						if(opt_flg_1 && opt_flg_j){
                     int au_penalty = 0;
                     if (type_L1Rj > 2)
-                        au_penalty = P_->TerminalAU;
+                        au_penalty = energyModel_->getTerminalAU();
                     if (j <= max_bp_distance_final_)
                         F_[j][L1][Rj] =
                             MIN2(F_[j][L1][Rj], C_[getIndx(1, j, max_bp_distance_final_, indx_)][L1][Rj] + au_penalty); // recc 1
@@ -1425,7 +1423,7 @@ void Problem::fill_F() {
 
                             int au_penalty = 0;
                             if (type_LkRj > 2) {
-                                au_penalty = P_->TerminalAU;
+                                au_penalty = energyModel_->getTerminalAU();
                             }
                             // int kj = indx[j] + k;
                             int kj = getIndx(k, j, max_bp_distance_final_, indx_);
@@ -1509,7 +1507,7 @@ OUTLOOP:
                 continue;
             }
 
-            fi = (ml == 1) ? M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][Li][Rj1] + P_->MLbase : F_[j - 1][Li][Rj1];
+            fi = (ml == 1) ? M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][Li][Rj1] + energyModel_->getMLbase() : F_[j - 1][Li][Rj1];
 
             if (fij == fi) { /* 3' end is unpaired */
                 sector[++s].i = i;
@@ -1531,7 +1529,7 @@ OUTLOOP:
             // Processing when f [j] and C [1] [j] match. In Vieena, it is integrated into the following for statement.
             if (type_LiRj && j <= max_bp_distance_final_) {
                 // note i == 1
-                int en_c = TermAU(type_LiRj, P_) + C_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj];
+                int en_c = energyModel_->TermAU(type_LiRj) + C_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj];
                 int en_f = F_[j][Li][Rj];
                 if (en_c == en_f) {
                     k = i;
@@ -1566,7 +1564,7 @@ OUTLOOP:
 
                         int type_LkRj = BP_pair[i2r[Lk_nuc]][i2r[Rj_nuc]];
                         if (type_LkRj) {
-                            int en_c = TermAU(type_LkRj, P_) + C_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][Rj];
+                            int en_c = energyModel_->TermAU(type_LkRj) + C_[getIndx(k, j, max_bp_distance_final_, indx_)][Lk][Rj];
                             int en_f = F_[k - 1][Li][Rk1];
                             if (fij == en_c + en_f) {
                                 traced = j;
@@ -1612,7 +1610,7 @@ OUTLOOP:
                     continue;
                 } // dependency between k-1 and k
 
-                if (M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][Rj] + P_->MLbase == fij) { /* 5' end is unpaired */
+                if (M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][Rj] + energyModel_->getMLbase() == fij) { /* 5' end is unpaired */
                     sector[++s].i = i + 1;
                     sector[s].j = j;
                     sector[s].Li = Li1;
@@ -1623,7 +1621,7 @@ OUTLOOP:
 
                 ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-                if (fij == C_[ij][Li][Rj] + TermAU(type_LiRj, P_) + P_->MLintern[type_LiRj]) {
+                if (fij == C_[ij][Li][Rj] + energyModel_->TermAU(type_LiRj) + energyModel_->getMLintern(type_LiRj)) {
                     base_pair_[++b].i = i;
                     base_pair_[b].j = j;
                     goto repeat1;
@@ -1721,7 +1719,7 @@ OUTLOOP:
                     }
 
                 } else { // Comparison with ordinary hairpins
-                    int energy = E_hairpin(j - i - 1, type_LiRj, i2r[hL2_nuc], i2r[hR2_nuc], "NNNNNNNNN", P_);
+                    int energy = energyModel_->E_hairpin(j - i - 1, type_LiRj, i2r[hL2_nuc], i2r[hR2_nuc], "NNNNNNNNN");
 
                     if (C_[ij][Li][Rj] == energy) {
                         for (unsigned int k = 0; k < hpn.size(); k++) {
@@ -1752,7 +1750,7 @@ OUTLOOP:
                         continue;
                     } // dependency between j-1 and j
 
-                    if (cij == E_hairpin(j - i - 1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN", P_)) {
+                    if (cij == energyModel_->E_hairpin(j - i - 1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN")) {
                         (*optseq)[i + 1] = i2n[Li1_nuc]; // Record mismatched bases inside base pairs
                         (*optseq)[j - 1] = i2n[Rj1_nuc];
                         goto OUTLOOP;
@@ -1869,8 +1867,8 @@ OUTLOOP:
                                             continue;
                                         } // In the case of q, X, j, the base of q + 1 and the base of j-1 must match.
 
-                                        int energy = E_intloop(p - i - 1, j - q - 1, type_LiRj, type_LpRq, i2r[Li1_nuc],
-                                                               i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc], P_);
+                                        int energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type_LiRj, type_LpRq, i2r[Li1_nuc],
+                                                               i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc]);
 
                                         int energy_new = energy + C_[getIndx(p, q, max_bp_distance_final_, indx_)][Lp][Rq];
                                         traced = (cij == energy_new);
@@ -1910,7 +1908,7 @@ OUTLOOP:
 
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
-        int en = cij - TermAU(rtype_LiRj, P_) - P_->MLintern[rtype_LiRj] - P_->MLclosing;
+        int en = cij - energyModel_->TermAU(rtype_LiRj) - energyModel_->getMLintern(rtype_LiRj) - energyModel_->getMLclosing();
         int Li1_save, Rk1_save, Lk_save, Rj1_save;
         Li1_save = Rk1_save = Lk_save = Rj1_save = -1;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
@@ -2050,7 +2048,7 @@ OUTLOOP:
                 if (Dep1_[ii2r[Rj1_nuc * 10 + Rj_nuc]][j - 1] == 0) {
                     continue;
                 }
-                int mi = M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][Li][Rj1] + P_->MLbase;
+                int mi = M_[getIndx(i, j - 1, max_bp_distance_final_, indx_)][Li][Rj1] + energyModel_->getMLbase();
 
                 if (fij == mi) { /* 3' end is unpaired */
                     sector[++s].i = i;
@@ -2130,7 +2128,7 @@ OUTLOOP:
             F3:
                 // trace i,j from C(i,j)
                 if (type_LiRj && j - i + 1 <= max_bp_distance_final_) {
-                    int en_c = TermAU(type_LiRj, P_) + C_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj];
+                    int en_c = energyModel_->TermAU(type_LiRj) + C_[getIndx(i, j, max_bp_distance_final_, indx_)][Li][Rj];
                     int en_f = F2_[ij][Li][Rj];
                     cout << en_c << "," << en_f << endl;
                     if (en_c == en_f) {
@@ -2197,7 +2195,7 @@ OUTLOOP:
                     continue;
                 } // dependency between k-1 and k
 
-                if (M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][Rj] + P_->MLbase == fij) { /* 5' end is unpaired */
+                if (M_[getIndx(i + 1, j, max_bp_distance_final_, indx_)][Li1][Rj] + energyModel_->getMLbase() == fij) { /* 5' end is unpaired */
                     sector[++s].i = i + 1;
                     sector[s].j = j;
                     sector[s].Li = Li1;
@@ -2208,7 +2206,7 @@ OUTLOOP:
 
                 ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-                if (fij == C_[ij][Li][Rj] + TermAU(type_LiRj, P_) + P_->MLintern[type_LiRj]) {
+                if (fij == C_[ij][Li][Rj] + energyModel_->TermAU(type_LiRj) + energyModel_->getMLintern(type_LiRj)) {
                     base_pair_[++b].i = i;
                     base_pair_[b].j = j;
                     goto repeat1;
@@ -2305,7 +2303,7 @@ OUTLOOP:
                     }
 
                 } else { // Comparison with ordinary hairpins
-                    int energy = E_hairpin(j - i - 1, type_LiRj, i2r[hL2_nuc], i2r[hR2_nuc], "NNNNNNNNN", P_);
+                    int energy = energyModel_->E_hairpin(j - i - 1, type_LiRj, i2r[hL2_nuc], i2r[hR2_nuc], "NNNNNNNNN");
 
                     if (C_[ij][Li][Rj] == energy) {
                         for (unsigned int k = 0; k < hpn.size(); k++) {
@@ -2334,7 +2332,7 @@ OUTLOOP:
                         continue;
                     } // dependency between j-1 and j
 
-                    if (cij == E_hairpin(j - i - 1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN", P_)) {
+                    if (cij == energyModel_->E_hairpin(j - i - 1, type_LiRj, i2r[Li1_nuc], i2r[Rj1_nuc], "NNNNNNNNN")) {
                         (*optseq)[i + 1] = i2n[Li1_nuc]; // Record mismatched bases inside base pairs
                         (*optseq)[j - 1] = i2n[Rj1_nuc];
                         goto OUTLOOP;
@@ -2446,8 +2444,8 @@ OUTLOOP:
                                             continue;
                                         } // In the case of q, X, j, the base of q + 1 and the base of j-1 must match.
 
-                                        int energy = E_intloop(p - i - 1, j - q - 1, type_LiRj, type_LpRq, i2r[Li1_nuc],
-                                                               i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc], P_);
+                                        int energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type_LiRj, type_LpRq, i2r[Li1_nuc],
+                                                               i2r[Rj1_nuc], i2r[Lp1_nuc], i2r[Rq1_nuc]);
 
                                         int energy_new = energy + C_[getIndx(p, q, max_bp_distance_final_, indx_)][Lp][Rq];
                                         traced = (cij == energy_new);
@@ -2487,7 +2485,7 @@ OUTLOOP:
 
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
-        int en = cij - TermAU(rtype_LiRj, P_) - P_->MLintern[rtype_LiRj] - P_->MLclosing;
+        int en = cij - energyModel_->TermAU(rtype_LiRj) - energyModel_->getMLintern(rtype_LiRj) - energyModel_->getMLclosing();
         int Li1_save, Rk1_save, Lk_save, Rj1_save;
         Li1_save = Rk1_save = Lk_save = Rj1_save = -1;
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
@@ -2602,7 +2600,7 @@ OUTLOOP:
         fij = (ml == 1) ? m[getIndx(i, j, max_bp_distance_final_, indx_)] : f[j];
         cout << "TB_CHK:" << i << ":" << j << " " << ml << "(" << fij << ")" << endl;
 
-        fi = (ml == 1) ? m[getIndx(i, j - 1, max_bp_distance_final_, indx_)] + P_->MLbase : f[j - 1];
+        fi = (ml == 1) ? m[getIndx(i, j - 1, max_bp_distance_final_, indx_)] + energyModel_->getMLbase() : f[j - 1];
 
         if (fij == fi) { /* 3' end is unpaired */
             sector[++s].i = i;
@@ -2620,7 +2618,7 @@ OUTLOOP:
 
             // Processing when f [j] and C [1] [j] match. In Vienna, it is integrated into the following for statement.
             if (type && j <= max_bp_distance_final_) {
-                int en_c = TermAU(type, P_) + c[getIndx(i, j, max_bp_distance_final_, indx_)];
+                int en_c = energyModel_->TermAU(type) + c[getIndx(i, j, max_bp_distance_final_, indx_)];
                 int en_f = f[j];
                 if (en_c == en_f) {
                     k = i;
@@ -2633,7 +2631,7 @@ OUTLOOP:
 
                 int type_kj = BP_pair[ioptseq[k]][ioptseq[j]];
                 if (type_kj) {
-                    int en_c = TermAU(type_kj, P_) + c[getIndx(k, j, max_bp_distance_final_, indx_)];
+                    int en_c = energyModel_->TermAU(type_kj) + c[getIndx(k, j, max_bp_distance_final_, indx_)];
                     int en_f = f[k - 1];
                     if (fij == en_c + en_f) {
                         traced = j;
@@ -2663,7 +2661,7 @@ OUTLOOP:
             goto repeat1;
         } else { /* trace back in fML array */
 
-            if (m[getIndx(i + 1, j, max_bp_distance_final_, indx_)] + P_->MLbase == fij) { /* 5' end is unpaired */
+            if (m[getIndx(i + 1, j, max_bp_distance_final_, indx_)] + energyModel_->getMLbase() == fij) { /* 5' end is unpaired */
                 sector[++s].i = i + 1;
                 sector[s].j = j;
                 sector[s].ml = ml;
@@ -2672,7 +2670,7 @@ OUTLOOP:
 
             ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
-            if (fij == c[ij] + TermAU(type, P_) + P_->MLintern[type]) {
+            if (fij == c[ij] + energyModel_->TermAU(type) + energyModel_->getMLintern(type)) {
                 base_pair_[++b].i = i;
                 base_pair_[b].j = j;
                 goto repeat1;
@@ -2718,7 +2716,7 @@ OUTLOOP:
                     goto OUTLOOP;
                 }
             } else { // Comparison with ordinary hairpins
-                int energy = E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN", P_);
+                int energy = energyModel_->E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN");
 
                 if (c[ij] == energy) {
                     goto OUTLOOP;
@@ -2727,7 +2725,7 @@ OUTLOOP:
 
         } else {
             // Ordinary hairpin traceback
-            if (cij == E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN", P_)) {
+            if (cij == energyModel_->E_hairpin(j - i - 1, type, ioptseq[i + 1], ioptseq[j - 1], "NNNNNNNNN")) {
                 goto OUTLOOP;
             }
         }
@@ -2743,8 +2741,8 @@ OUTLOOP:
                     continue;
                 type_pq = rtype[type_pq];
 
-                int energy = E_intloop(p - i - 1, j - q - 1, type, type_pq, ioptseq[i + 1], ioptseq[j - 1],
-                                       ioptseq[p - 1], ioptseq[q + 1], P_);
+                int energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type, type_pq, ioptseq[i + 1], ioptseq[j - 1],
+                                       ioptseq[p - 1], ioptseq[q + 1]);
 
                 int energy_new = energy + c[getIndx(p, q, max_bp_distance_final_, indx_)];
                 traced = (cij == energy_new);
@@ -2767,7 +2765,7 @@ OUTLOOP:
 
         sector[s + 1].ml = sector[s + 2].ml = 1;
 
-        int en = cij - TermAU(type_rev, P_) - P_->MLintern[type_rev] - P_->MLclosing;
+        int en = cij - energyModel_->TermAU(type_rev) - energyModel_->getMLintern(type_rev) - energyModel_->getMLclosing();
         for (k = i + 3 + TURN; k < j - 1 - TURN; k++) {
             //I'm looking for bifucation at the same time as closing the multi-loop.
             if (en == m[getIndx(i + 1, k - 1, max_bp_distance_final_, indx_)] + m[getIndx(k, j - 1, max_bp_distance_final_, indx_)]) {
