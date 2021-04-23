@@ -1022,16 +1022,13 @@ void Problem::allocate_arrays() {
         }
     }
 
-    cout << "Dim 0: " << nuclen_ << endl;
     F_.resize(nuclen_ + 1);
     DMl_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
     DMl1_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
     DMl2_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
     for (int j = 1; j <= nuclen_; j++) {
-        cout << "=== j: " << j << " size: " << pos2nuc_[j].size() << endl;
         F_[j].resize(pos2nuc_[j].size());
         for (unsigned int L = 0; L < pos2nuc_[1].size(); L++) { // The first position
-            cout << "L: " << L << " size: " << pos2nuc_[j].size() << endl; 
             F_[j][L].resize(pos2nuc_[j].size());
         }
     }
@@ -1362,8 +1359,6 @@ void Problem::fill_F() {
             }
 
             for (unsigned int Rj = 0; Rj < pos2nuc_[j].size(); Rj++) {
-                //cout << "j: " << j << " L1: " << L1 << " Rj: " << Rj << endl; 
-                //cout << "size: " << F_[j][L1].size() << endl;
                 if (Rj >= F_[j][L1].size()) {
                     continue;
                 }
@@ -1378,9 +1373,7 @@ void Problem::fill_F() {
                 if (options_.DEPflg && j == 3 && Dep2_[ii2r[L1_nuc * 10 + Rj_nuc]][1] == 0) {
                     continue;
                 }
-                cout << "j: " << j << " L1: " << L1 << " Rj: " << Rj << endl; 
                 F_[j][L1][Rj] = INF; // location of segfault
-                cout << "Done" << endl;
 
                 int type_L1Rj = BP_pair[i2r[L1_nuc]][i2r[Rj_nuc]];
                 if (type_L1Rj) {
