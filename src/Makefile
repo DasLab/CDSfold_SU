@@ -11,7 +11,7 @@ dummy: compile link
 CXX = g++
 
 CXXFLAGS = -O3 -std=c++17 -mfpmath=sse -msse -msse2 -msse3 \
-	-Wall -Wextra -Wpedantic -pipe -Wundef --param large-function-growth=100000 -fPIC \
+	-Wall -Wextra -Wpedantic -pipe -Wundef --param large-function-growth=100000 -fPIC\
 
 CDSFOLD_OBJS = fasta.o Util.o FileManager.o codon.o Problem.o AASeqConverter.o
 
@@ -30,7 +30,7 @@ vienna: CDSFOLD_OBJS+=$(VIENNA_OBJS)
 vienna: compile $(CDSFOLD_OBJS) $(VIENNA_OBJS) link
 
 ######### Debug build ####################################
-DEBUG_FLAGS = -DDEBUG -g
+DEBUG_FLAGS = -DDEBUG -g -fverbose-asm
 
 debug: CXXFLAGS+= $(DEBUG_FLAGS)
 debug: vienna
@@ -55,6 +55,7 @@ test:
 
 clean:
 	-rm *.o
+	-rm *.s
 	-rm CDSfold
 
 .PHONY: all clean dummy test link compile vienna

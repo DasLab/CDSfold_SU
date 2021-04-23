@@ -1022,13 +1022,16 @@ void Problem::allocate_arrays() {
         }
     }
 
+    cout << "Dim 0: " << nuclen_ << endl;
     F_.resize(nuclen_ + 1);
     DMl_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
     DMl1_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
     DMl2_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
     for (int j = 1; j <= nuclen_; j++) {
+        cout << "=== j: " << j << " size: " << pos2nuc_[j].size() << endl;
         F_[j].resize(pos2nuc_[j].size());
         for (unsigned int L = 0; L < pos2nuc_[1].size(); L++) { // The first position
+            cout << "L: " << L << " size: " << pos2nuc_[j].size() << endl; 
             F_[j][L].resize(pos2nuc_[j].size());
         }
     }
@@ -1353,7 +1356,17 @@ void Problem::fill_F() {
         }
 
         for (int j = 2; j <= nuclen_; j++) {
+            //cout << "j: " << j << " size: " << F_[j].size() << endl;
+            if (L1 >= F_[j].size()) {
+                continue;
+            }
+
             for (unsigned int Rj = 0; Rj < pos2nuc_[j].size(); Rj++) {
+                //cout << "j: " << j << " L1: " << L1 << " Rj: " << Rj << endl; 
+                //cout << "size: " << F_[j][L1].size() << endl;
+                if (Rj >= F_[j][L1].size()) {
+                    continue;
+                }
                 int Rj_nuc = pos2nuc_[j][Rj];
                 if (options_.nucleotide_constraints && i2r[Rj_nuc] != NucConst_[j]) {
                     continue;
@@ -1365,8 +1378,9 @@ void Problem::fill_F() {
                 if (options_.DEPflg && j == 3 && Dep2_[ii2r[L1_nuc * 10 + Rj_nuc]][1] == 0) {
                     continue;
                 }
-
-                F_[j][L1][Rj] = INF;
+                cout << "j: " << j << " L1: " << L1 << " Rj: " << Rj << endl; 
+                F_[j][L1][Rj] = INF; // location of segfault
+                cout << "Done" << endl;
 
                 int type_L1Rj = BP_pair[i2r[L1_nuc]][i2r[Rj_nuc]];
                 if (type_L1Rj) {
@@ -1383,6 +1397,12 @@ void Problem::fill_F() {
 
                 // create F[j] from F[j-1]
                 for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
+                    if (Rj1 >= F_[j - 1][L1].size()) {
+                        continue;
+                    }
+                    if (L1 >= F_[j-1].size()) {
+                        continue;
+                    }
                     int Rj1_nuc = pos2nuc_[j - 1][Rj1];
                     if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
                         continue;
@@ -1398,6 +1418,9 @@ void Problem::fill_F() {
                 // for (int k = 2; k <= j - TURN - 1; k++) { // Is this correct?
                 for (int k = MAX2(2, j - max_bp_distance_final_ + 1); k <= j - TURN - 1; k++) { // Is this correct?
                     for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
+                        if (Rk1 >= F_[k - 1][L1].size()) {
+                            continue;
+                        }
                         int Rk1_nuc = pos2nuc_[k - 1][Rk1];
                         if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
                             continue;
@@ -1427,6 +1450,14 @@ void Problem::fill_F() {
                             }
                             // int kj = indx[j] + k;
                             int kj = getIndx(k, j, max_bp_distance_final_, indx_);
+                            
+                            if (Rj >= C_[kj][Lk].size() or Lk >= C_[kj].size() or kj > C_.size()){
+                                continue;
+                            }
+                            
+                            if (Rk1 >= F_[k-1][L1].size() or L1 >= F_[k-1].size() or (k-1) > F_.size()){
+                                continue;
+                            }
 
                             int energy = F_[k - 1][L1][Rk1] + C_[kj][Lk][Rj] + au_penalty; // recc 4
 
