@@ -1,4 +1,4 @@
-######## Please set this valuable BY YOURSELF ##############
+######## Use environment variables - set by user ###########
 VIENNA=${VIENNA_INSTALL}
 CDSHOME=${CDS_HOME}
 ############################################################
@@ -17,26 +17,24 @@ CDSFOLD_OBJS = fasta.o Util.o FileManager.o codon.o Problem.o AASeqConverter.o
 
 LD_FLAGS = -fmessage-length=0 -fopenmp 
 
-########## Additional variables for Vienna build  ###########
+################### Vienna build  ##########################
 
 VIENNA_FLAGS = -I$(VIENNA) -I$(VIENNA)/include/ -DUSE_VIENNA_ENERGY_MODEL 
 VIENNA_OBJS = ViennaEnergyModel.o
 VIENNA_LD_FLAGS = -L$(VIENNA) -lRNA
 
-######### Add Vienna variables to the defaults ############
 vienna: CXXFLAGS+=$(VIENNA_FLAGS)
 vienna: LD_FLAGS+=$(VIENNA_LD_FLAGS)
 vienna: CDSFOLD_OBJS+=$(VIENNA_OBJS)
 vienna: compile $(CDSFOLD_OBJS) $(VIENNA_OBJS) link
 
-######### Debug build ####################################
+################# Debug build ##############################
 DEBUG_FLAGS = -DDEBUG -g -fverbose-asm
 
 debug: CXXFLAGS+= $(DEBUG_FLAGS)
 debug: vienna
-##########################################################
 
-######### Build rules #####################################
+################### General Build rules ####################
 
 compile:
 	$(CXX) ${CXXFLAGS} -c CDSfold.cpp 
