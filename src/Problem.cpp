@@ -1356,9 +1356,9 @@ void Problem::fill_F() {
             //cout << "j: " << j << " size: " << F_[j].size() << endl;
             
             /* ====== GUARD HERE ======= */
-            if (L1 >= F_[j].size()) {
-                continue;
-            }
+            //if (L1 >= F_[j].size()) {
+            //    continue;
+            //}
 
             for (unsigned int Rj = 0; Rj < pos2nuc_[j].size(); Rj++) {
                 /* ====== GUARD HERE ======= */
@@ -1398,9 +1398,9 @@ void Problem::fill_F() {
                         continue;
                     }
                     /* ====== GUARD HERE ======= */
-                    if (L1 >= F_[j-1].size()) {
-                        continue;
-                    }
+                    //if (L1 >= F_[j-1].size()) {
+                    //    continue;
+                    //}
                     int Rj1_nuc = pos2nuc_[j - 1][Rj1];
                     if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
                         continue;
