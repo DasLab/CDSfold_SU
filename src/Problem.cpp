@@ -1353,18 +1353,9 @@ void Problem::fill_F() {
         }
 
         for (int j = 2; j <= nuclen_; j++) {
-            //cout << "j: " << j << " size: " << F_[j].size() << endl;
-            
-            /* ====== GUARD HERE ======= */
-            //if (L1 >= F_[j].size()) {
-            //    continue;
-            //}
 
             for (unsigned int Rj = 0; Rj < pos2nuc_[j].size(); Rj++) {
-                /* ====== GUARD HERE ======= */
-                if (Rj >= F_[j][L1].size()) {
-                    continue;
-                }
+                
                 int Rj_nuc = pos2nuc_[j][Rj];
                 if (options_.nucleotide_constraints && i2r[Rj_nuc] != NucConst_[j]) {
                     continue;
@@ -1393,14 +1384,6 @@ void Problem::fill_F() {
 
                 // create F[j] from F[j-1]
                 for (unsigned int Rj1 = 0; Rj1 < pos2nuc_[j - 1].size(); Rj1++) {
-                    /* ====== GUARD HERE ======= */
-                    if (Rj1 >= F_[j - 1][L1].size()) {
-                        continue;
-                    }
-                    /* ====== GUARD HERE ======= */
-                    //if (L1 >= F_[j-1].size()) {
-                    //    continue;
-                    //}
                     int Rj1_nuc = pos2nuc_[j - 1][Rj1];
                     if (options_.nucleotide_constraints && i2r[Rj1_nuc] != NucConst_[j - 1]) {
                         continue;
@@ -1417,10 +1400,6 @@ void Problem::fill_F() {
                 for (int k = MAX2(2, j - max_bp_distance_final_ + 1); k <= j - TURN - 1; k++) { // Is this correct?
                     for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
                         
-                        /* ====== GUARD HERE ======= */
-                        if (Rk1 >= F_[k - 1][L1].size()) {
-                            continue;
-                        }
                         int Rk1_nuc = pos2nuc_[k - 1][Rk1];
                         if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
                             continue;
@@ -1451,20 +1430,13 @@ void Problem::fill_F() {
                             // int kj = indx[j] + k;
                             int kj = getIndx(k, j, max_bp_distance_final_, indx_);
                             
-                            /* ====== GUARD HERE ======= */
-                            if (Rk1 >= F_[k-1][L1].size() or L1 >= F_[k-1].size()){
-                                continue;
-                            }
-
                             int energy = F_[k - 1][L1][Rk1] + C_[kj][Lk][Rj] + au_penalty; // recc 4
 
                             F_[j][L1][Rj] = MIN2(F_[j][L1][Rj], energy);
                         }
                     }
                 }
-
-                // cout << j << ":" << F[j][L1][Rj] << " " << i2n[L1_nuc] << "-" << i2n[Rj_nuc] << endl;
-
+                
                 // test
                 if (j == nuclen_) {
                     cout << i2n[L1_nuc] << "-" << i2n[Rj_nuc] << ":" << F_[j][L1][Rj] << endl;
