@@ -1027,7 +1027,7 @@ void Problem::allocate_arrays() {
     DMl1_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
     DMl2_.resize(nuclen_ + 1, {{{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF},{INF, INF, INF, INF}}});
     for (int j = 1; j <= nuclen_; j++) {
-        F_[j].resize(pos2nuc_[j].size());
+        F_[j].resize(pos2nuc_[1].size());
         for (unsigned int L = 0; L < pos2nuc_[1].size(); L++) { // The first position
             F_[j][L].resize(pos2nuc_[j].size());
         }
@@ -1353,7 +1353,9 @@ void Problem::fill_F() {
         }
 
         for (int j = 2; j <= nuclen_; j++) {
+
             for (unsigned int Rj = 0; Rj < pos2nuc_[j].size(); Rj++) {
+                
                 int Rj_nuc = pos2nuc_[j][Rj];
                 if (options_.nucleotide_constraints && i2r[Rj_nuc] != NucConst_[j]) {
                     continue;
@@ -1365,8 +1367,7 @@ void Problem::fill_F() {
                 if (options_.DEPflg && j == 3 && Dep2_[ii2r[L1_nuc * 10 + Rj_nuc]][1] == 0) {
                     continue;
                 }
-
-                F_[j][L1][Rj] = INF;
+                F_[j][L1][Rj] = INF; // location of segfault
 
                 int type_L1Rj = BP_pair[i2r[L1_nuc]][i2r[Rj_nuc]];
                 if (type_L1Rj) {
@@ -1398,6 +1399,7 @@ void Problem::fill_F() {
                 // for (int k = 2; k <= j - TURN - 1; k++) { // Is this correct?
                 for (int k = MAX2(2, j - max_bp_distance_final_ + 1); k <= j - TURN - 1; k++) { // Is this correct?
                     for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
+                        
                         int Rk1_nuc = pos2nuc_[k - 1][Rk1];
                         if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
                             continue;
@@ -1427,16 +1429,14 @@ void Problem::fill_F() {
                             }
                             // int kj = indx[j] + k;
                             int kj = getIndx(k, j, max_bp_distance_final_, indx_);
-
+                            
                             int energy = F_[k - 1][L1][Rk1] + C_[kj][Lk][Rj] + au_penalty; // recc 4
 
                             F_[j][L1][Rj] = MIN2(F_[j][L1][Rj], energy);
                         }
                     }
                 }
-
-                // cout << j << ":" << F[j][L1][Rj] << " " << i2n[L1_nuc] << "-" << i2n[Rj_nuc] << endl;
-
+                
                 // test
                 if (j == nuclen_) {
                     cout << i2n[L1_nuc] << "-" << i2n[Rj_nuc] << ":" << F_[j][L1][Rj] << endl;
