@@ -10,7 +10,7 @@
 fasta::fasta(const char *fname) {
 
     initP();               /* set index into sequences to 0 */
-    numSeq = 0;            /* initialize number of sequences */
+    numSeq_ = 0;            /* initialize number of sequences */
 
     ifstream ifs(fname);
    
@@ -35,10 +35,10 @@ fasta::fasta(const char *fname) {
              
             if (line[0] == '>') {        /* hit another description line - save the sequence */
                 eachseq e;
-                e.seq = tmp_seq;
-                e.desc = tmp_desc;       /* save the description we've built up */
-                data.push_back(e);
-                numSeq++; 
+                e.seq_ = tmp_seq;
+                e.desc_ = tmp_desc;       /* save the description we've built up */
+                data_.push_back(e);
+                numSeq_++; 
 
                 line.erase(0, 1);
                 tmp_desc = line;
@@ -48,9 +48,9 @@ fasta::fasta(const char *fname) {
         }
         /* finished parsing - save the rest of the sequence */ 
         eachseq e;
-        e.seq = tmp_seq;
-        e.desc = tmp_desc;
-        data.push_back(e);
+        e.seq_ = tmp_seq;
+        e.desc_ = tmp_desc;
+        data_.push_back(e);
     
     /* file could not be opened */ 
     } else {
@@ -63,6 +63,5 @@ fasta::fasta(const char *fname) {
     }
 }
 
-fasta::~fasta() {}
 
-void fasta::printP() { cout << p << endl; }
+void fasta::printP() { cout << p_ << endl; }
