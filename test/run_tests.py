@@ -20,7 +20,7 @@ def run_all_tests(test_suite, args):
          "out_path": os.path.join(CDS_HOME, 'test/output/ref_output_{}.txt'),
         },
         {"name": "cds",
-         "bin_path": os.path.join(CDS_HOME, "test/bin/CDSfold"),
+         "bin_path": os.path.join(CDS_HOME, "test/bin/CDSfoldLatest"),
          "out_path": os.path.join(CDS_HOME, 'test/output/cds_output_{}.txt'),
         },
     ]
