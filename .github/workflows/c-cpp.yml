@@ -19,4 +19,4 @@ jobs:
         echo $CDS_HOME
         ls
         cd src
-        make test 
+        make test_vm 

@@ -52,6 +52,9 @@ example:
 test:
 	python3 $(CDSHOME)/test/run_tests.py -s
 
+test_vm:
+	python3 $(CDSHOME)/test/run_tests.py
+
 clean:
 	-rm -rf *.o
 	-rm -rf *.s
