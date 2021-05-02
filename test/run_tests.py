@@ -137,7 +137,7 @@ def diff_output(results, args):
             if cds_result["lines"][j] != ref_result["lines"][j]:
                 # non-matching run times do not count as mismatches 
                 if "Running time" in cds_result["lines"][j] and \
-                   "Running time" in ref_result["lines"][j]:
+                   "Runing time" in ref_result["lines"][j]:
                     continue
                 else:
                     print("Test {} failed. Command: {}".format(i, cds_result["cmd"]))
