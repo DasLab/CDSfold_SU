@@ -27,6 +27,7 @@ vienna: CXXFLAGS+=$(VIENNA_FLAGS)
 vienna: LD_FLAGS+=$(VIENNA_LD_FLAGS)
 vienna: CDSFOLD_OBJS+=$(VIENNA_OBJS)
 vienna: compile $(CDSFOLD_OBJS) $(VIENNA_OBJS) link
+	cp CDSfold $(CDSHOME)/test/bin
 
 ################# Debug build ##############################
 DEBUG_FLAGS = -DDEBUG -g -fverbose-asm
@@ -52,8 +53,9 @@ test:
 	python3 $(CDSHOME)/test/run_tests.py -s
 
 clean:
-	-rm *.o
-	-rm *.s
-	-rm CDSfold
+	-rm -rf *.o
+	-rm -rf *.s
+	-rm -rf CDSfold
+	-rm -rf $(CDSHOME)/test/bin/CDSfold
 
 .PHONY: all clean dummy test link compile vienna

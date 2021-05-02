@@ -16,11 +16,11 @@ def run_all_tests(test_suite, args):
     # package each binary being run with the associated paths
     test_binaries = [
         {"name": "ref",
-         "bin_path": os.path.join(CDS_HOME, "test/ref/CDSfoldRef"),
+         "bin_path": os.path.join(CDS_HOME, "test/bin/CDSfoldRef"),
          "out_path": os.path.join(CDS_HOME, 'test/output/ref_output_{}.txt'),
         },
         {"name": "cds",
-         "bin_path": os.path.join(CDS_HOME, "src/CDSfold"),
+         "bin_path": os.path.join(CDS_HOME, "test/bin/CDSfold"),
          "out_path": os.path.join(CDS_HOME, 'test/output/cds_output_{}.txt'),
         },
     ]
@@ -103,7 +103,7 @@ def clean_results(raw_results, test_suite):
             
             # look for line with run time 
             for line in test_result["lines"]:
-                if "Runing time" in line:
+                if "Running time" in line:
                     runtime_list = line.split()
                     # runtime is the element before "minutes" 
                     runtime = runtime_list[runtime_list.index("minutes") - 1]
@@ -136,8 +136,8 @@ def diff_output(results, args):
             # lines don't match 
             if cds_result["lines"][j] != ref_result["lines"][j]:
                 # non-matching run times do not count as mismatches 
-                if "Runing time" in cds_result["lines"][j] and \
-                   "Runing time" in ref_result["lines"][j]:
+                if "Running time" in cds_result["lines"][j] and \
+                   "Running time" in ref_result["lines"][j]:
                     continue
                 else:
                     print("Test {} failed. Command: {}".format(i, cds_result["cmd"]))
@@ -172,7 +172,7 @@ def print_summary(args, num_tests):
     inputs: args - args object with the parsed cmd line arguments
             num_tests - number of tests in the test suite'''
 
-    summary_str = "Starting CDSFold test suite. Running {} tests -".format(num_tests)
+    summary_str = "\n=== Starting CDSFold test suite. Running {} tests -".format(num_tests)
     
     if args.q:
         summary_str += " Quiet mode -"
@@ -181,6 +181,7 @@ def print_summary(args, num_tests):
     if args.s:
         summary_str += " Saving outputs"
 
+    summary_str += " ==="
     print(summary_str)
 
     return
