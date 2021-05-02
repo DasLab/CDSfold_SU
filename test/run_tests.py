@@ -147,7 +147,10 @@ def diff_output(results, args):
     print("\n========= Test Summary ===========")
     print("Results match reference for {} out of {} tests\n".format(
           len(test_suite) - mismatches, len(test_suite)))
-    
+  
+    if mismatches > 0:
+        raise ValueError("{} tests failed to match reference".format(mismatches))
+
     return
 
 def get_parser():

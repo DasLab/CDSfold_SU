@@ -1,0 +1,23 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: set-env
+      run: |
+        export CDS_HOME=`pwd`
+        echo $CDS_HOME
+    - name: make test
+      run: |
+        cd $CDS_HOME/src
+        make test 
