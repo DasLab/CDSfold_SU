@@ -18,8 +18,5 @@ jobs:
         export CDS_HOME=`pwd`
         echo $CDS_HOME
         ls
-    - name: make test
-      run: |
-        echo $CDS_HOME
-        cd $CDS_HOME/src
+        cd src
         make test 
