@@ -20,5 +20,6 @@ jobs:
         ls
     - name: make test
       run: |
+        echo $CDS_HOME
         cd $CDS_HOME/src
         make test 
