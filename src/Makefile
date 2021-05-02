@@ -49,7 +49,7 @@ example:
 	$(CDSHOME)/src/CDSfold $(CDSHOME)/example/test.faa
 
 test:
-	python3 $(CDSHOME)/test/run_tests.py
+	python3 $(CDSHOME)/test/run_tests.py -s
 
 clean:
 	-rm *.o
