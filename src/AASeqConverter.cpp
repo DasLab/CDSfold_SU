@@ -82,7 +82,9 @@ auto AASeqConverter::countEveryOtherTwoBase(const string &aaseq, const string &e
 }
 
 
-auto AASeqConverter::getBases(const string &aminoAcid, const string &exceptedCodons, Alphabet const & flag) -> vector<vector<vector<string>>> {
+auto AASeqConverter::getBases(const string &aminoAcid, const string &exceptedCodons, Alphabet const & flag) 
+    -> vector<vector<vector<string>>> {
+    
     // Obtain the partial base sequence of 0 to (n-8) elements
     unsigned int maxLength = 8;
     vector<vector<vector<string>>> bases = getSelectedLengthBases(aminoAcid, maxLength, exceptedCodons, flag);
