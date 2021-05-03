@@ -1,5 +1,6 @@
 #include "AASeqConverter.hpp"
-    
+
+/* record possible neighbors for each position in the sequence */
 auto AASeqConverter::countNeighborTwoBase(const string &aaseq, const string &exceptedCodons) -> 
     vector<vector<int>> {
     

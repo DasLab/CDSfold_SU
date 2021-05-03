@@ -47,12 +47,15 @@ Problem::Problem(Options const & options, string const & aaseq):
     energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
 #endif
     
+    /* check that amino acid sequence is long enough */
     aalen_ = aaseq_.size();
-    if (aalen_ <= 2) {
+    if (aalen_ < MIN_AA_LEN) {
         cerr << "The amino acid sequence is too short.\n";
         exit(1);
     }
 
+    /* parse command line options for partial optimization - partially stable 
+     * or unstable structure */
     if (options_.partial_opt) {
         if (options_.opt_to > aalen_) {
             options_.opt_to = aalen_;
@@ -60,61 +63,63 @@ Problem::Problem(Options const & options, string const & aaseq):
 
         // Creating partial inverse optimization information
         if (options_.maximize_mfe) { // Structural removal of the specified area
-            ofm_[0] = (options_.opt_from - 1) * 3 + 1;
-            oto_[0] = options_.opt_to * 3;
+            ofm_[0] = (options_.opt_from - 1) * NUC_PER_CODON + 1;
+            oto_[0] = options_.opt_to * NUC_PER_CODON;
             n_inter_ = 1;
         } else { // Structural stabilization of the specified area
             int l = 0;
             if (options_.opt_from != 1) {
                 ofm_[l] = 1;
-                oto_[l++] = (options_.opt_from - 1) * 3;
+                oto_[l++] = (options_.opt_from - 1) * NUC_PER_CODON;
             }
             if (options_.opt_to != aalen_) {
-                ofm_[l] = options_.opt_to * 3 + 1;
-                oto_[l++] = aalen_ * 3;
+                ofm_[l] = options_.opt_to * NUC_PER_CODON + 1;
+                oto_[l++] = aalen_ * NUC_PER_CODON;
             }
             n_inter_ = l;
         }
     }
 
-    nuclen_ = aalen_ * 3;         /* nucleotide length is 3 nucleotides per codon */
-    max_bp_distance_final_ = 0;
-
+    nuclen_ = aalen_ * NUC_PER_CODON; /* nucleotide length is 3 nucleotides per codon */
+   
+    /* maximum base pair distance not set - set to whole sequence */
     if (options_.max_bp_distance == 0) {
         max_bp_distance_final_ = nuclen_;
-    } else if (options_.max_bp_distance < 10) {
-        cerr << "W must be more than 10"
+    
+    /* check if specified max distance is too short */ 
+    } else if (options_.max_bp_distance < MIN_MAX_BP_DISTANCE) {
+        cerr << "W must be at least " << MIN_MAX_BP_DISTANCE
                 << "(you used " << options_.max_bp_distance << ")" << endl;
         exit(1);
-    } else if (options_.max_bp_distance > nuclen_) {
-        max_bp_distance_final_ = nuclen_;
+    /* use passed max bp unless it exceeds sequence length */ 
     } else {
-        max_bp_distance_final_ = options_.max_bp_distance;
+        max_bp_distance_final_ = min(options_.max_bp_distance, nuclen_);
     }
 
     substr_ = conv.getBases(aaseq_, options_.codons_excluded, Alphabet::BASE_ORIGINAL);
-    float ptotal_Mb_base = 0;
 
-    if (options_.estimate_memory_use) {
-        ptotal_Mb_base = 2 + nuclen_ * 0.006956;
-    } else {
+    if (not options_.estimate_memory_use) {
+        /* for each codon record possible neighbors */
         Dep1_ = conv.countNeighborTwoBase(aaseq_, options_.codons_excluded);
         Dep2_ = conv.countEveryOtherTwoBase(aaseq_, options_.codons_excluded);
     }
 
     predefHPN_E_ = conv.getBaseEnergy();
 
+    /* parse nucleotide constraints */
     if (options_.nucleotide_constraints) {
         NucConst_ = createNucConstraint(NucDef, nuclen_, n2i);
     }
 
+    /* print the amino acid sequence */
     cout << aaseq_ << endl;
-
+    /* get list of possible nucleotides at each position */
     pos2nuc_ = getPossibleNucleotide(aaseq_, codon_table_, n2i, options_.codons_excluded);
-
     indx_ = set_ij_indx();
 
+    /* estimate the memory usage */
     if (options_.estimate_memory_use) {
+        float ptotal_Mb_base = 2 + nuclen_ * 0.006956;
         float ptotal_Mb_alloc = predict_memory(nuclen_, max_bp_distance_final_, pos2nuc_);
         float ptotal_Mb = ptotal_Mb_alloc + ptotal_Mb_base;
         cout << "Estimated memory usage: " << ptotal_Mb << " Mb" << endl;
@@ -123,63 +128,53 @@ Problem::Problem(Options const & options, string const & aaseq):
 }
 
 void Problem::calculate() {
-    //		rev_flg = 0;
-    //		if(rev_flg && num_interval == 0){
     if (options_.maximize_mfe && !options_.partial_opt) {
         // reverse mode
         string optseq_rev = rev_fold_step1();
-        //			rev_fold_step2(&optseq_rev, aaseq, aalen_, codon_table, exc, ofm, oto, 1);
         rev_fold_step2(optseq_rev);
         fixed_fold(optseq_rev);
-        return; // returnすると、実行時間が表示されなくなるためbreakすること。
+        return; 
     }
 
     allocate_arrays();
     if (options_.random_backtrack) {
         allocate_F2();
     }
-    // float ptotal_Mb = ptotal_Mb_alloc + ptotal_Mb_base;
 
-    //		pid_t pid1 = getpid();
-    //		stringstream ss1;
-    //		ss1 << "/proc/" << pid1 << "/status";
-    //		int m1 = getMemoryUsage(ss1.str());
-    //		cout << "Memory(VmRSS): "  << float(m1)/1024 << " Mb" << endl;
-    //		exit(0);
-
-    // main routine
+    /* iterate through the first several nucleotides 
+     * l - one nucleotide */ 
     for (int l = 2; l <= 4; l++) {
+        /* i - another nucleotide */ 
         for (int i = 1; i <= nuclen_ - l + 1; i++) {
-            //				test = 1;
-            int j = i + l - 1;
-            // int ij = indx[j] + i;
+            
+            int j = i + l - 1;   /* some other index (?) */
             int ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
             ChkC_[ij] = INF;
             ChkM_[ij] = INF;
 
+            /* iterate through possible nucleotides at position i */
             for (unsigned int L = 0; L < pos2nuc_[i].size(); L++) {
                 int L_nuc = pos2nuc_[i][L];
                 if (options_.nucleotide_constraints && i2r[L_nuc] != NucConst_[i]) {
                     continue;
                 }
+
+                /* possible nucleotides at position j */
                 for (unsigned int R = 0; R < pos2nuc_[j].size(); R++) {
                     int R_nuc = pos2nuc_[j][R];
                     if (options_.nucleotide_constraints && i2r[R_nuc] != NucConst_[j]) {
                         continue;
                     }
-                    // L-R pair must be filtered
-                    //						if(j-1==1){
-                    //							cout << i << ":" << j << " " << L_nuc << "-"
-                    //<< R_nuc << " " << Dep1[ii2r[L_nuc*10+R_nuc]][i] <<endl;
-                    //						}
-                    if (options_.DEPflg && j - i == 1 && i <= nuclen_ - 1 && Dep1_[ii2r[L_nuc * 10 + R_nuc]][i] == 0) {
+                    
+                    if (options_.DEPflg && j - i == 1 && i <= nuclen_ - 1 && 
+                        Dep1_[ii2r[L_nuc * 10 + R_nuc]][i] == 0) {
                         continue;
                     } // nuclen - 1はいらないのでは？
-                    if (options_.DEPflg && j - i == 2 && i <= nuclen_ - 2 && Dep2_[ii2r[L_nuc * 10 + R_nuc]][i] == 0) {
+                    if (options_.DEPflg && j - i == 2 && i <= nuclen_ - 2 && 
+                        Dep2_[ii2r[L_nuc * 10 + R_nuc]][i] == 0) {
                         continue;
                     }
-
                     C_[ij][L][R] = INF;
                     M_[ij][L][R] = INF;
                     if (options_.random_backtrack) {
@@ -190,8 +185,7 @@ void Problem::calculate() {
         }
     }
 
-    //		cout << "TEST" << M[13][0][0] << endl;
-    // main routine
+    /* iterate through the rest of the sequence */ 
     for (int l = 5; l <= nuclen_; l++) {
         if (l > max_bp_distance_final_) {
             break;
@@ -214,11 +208,9 @@ void Problem::calculate() {
 
             for (unsigned int L = 0; L < pos2nuc_[i].size(); L++) {
                 int L_nuc = pos2nuc_[i][L];
-                //					cout << NCflg << endl;
                 if (options_.nucleotide_constraints && i2r[L_nuc] != NucConst_[i]) {
                     continue;
                 }
-                //					cout << "ok" << endl;
 
                 for (unsigned int R = 0; R < pos2nuc_[j].size(); R++) {
 
@@ -228,14 +220,10 @@ void Problem::calculate() {
                         continue;
                     }
 
-                    // int ij = indx[j] + i;
                     int ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
                     C_[ij][L][R] = INF;
                     M_[ij][L][R] = INF;
-                    //						cout << i << " " << j << ":" << M[ij][L][R] <<
-                    // endl;
-
                     int type = BP_pair[i2r[L_nuc]][i2r[R_nuc]];
 
                     if (!type || !opt_flg_ij) {
@@ -313,10 +301,6 @@ void Problem::calculate() {
                                     // i2r[R2_nuc],
                                     // dummy_str);
                                     energy = energyModel_->E_hairpin(j - i - 1, type, i2r[L2_nuc], i2r[R2_nuc], dummy_str);
-                                    // cout << "HairpinE(" << j-i-1 << "," << type << "," << i2r[L2_nuc] << "," <<
-                                    // i2r[R2_nuc] << ")" << " at " << i << "," << j << ":" << energy << endl; cout
-                                    // << i << " " << j  << " " << energy << ":" << i2n[L_nuc] << "-" << i2n[R_nuc]
-                                    // << "<-" << i2n[L2_nuc] << "-" << i2n[R2_nuc] << endl;
                                     C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
                                 }
                             }

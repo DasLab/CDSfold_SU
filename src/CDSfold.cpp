@@ -107,27 +107,16 @@ auto main(int argc, char *argv[]) -> int {
     cout << "-e [excluded codons]        = " << options.codons_excluded << endl;   // display excluded codons
 
     do {
+        /* iterate through the sequences and compute most stable structure for each one */
         string aaseq = string(all_aaseq.getSeq());
-
-        // OK, here's where we begin.
         Problem problem(options, aaseq);
         problem.calculate();
-
-
     } while (all_aaseq.next());
 
     clock_t end = clock();
     float sec = (double)end / CLOCKS_PER_SEC;
     float min = sec / 60;
     cout << "Running time: " << min << " minutes" << endl;
-
-    //	struct rusage r;
-    //	if (getrusage(RUSAGE_SELF, &r) != 0) {
-    //			/*Failure*/
-    //	}
-    //	printf("Memory usage: %ld Mb\n", r.ru_maxrss/1024);
-
-    //	printf("Memory usage: %ld Mb\n", r.ru_maxrss/1024);
 
     return 0;
 }

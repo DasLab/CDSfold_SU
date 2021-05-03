@@ -27,6 +27,8 @@
 #define TURN 3
 /** The maximum loop length */
 #define MAXLOOP 30
+/* nucleotides per codong*/
+#define NUC_PER_CODON 3
 
 #define UNIT 100
 

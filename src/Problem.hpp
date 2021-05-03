@@ -3,6 +3,7 @@
 #include <iosfwd>
 #include <iostream>
 #include <memory>
+#include <algorithm>
 
 #include "codon.hpp"
 #include "CDSfold_rev.hpp"
@@ -14,6 +15,9 @@
 #else
 #include "DummyEnergyModel.hpp"
 #endif
+
+#define MIN_AA_LEN 3            /* shortest allowed amino acide sequence */
+#define MIN_MAX_BP_DISTANCE 10  /* minimum distance for optional max bp distance */
 
 using namespace std;
 
@@ -86,20 +90,7 @@ static constexpr array<char, 20> make_i2n() {
     // array<char, 20> n = {};
     return {' ', 'A', 'C', 'G', 'U', 'V', 'W', 'X', 'Y', '\0',
             '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'};
-    // n[0] = ' ';
-    // n[1] = 'A';
-    // n[2] = 'C';
-    // n[3] = 'G';
-    // n[4] = 'U';
-    // n[5] = 'V';
-    // n[6] = 'W';
-    // n[7] = 'X';
-    // n[8] = 'Y';
-    // return n;
 }
-
-
-
 
 vector<vector<int>> getPossibleNucleotide(std::string const & aaseq, codon &codon_table, map<char, int> const & n2i,
                                           string const & excludedCodons);
@@ -121,7 +112,7 @@ private:
     vector<vector<int>> Dep2_;
     map<string, int> predefHPN_E_;
     vector<int> NucConst_;
-    vector<vector<int>> pos2nuc_;
+    vector<vector<int>> pos2nuc_;         /* vector of possible nucleotides at each position */
     vector<vector<vector<string>>> substr_;
     int n_inter_ = 0; // In the current implementation, n_inter = 1 or 2.
     int ofm_[5]; // I don't even think you need this much.
@@ -132,6 +123,9 @@ private:
     vector<array<array<int, 4>, 4>> DMl_, DMl1_, DMl2_;
     vector<int> ChkC_, ChkM_;
     vector<bond> base_pair_;
+    AASeqConverter conv;
+    codon codon_table_;
+    inline vector<int> set_ij_indx();
 
     // In theory it's a little silly to construct this once per sequence
     // but look, it's cheap and maybe it'll be helpful long term to have
@@ -146,26 +140,13 @@ private:
     "CGGGGCAUCCUCAAUGAGGAUGUUAAAACCCGGUCGCUGACGAUACAGAUCAACAGUGAGGGGAUGUUCAAGAUGUUUAUG";
     static constexpr char dummy_str[10] = "XXXXXXXXX";
 
-    // make_i2r(i2r);
-
-    AASeqConverter conv;
-
-    codon codon_table_;
-
-    inline vector<int> set_ij_indx();
-
-
     auto rev_fold_step1() -> string;
     void rev_fold_step2(string & optseq_r);
-
     void fixed_fold(string & optseq);
-
     void allocate_arrays();
     void fill_F();
     void allocate_F2();
     void fill_F2();
-
-
 
     void backtrack(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR);
     void backtrack2(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR);
@@ -173,6 +154,8 @@ private:
 
 };
 
+
+/* ========= Miscellaneous helper functions ========== */
 
 inline auto getMatrixSize(int len, int w) -> int {
     int size = 0;
@@ -187,9 +170,12 @@ inline auto getMatrixSize(int len, int w) -> int {
 
 
 inline auto getIndx(int const &i, int const &j, int const &w, vector<int> const &indx) -> int {
-    return indx[j] + i - MAX2(0, j - w); // j-w is the number of unused elements.
-                                         // If w is not specified (= length), j elements (1 <i <j) are prepared in the j column.
-                                         // When w is specified, the number of elements used in column j is w, and the number of unused elements is j-w.
+    /* j-w is the number of unused elements.
+     * If w is not specified (= length), j elements (1 <i <j) are prepared in the j column.
+     * When w is specified, the number of elements used in column j is w, and the number of 
+     * unused elements is j-w.
+     */
+    return indx[j] + i - max(0, j - w); 
 }
 
 void allocate_F2(int len, vector<int> const & indx, int w, vector<vector<int>> &pos2nuc, vector<vector<vector<int>>> & f2);
