@@ -31,19 +31,23 @@ const array<char, 20> Problem::i2n = make_i2n();
 const array<int, 20> Problem::i2r = make_i2r();
 const array<int, 100> Problem::ii2r = make_ii2r();
 
+
+/* constructor for problem
+ * inputs: options - object with command line options
+ *         aaseq - amino acid sequence */
 Problem::Problem(Options const & options, string const & aaseq):
     options_( options ),
     aaseq_( aaseq )
 {
-    aalen_ = aaseq_.size();
 
+/* select energy model based on preprocessor directives */
 #ifdef USE_VIENNA_ENERGY_MODEL
     energyModel_ = unique_ptr<ViennaEnergyModel>(new ViennaEnergyModel());
 #else 
     energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
 #endif
-
     
+    aalen_ = aaseq_.size();
     if (aalen_ <= 2) {
         cerr << "The amino acid sequence is too short.\n";
         exit(1);
@@ -71,14 +75,9 @@ Problem::Problem(Options const & options, string const & aaseq):
             }
             n_inter_ = l;
         }
-        // Checking the optimization area
-        // for(int I = 0; I < n_inter; I++){
-        //	cout << ofm[I] << "-" << oto[I] << endl;
-        //}
-        // exit(0);
     }
 
-    nuclen_ = aalen_ * 3;
+    nuclen_ = aalen_ * 3;         /* nucleotide length is 3 nucleotides per codon */
     max_bp_distance_final_ = 0;
 
     if (options_.max_bp_distance == 0) {
@@ -93,8 +92,6 @@ Problem::Problem(Options const & options, string const & aaseq):
         max_bp_distance_final_ = options_.max_bp_distance;
     }
 
-    //		w_tmp = 50;// test!
-    //		vector<vector<vector<string> > >  substr = conv.getBases(string(aaseq),8, exc);
     substr_ = conv.getBases(aaseq_, options_.codons_excluded, Alphabet::BASE_ORIGINAL);
     float ptotal_Mb_base = 0;
 

@@ -275,83 +275,92 @@ const map<char, vector<string>> codon::extendedTable{
  * 4 - U
  */
 codon::codon() {
-    table_rev[4][4][4] = 'F';
-    table_rev[4][4][2] = 'F';
-    table_rev[4][4][1] = 'L';
-    table_rev[4][4][3] = 'L';
+    /* reshape to a 5 x 5 x 5 array */ 
+    codonToAA.resize(5);
+    for (unsigned int i = 0; i < codonToAA.size(); i++) {
+        codonToAA[i].resize(5);
+        for (unsigned int j = 0; j < codonToAA.size(); j++) {
+            codonToAA[i][j].resize(5);
+        }
+    }
 
-    table_rev[2][4][4] = 'L';
-    table_rev[2][4][2] = 'L';
-    table_rev[2][4][1] = 'L';
-    table_rev[2][4][3] = 'L';
+    codonToAA[4][4][4] = 'F';
+    codonToAA[4][4][2] = 'F';
+    codonToAA[4][4][1] = 'L';
+    codonToAA[4][4][3] = 'L';
 
-    table_rev[1][4][4] = 'I';
-    table_rev[1][4][2] = 'I';
-    table_rev[1][4][1] = 'I';
-    table_rev[1][4][3] = 'M';
+    codonToAA[2][4][4] = 'L';
+    codonToAA[2][4][2] = 'L';
+    codonToAA[2][4][1] = 'L';
+    codonToAA[2][4][3] = 'L';
 
-    table_rev[3][4][4] = 'V';
-    table_rev[3][4][2] = 'V';
-    table_rev[3][4][1] = 'V';
-    table_rev[3][4][3] = 'V';
+    codonToAA[1][4][4] = 'I';
+    codonToAA[1][4][2] = 'I';
+    codonToAA[1][4][1] = 'I';
+    codonToAA[1][4][3] = 'M';
 
-    table_rev[4][2][4] = 'S';
-    table_rev[4][2][2] = 'S';
-    table_rev[4][2][1] = 'S';
-    table_rev[4][2][3] = 'S';
+    codonToAA[3][4][4] = 'V';
+    codonToAA[3][4][2] = 'V';
+    codonToAA[3][4][1] = 'V';
+    codonToAA[3][4][3] = 'V';
 
-    table_rev[2][2][4] = 'P';
-    table_rev[2][2][2] = 'P';
-    table_rev[2][2][1] = 'P';
-    table_rev[2][2][3] = 'P';
+    codonToAA[4][2][4] = 'S';
+    codonToAA[4][2][2] = 'S';
+    codonToAA[4][2][1] = 'S';
+    codonToAA[4][2][3] = 'S';
 
-    table_rev[1][2][4] = 'T';
-    table_rev[1][2][2] = 'T';
-    table_rev[1][2][1] = 'T';
-    table_rev[1][2][3] = 'T';
+    codonToAA[2][2][4] = 'P';
+    codonToAA[2][2][2] = 'P';
+    codonToAA[2][2][1] = 'P';
+    codonToAA[2][2][3] = 'P';
 
-    table_rev[3][2][4] = 'A';
-    table_rev[3][2][2] = 'A';
-    table_rev[3][2][1] = 'A';
-    table_rev[3][2][3] = 'A';
+    codonToAA[1][2][4] = 'T';
+    codonToAA[1][2][2] = 'T';
+    codonToAA[1][2][1] = 'T';
+    codonToAA[1][2][3] = 'T';
 
-    table_rev[4][1][4] = 'Y';
-    table_rev[4][1][2] = 'Y';
-    table_rev[4][1][1] = '*';
-    table_rev[4][1][3] = '*';
+    codonToAA[3][2][4] = 'A';
+    codonToAA[3][2][2] = 'A';
+    codonToAA[3][2][1] = 'A';
+    codonToAA[3][2][3] = 'A';
 
-    table_rev[2][1][4] = 'H';
-    table_rev[2][1][2] = 'H';
-    table_rev[2][1][1] = 'Q';
-    table_rev[2][1][3] = 'Q';
+    codonToAA[4][1][4] = 'Y';
+    codonToAA[4][1][2] = 'Y';
+    codonToAA[4][1][1] = '*';
+    codonToAA[4][1][3] = '*';
 
-    table_rev[1][1][4] = 'N';
-    table_rev[1][1][2] = 'N';
-    table_rev[1][1][1] = 'K';
-    table_rev[1][1][3] = 'K';
+    codonToAA[2][1][4] = 'H';
+    codonToAA[2][1][2] = 'H';
+    codonToAA[2][1][1] = 'Q';
+    codonToAA[2][1][3] = 'Q';
 
-    table_rev[3][1][4] = 'D';
-    table_rev[3][1][2] = 'D';
-    table_rev[3][1][1] = 'E';
-    table_rev[3][1][3] = 'E';
+    codonToAA[1][1][4] = 'N';
+    codonToAA[1][1][2] = 'N';
+    codonToAA[1][1][1] = 'K';
+    codonToAA[1][1][3] = 'K';
 
-    table_rev[4][3][4] = 'C';
-    table_rev[4][3][2] = 'C';
-    table_rev[4][3][1] = '*';
-    table_rev[4][3][3] = 'W';
+    codonToAA[3][1][4] = 'D';
+    codonToAA[3][1][2] = 'D';
+    codonToAA[3][1][1] = 'E';
+    codonToAA[3][1][3] = 'E';
 
-    table_rev[2][3][4] = 'R';
-    table_rev[2][3][2] = 'R';
-    table_rev[2][3][1] = 'R';
-    table_rev[2][3][3] = 'R';
+    codonToAA[4][3][4] = 'C';
+    codonToAA[4][3][2] = 'C';
+    codonToAA[4][3][1] = '*';
+    codonToAA[4][3][3] = 'W';
 
-    table_rev[1][3][4] = 'S';
-    table_rev[1][3][2] = 'S';
-    table_rev[1][3][1] = 'R';
-    table_rev[1][3][3] = 'R';
+    codonToAA[2][3][4] = 'R';
+    codonToAA[2][3][2] = 'R';
+    codonToAA[2][3][1] = 'R';
+    codonToAA[2][3][3] = 'R';
 
-    table_rev[3][3][4] = 'G';
-    table_rev[3][3][2] = 'G';
-    table_rev[3][3][1] = 'G';
-    table_rev[3][3][3] = 'G';
+    codonToAA[1][3][4] = 'S';
+    codonToAA[1][3][2] = 'S';
+    codonToAA[1][3][1] = 'R';
+    codonToAA[1][3][3] = 'R';
+
+    codonToAA[3][3][4] = 'G';
+    codonToAA[3][3][2] = 'G';
+    codonToAA[3][3][1] = 'G';
+    codonToAA[3][3][3] = 'G';
 }
