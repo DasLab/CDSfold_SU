@@ -192,7 +192,6 @@ void Problem::calculate() {
         }
         cout << "process:" << l << endl;
 
-        //	  for(int l = 5; l <= 5; l++){
         for (int i = 1; i <= nuclen_ - l + 1; i++) {
             int j = i + l - 1;
 
