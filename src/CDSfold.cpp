@@ -119,7 +119,7 @@ auto main(int argc, char *argv[]) -> int {
     clock_t end = clock();
     float sec = (double)end / CLOCKS_PER_SEC;
     float min = sec / 60;
-    cout << "Runing time: " << min << " minutes" << endl;
+    cout << "Running time: " << min << " minutes" << endl;
 
     //	struct rusage r;
     //	if (getrusage(RUSAGE_SELF, &r) != 0) {
