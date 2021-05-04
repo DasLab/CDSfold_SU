@@ -141,13 +141,12 @@ void Problem::calculate() {
         allocate_F2();
     }
 
-    /* iterate through the first several nucleotides 
-     * l - one nucleotide */ 
+    /* l - distance to another nucleotide */ 
     for (int l = 2; l <= 4; l++) {
-        /* i - another nucleotide */ 
+        /* i - first nucleotide */ 
         for (int i = 1; i <= nuclen_ - l + 1; i++) {
             
-            int j = i + l - 1;   /* some other index (?) */
+            int j = i + l - 1;   /* index to another nucleotide  */
             int ij = getIndx(i, j, max_bp_distance_final_, indx_);
 
             ChkC_[ij] = INF;
@@ -155,7 +154,9 @@ void Problem::calculate() {
 
             /* iterate through possible nucleotides at position i */
             for (unsigned int L = 0; L < pos2nuc_[i].size(); L++) {
-                int L_nuc = pos2nuc_[i][L];
+                int L_nuc = pos2nuc_[i][L];   /* candidate nucleotide L at position i */
+                
+                /* skip forbidden nucleotide */
                 if (options_.nucleotide_constraints && i2r[L_nuc] != NucConst_[i]) {
                     continue;
                 }
@@ -163,20 +164,24 @@ void Problem::calculate() {
                 /* possible nucleotides at position j */
                 for (unsigned int R = 0; R < pos2nuc_[j].size(); R++) {
                     int R_nuc = pos2nuc_[j][R];
+                    
+                    /* skip the forbidden nucleotides */
                     if (options_.nucleotide_constraints && i2r[R_nuc] != NucConst_[j]) {
                         continue;
                     }
-                    
+                   
+                    /* skip if we're close to the ends and j and i are too close */
                     if (options_.DEPflg && j - i == 1 && i <= nuclen_ - 1 && 
                         Dep1_[ii2r[L_nuc * 10 + R_nuc]][i] == 0) {
                         continue;
-                    } // nuclen - 1はいらないのでは？
+                    } 
                     if (options_.DEPflg && j - i == 2 && i <= nuclen_ - 2 && 
                         Dep2_[ii2r[L_nuc * 10 + R_nuc]][i] == 0) {
                         continue;
                     }
                     C_[ij][L][R] = INF;
                     M_[ij][L][R] = INF;
+                    
                     if (options_.random_backtrack) {
                         F2_[ij][L][R] = 0;
                     }
@@ -185,17 +190,17 @@ void Problem::calculate() {
         }
     }
 
-    /* iterate through the rest of the sequence */ 
-    for (int l = 5; l <= nuclen_; l++) {
-        if (l > max_bp_distance_final_) {
-            break;
-        }
+    /* iterate through all other possible distances */ 
+    for (int l = 5; l <= min(nuclen_, (unsigned int) max_bp_distance_final_); l++) {
         cout << "process:" << l << endl;
 
+        /* iterate through nucleotides */
         for (int i = 1; i <= nuclen_ - l + 1; i++) {
-            int j = i + l - 1;
-
+            
+            int j = i + l - 1;  /* index into second nucleotide */
             int opt_flg_ij = 1;
+            
+            /* partial optimization - check if need to break out */
             if (options_.partial_opt) {
                 for (int I = 0; I < n_inter_; I++) {
                     if ((ofm_[I] <= i && oto_[I] >= i) || (ofm_[I] <= j && oto_[I] >= j)) {
@@ -205,12 +210,14 @@ void Problem::calculate() {
                 }
             }
 
+            /* iterate through possible nucelotides at position i */
             for (unsigned int L = 0; L < pos2nuc_[i].size(); L++) {
                 int L_nuc = pos2nuc_[i][L];
                 if (options_.nucleotide_constraints && i2r[L_nuc] != NucConst_[i]) {
                     continue;
                 }
 
+                /* iterate through possible nucleotides at position j */
                 for (unsigned int R = 0; R < pos2nuc_[j].size(); R++) {
 
                     int R_nuc = pos2nuc_[j][R];
@@ -220,24 +227,21 @@ void Problem::calculate() {
                     }
 
                     int ij = getIndx(i, j, max_bp_distance_final_, indx_);
-
+                    int type = BP_pair[i2r[L_nuc]][i2r[R_nuc]];
                     C_[ij][L][R] = INF;
                     M_[ij][L][R] = INF;
-                    int type = BP_pair[i2r[L_nuc]][i2r[R_nuc]];
 
-                    if (!type || !opt_flg_ij) {
-                        C_[ij][L][R] = INF;
-                    } else {
-                        // hairpin
+                    if (type and opt_flg_ij) {
+                        /* compute energy for a hairpin structure */
                         if ((l == 5 || l == 6 || l == 8)) {
                             for (string const & hpn : substr_[i][l]) {
+                                /* name some nucleotides for the hairpin loop */ 
                                 int hL_nuc = n2i.at(hpn[0]);
                                 int hL2_nuc = n2i.at(hpn[1]);
                                 int hR2_nuc = n2i.at(hpn[l - 2]);
                                 int hR_nuc = n2i.at(hpn[l - 1]);
-                                if (hL_nuc != i2r[L_nuc])
-                                    continue;
-                                if (hR_nuc != i2r[R_nuc])
+                                
+                                if (hL_nuc != i2r[L_nuc] or hR_nuc != i2r[R_nuc])
                                     continue;
 
                                 if (options_.nucleotide_constraints) {
@@ -247,38 +251,40 @@ void Problem::calculate() {
                                     }
                                 }
 
-                                //									cout << hpn <<
-                                // endl;
-                                //
                                 if (options_.DEPflg && L_nuc > 4 && Dep1_[ii2r[L_nuc * 10 + hL2_nuc]][i] == 0) {
                                     continue;
-                                } // Since the substring is calculated after checking the Dependency,
-                                    // There is no need to check the inside of hpn.
+                                } 
+                                /* Since the substring is calculated after checking the Dependency,
+                                 * There is no need to check the inside of hpn.
+                                 */
                                 if (options_.DEPflg && R_nuc > 4 && Dep1_[ii2r[hR2_nuc * 10 + R_nuc]][j - 1] == 0) {
                                     continue;
-                                } // However, only when L_nuc and R_nuc are VWXY, it is necessary to check the dependency with one inside.
-                                    // On the contrary, when one inside is VWXY, there is no need to check. Because it has already been checked.
+                                } 
+                                /* However, only when L_nuc and R_nuc are VWXY, it is necessary 
+                                 * to check the dependency with one inside.
+                                 * On the contrary, when one inside is VWXY, there is no need to check.
+                                 * Because it has already been checked.
+                                 */
                                 if (predefHPN_E_.count(hpn) > 0) {
-                                    C_[ij][L][R] = MIN2(predefHPN_E_[hpn], C_[ij][L][R]);
+                                    C_[ij][L][R] = min(predefHPN_E_[hpn], C_[ij][L][R]);
 
                                 } else {
-                                    //										int energy
-                                    //= HairpinE(j - i - 1, type,
-                                    // i2r[hL2_nuc], i2r[hR2_nuc],
-                                    // dummy_str);
-                                    int energy =
-                                        energyModel_->E_hairpin(j - i - 1, type, i2r[hL2_nuc], i2r[hR2_nuc], dummy_str);
-                                    C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
+                                    int energy = energyModel_->E_hairpin(j - i - 1, type, i2r[hL2_nuc], 
+                                                                         i2r[hR2_nuc], dummy_str);
+                                    C_[ij][L][R] = min(energy, C_[ij][L][R]);
                                 }
                             }
-                            // exit(0);
                         } else {
+                            /* not a hairpin - iterate through all possible nucleotides at positions 
+                             * adjacent to i and j */
+                            /* iterate through possible nucleotides for position adjacent to i */
                             for (unsigned int L2 = 0; L2 < pos2nuc_[i + 1].size(); L2++) {
                                 int L2_nuc = pos2nuc_[i + 1][L2];
                                 if (options_.nucleotide_constraints == 1 && i2r[L2_nuc] != NucConst_[i + 1]) {
                                     continue;
                                 }
-                                // if(chkDep2){continue:}
+                               
+                                /* iterate through possible nucleotides adjacent to position j */
                                 for (unsigned int R2 = 0; R2 < pos2nuc_[j - 1].size(); R2++) {
                                     int R2_nuc = pos2nuc_[j - 1][R2];
                                     if (options_.nucleotide_constraints == 1 && i2r[R2_nuc] != NucConst_[j - 1]) {
@@ -292,23 +298,13 @@ void Problem::calculate() {
                                         continue;
                                     }
 
-                                    int energy;
-                                    // cout << j-i-1 << ":" << type << ":" << i2r[L2_nuc] << ":" << i2r[R2_nuc] <<
-                                    // ":" << dummy_str << endl;
-                                    // energy = HairpinE(j - i - 1, type,
-                                    // i2r[L2_nuc],
-                                    // i2r[R2_nuc],
-                                    // dummy_str);
-                                    energy = energyModel_->E_hairpin(j - i - 1, type, i2r[L2_nuc], i2r[R2_nuc], dummy_str);
-                                    C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
+                                    int energy = energyModel_->E_hairpin(j - i - 1, type, i2r[L2_nuc], i2r[R2_nuc], dummy_str);
+                                    C_[ij][L][R] = min(energy, C_[ij][L][R]);
                                 }
                             }
                         }
 
-                        // interior loop
-                        // cout << i+1 << " " <<  MIN2(j-2-TURN,i+MAXLOOP+1) << endl;
-                        for (int p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1);
-                                p++) { // loop for position q, p
+                        for (int p = i + 1; p <= min(j - 2 - TURN, i + MAXLOOP + 1); p++) { // loop for position q, p
                             int minq = j - i + p - MAXLOOP - 2;
                             if (minq < p + 1 + TURN) {
                                 minq = p + 1 + TURN;
@@ -408,13 +404,6 @@ void Problem::calculate() {
                                                         int int_energy = energyModel_->E_intloop(p - i - 1, j - q - 1, type,
                                                                                     type_2, i2r[L2_nuc], i2r[R2_nuc],
                                                                                     i2r[Lp2_nuc], i2r[Rq2_nuc]);
-                                                        // LoopEnergy(p- i- 1,j- q-
-                                                        // 1,type,type_2,i2r[L2_nuc],i2r[R2_nuc],i2r[Lp2_nuc],i2r[Rq2_nuc]);
-
-                                                        // int energy =
-                                                        //		int_energy
-                                                        //		+ C[indx[q]
-                                                        //			+ p][Lp][Rq];
 
                                                         int energy = int_energy + C_[pq][Lp][Rq];
                                                         C_[ij][L][R] = MIN2(energy, C_[ij][L][R]);
@@ -447,17 +436,20 @@ void Problem::calculate() {
                                 if (options_.DEPflg && Dep1_[ii2r[Rj1_nuc * 10 + R_nuc]][j - 1] == 0) {
                                     continue;
                                 }
-                                // if(DEPflg && j-i == 2 && i <= nuclen - 2 && Dep2[ii2r[L_nuc*10+R_nuc]][i] ==
-                                // 0){continue;}
                                 if (options_.DEPflg && (j - 1) - (i + 1) == 2 &&
                                     Dep2_[ii2r[Li1_nuc * 10 + Rj1_nuc]][i + 1] == 0) {
                                     continue;
-                                } // 2014/10/8
-                                    // When i-j is close, it may not be necessary to ML closing. At least 3 stems must be included. It requires a length of 5 + 5 + 2 (2 hairpins + 2 bases).
-
-                                int energy = DMl2_
-                                    [i + 1][Li1]
-                                    [Rj1]; // Composite multi-loop when the length is two shorter. If i'= i + 1 is selected, j'= (i + 1) + (l-2) -1 = i + l-2 = j-1 (because: j = i + l-1)
+                                } 
+                                /* When i-j is close, it may not be necessary to ML closing. 
+                                 * At least 3 stems must be included. It requires a length
+                                 * of 5 + 5 + 2 (2 hairpins + 2 bases).
+                                 */
+                                    
+                                /* Composite multi-loop when the length is two shorter. 
+                                 * If i'= i + 1 is selected, j'= (i + 1) + (l-2) -1 = i + l-2 = j-1 
+                                 * (because: j = i + l-1)
+                                 */
+                                int energy = DMl2_[i + 1][Li1][Rj1]; 
                                 int tt = rtype[type];
 
                                 energy += energyModel_->getMLintern(tt);
@@ -513,7 +505,7 @@ void Problem::calculate() {
                     }
 
                     /* modular decomposition -------------------------------*/
-                    for (int k = i + 2 + TURN; k <= j - TURN - 1; k++) { // Is this correct?
+                    for (int k = i + 2 + TURN; k <= j - TURN - 1; k++) {
                         for (unsigned int Rk1 = 0; Rk1 < pos2nuc_[k - 1].size(); Rk1++) {
                             int Rk1_nuc = pos2nuc_[k - 1][Rk1];
                             if (options_.nucleotide_constraints && i2r[Rk1_nuc] != NucConst_[k - 1]) {
@@ -553,7 +545,7 @@ void Problem::calculate() {
         for (int j = 1; j <= nuclen_; j++) {
             DMl_[j].fill({{INF, INF, INF, INF}});
         }
-    }
+    }  /* end loop through l distance between base pairs  */
 
     // Fill F matrix
     // F[1], as well as the rest of F, is default-initialized to 0.

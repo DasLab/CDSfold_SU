@@ -50,7 +50,11 @@ inline void clear_sec_bp(stack *s, bond *b, int len) {
     }
 }
 
-
+/* create map from index in the extended alphabet to an index
+ * in the reduced ACGU alphabet. For example, index 1 corresponds
+ * to A, which maps back to A in the reduced alphabet. Indices past
+ * 4 are in the extended alphabet and map to indices in the reduced
+ * ACGU alphabet */
 static constexpr array<int, 20> make_i2r() {
     return {0, 1, 2, 3, 4, 4, 4, 3, 3, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -58,6 +62,10 @@ static constexpr array<int, 20> make_i2r() {
     // n[7] = 3; // 2nd position of R is converted to G
 }
 
+/* Create a map from combinations of two nucleotides to an integer. The
+ * first nucleotide is in the 10s place and the second nucleotide is encoded
+ * in the digits place of the index.
+ */
 
 inline array<int, 100> make_ii2r() {
     array<int, 100> n;
@@ -70,7 +78,7 @@ inline array<int, 100> make_ii2r() {
     return n;
 }
 
-
+/* maps nucleotides - including extended alphabet - to an index */
 inline map<char, int> make_n2i() {
     map<char, int> m;
     m['A'] = 1;
@@ -85,7 +93,7 @@ inline map<char, int> make_n2i() {
     return m;
 }
 
-
+/* map the index to a nucleotide */
 static constexpr array<char, 20> make_i2n() {
     // array<char, 20> n = {};
     return {' ', 'A', 'C', 'G', 'U', 'V', 'W', 'X', 'Y', '\0',
@@ -119,6 +127,10 @@ private:
     int oto_[5]; // these have two different meanings for the max and min algs?
     vector<int> indx_;
 
+    /* these three arrays are indexed with [ij][L][R]. ij is a single index
+     * combining an index i and index j, representing two nucleotide positions.
+     * L and R are indices into pos2nuc[i][L] and pos2nuc[j][R]. They are the
+     * indices into possible nucelotides at nucleotide positions i and j */
     vector<vector<vector<int>>> C_, M_, F_, F2_;
     vector<array<array<int, 4>, 4>> DMl_, DMl1_, DMl2_;
     vector<int> ChkC_, ChkM_;
