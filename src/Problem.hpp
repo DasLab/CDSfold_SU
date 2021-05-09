@@ -163,6 +163,8 @@ private:
     void backtrack(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR);
     void backtrack2(string *optseq, array<stack, 500> & sector, const int &initL, const int &initR);
     void fixed_backtrack(string const & optseq, bond *base_pair, vector<int> const & c, vector<int> const & m, int *f, int nuclen, const int (&BP_pair)[5][5]);
+    bool checkNeighbor(vector<vector<int>> &depArray, 
+                       unsigned int nuc1, unsigned int nuc2, unsigned int idx);
 
 };
 
@@ -280,3 +282,4 @@ inline void fixed_init_matrix(const int &nuclen, const int &size, vector<int> & 
         M[i] = INF;
     }
 }
+

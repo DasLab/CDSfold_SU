@@ -171,8 +171,7 @@ void Problem::calculate() {
                     }
                    
                     /* skip if we're close to the ends and j and i are too close */
-                    if (options_.DEPflg && j - i == 1 && i <= nuclen_ - 1 && 
-                        Dep1_[ii2r[L_nuc * 10 + R_nuc]][i] == 0) {
+                    if (j - i == 1 && i <= nuclen_ - 1 && checkNeighbor(Dep1_, L_nuc, R_nuc, i)) {
                         continue;
                     } 
                     if (options_.DEPflg && j - i == 2 && i <= nuclen_ - 2 && 
@@ -2759,4 +2758,15 @@ OUTLOOP:
     }
 
     base_pair_[0].i = b; /* save the total number of base pairs */
+}
+
+
+/* checks if a given pair of nucleotides is in one of the dependency
+ * arrays that store possible neighbors. Used to determine whether
+ * to skip certain iterations in Problem.
+ */
+bool Problem::checkNeighbor(vector<vector<int>> &depArray, 
+    unsigned int nuc1, unsigned int nuc2, unsigned idx) {
+    
+    return options_.DEPflg && depArray[ii2r[nuc1 * 10 + nuc2]][idx] == 0;
 }
