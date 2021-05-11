@@ -5,7 +5,7 @@ import argparse
     
 CDS_HOME = os.getenv("CDS_HOME")
 
-def run_all_tests(test_suite, args):
+def run_cdsfold_many(test_suite, test_info, quiet=False, save=False):
     """
     run all tests comparing the behavior of the latest CDSfold binary with either
     a saved gold standard output or the results of running a reference binary
@@ -13,65 +13,52 @@ def run_all_tests(test_suite, args):
     inputs: test_suite (list) - list of tests to run
             args - object with command line arguments
     """
-    # package each binary being run with the associated paths
-    test_binaries = [
-        {"name": "ref",
-         "bin_path": os.path.join(CDS_HOME, "test/bin/CDSfoldRef"),
-         "out_path": os.path.join(CDS_HOME, 'test/output/ref_output_{}.txt'),
-        },
-        {"name": "cds",
-         "bin_path": os.path.join(CDS_HOME, "test/bin/CDSfoldLatest"),
-         "out_path": os.path.join(CDS_HOME, 'test/output/cds_output_{}.txt'),
-        },
-    ]
 
     # results dictionary mapping name of binary run to list of output strings,
     # one string for each test
     results = {}
-    for test_bin in test_binaries:
-        results[test_bin["name"]] = []
+    results[test_info["name"]] = []
 
-    for test_bin in test_binaries:
+    if not args.q: 
+        print("\n==== Executing: {} ==== ".format(test_info["name"])) 
+    
+    for i, test in enumerate(test_suite):
         if not args.q: 
-            print("\n==== Executing: {} ==== ".format(test_bin["name"])) 
+            print("Running test: {}".format(test))
+       
+        # set up the command for running the test
+        if len(test[0]) == 0:
+            # no command line args
+            cmd = [test_info["bin_path"], 
+                   os.path.join(CDS_HOME, test[1])]
+        else:
+            # command line args used
+            cmd = [test_info["bin_path"],
+                   test[0],
+                   os.path.join(CDS_HOME, test[1])]
         
-        for i, test in enumerate(test_suite):
-            if not args.q: 
-                print("Running test: {}".format(test))
-           
-            # set up the command for running the test
-            if len(test[0]) == 0:
-                # no command line args
-                cmd = [test_bin["bin_path"], 
-                       os.path.join(CDS_HOME, test[1])]
-            else:
-                # command line args used
-                cmd = [test_bin["bin_path"],
-                       test[0],
-                       os.path.join(CDS_HOME, test[1])]
+        # run command and capture output
+        output = subprocess.run(cmd, capture_output=True)
+        results[test_info["name"]].append(output.stdout.decode("utf-8"))
+       
+        # save output to file
+        if args.s:
+            # file to save output in 
+            save_path = test_info["out_path"].format(i)
             
-            # run command and capture output
-            output = subprocess.run(cmd, capture_output=True)
-            results[test_bin["name"]].append(output.stdout.decode("utf-8"))
-           
-            # save output to file
-            if args.s:
-                # file to save output in 
-                save_path = test_bin["out_path"].format(i)
-                
-                # delete file it if already exists
-                if os.path.exists(save_path): 
-                    os.remove(save_path)  # clear the file being output to
-       
-                if not args.q:
-                    print("Saving test output to {}".format(save_path))
-                
-                with open(save_path, "w") as f:
-                    # result is the last added to list of results
-                    f.writelines(["Executed command: {}\n".format(str(test)), 
-                                  results[test_bin["name"]][-1]])
-       
-        # dump the results to file if specified by command line arguments
+            # delete file it if already exists
+            if os.path.exists(save_path): 
+                os.remove(save_path)  # clear the file being output to
+    
+            if not args.q:
+                print("Saving test output to {}".format(save_path))
+            
+            with open(save_path, "w") as f:
+                # result is the last added to list of results
+                f.writelines(["Executed command: {}\n".format(str(test)), 
+                              results[test_info["name"]][-1]])
+    
+    # dump the results to file if specified by command line arguments
 
     return results
 
@@ -219,6 +206,27 @@ if __name__ == '__main__':
         test_suite = simple_tests
 
     print_summary(args, len(test_suite))
-    raw_results = run_all_tests(test_suite, args)
+    
+    # package each binary being run with the associated paths
+    test_binaries = [
+        {"name": "ref",
+         "bin_path": os.path.join(CDS_HOME, "test/bin/CDSfoldRef"),
+         "out_path": os.path.join(CDS_HOME, 'test/output/ref_output_{}.txt'),
+        },
+        {"name": "cds",
+         "bin_path": os.path.join(CDS_HOME, "test/bin/CDSfoldLatest"),
+         "out_path": os.path.join(CDS_HOME, 'test/output/cds_output_{}.txt'),
+        },
+    ]
+
+    # dictionary holding all raw results in form 
+    # {"test_name_1": [run1output, run2output, ...], "test_name_2" : []}
+
+    raw_results = {}
+    for test in test_binaries:
+        test_result = run_cdsfold_many(test_suite, test, quiet=args.q, save=args.s)
+        raw_results = {**raw_results, **test_result}
+
+    # put the results in a more useful format
     results = clean_results(raw_results, test_suite)
     diff_output(results, args)
