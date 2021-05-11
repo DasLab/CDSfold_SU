@@ -2,103 +2,13 @@ import os
 from os import path
 import subprocess
 import argparse
-    
+import sys
+
 CDS_HOME = os.getenv("CDS_HOME")
+sys.path.append(os.path.join(CDS_HOME, "scripts"))
 
-def run_cdsfold_many(test_suite, test_info, quiet=False, save=False):
-    """
-    run all tests comparing the behavior of the latest CDSfold binary with either
-    a saved gold standard output or the results of running a reference binary
+import util
 
-    inputs: test_suite (list) - list of tests to run
-            args - object with command line arguments
-    """
-
-    # results dictionary mapping name of binary run to list of output strings,
-    # one string for each test
-    results = {}
-    results[test_info["name"]] = []
-
-    if not args.q: 
-        print("\n==== Executing: {} ==== ".format(test_info["name"])) 
-    
-    for i, test in enumerate(test_suite):
-        if not args.q: 
-            print("Running test: {}".format(test))
-       
-        # set up the command for running the test
-        if len(test[0]) == 0:
-            # no command line args
-            cmd = [test_info["bin_path"], 
-                   os.path.join(CDS_HOME, test[1])]
-        else:
-            # command line args used
-            cmd = [test_info["bin_path"],
-                   test[0],
-                   os.path.join(CDS_HOME, test[1])]
-        
-        # run command and capture output
-        output = subprocess.run(cmd, capture_output=True)
-        results[test_info["name"]].append(output.stdout.decode("utf-8"))
-       
-        # save output to file
-        if args.s:
-            # file to save output in 
-            save_path = test_info["out_path"].format(i)
-            
-            # delete file it if already exists
-            if os.path.exists(save_path): 
-                os.remove(save_path)  # clear the file being output to
-    
-            if not args.q:
-                print("Saving test output to {}".format(save_path))
-            
-            with open(save_path, "w") as f:
-                # result is the last added to list of results
-                f.writelines(["Executed command: {}\n".format(str(test)), 
-                              results[test_info["name"]][-1]])
-    
-    # dump the results to file if specified by command line arguments
-
-    return results
-
-def clean_results(raw_results, test_suite):
-    '''clean the results from run_all_tests. Converts the raw_results to
-    a dictionary of the form:
-    {
-        test_bin: [
-        {
-            'cmd': "", 
-            'run_time': str, 
-            'lines': []
-        },
-        {
-            test_1 info...
-        }
-        ]
-    }'''
-
-    results = {}
-
-    # iterate through the tests
-    for key in raw_results.keys():
-        results[key] = []
-        for i in range(len(test_suite)):
-            test_result = {} 
-            test_result["cmd"] = str(test_suite[i])
-            test_result["lines"] = raw_results[key][i].split("\n")
-            
-            # look for line with run time 
-            for line in test_result["lines"]:
-                if "Running time" in line:
-                    runtime_list = line.split()
-                    # runtime is the element before "minutes" 
-                    runtime = runtime_list[runtime_list.index("minutes") - 1]
-                    test_result["Run time (s)"] = float(runtime) * 60 
-
-            results[key].append(test_result)
-
-    return results
 
 def diff_output(results, args):
     '''diffs the results from the reference and CDS binaries.
@@ -224,9 +134,9 @@ if __name__ == '__main__':
 
     raw_results = {}
     for test in test_binaries:
-        test_result = run_cdsfold_many(test_suite, test, quiet=args.q, save=args.s)
+        test_result = util.run_cdsfold_many(test_suite, test, quiet=args.q, save=args.s)
         raw_results = {**raw_results, **test_result}
 
     # put the results in a more useful format
-    results = clean_results(raw_results, test_suite)
+    results = util.clean_results(raw_results, test_suite)
     diff_output(results, args)
