@@ -90,12 +90,12 @@ def clean_results(raw_results, test_suite):
     '''clean the results from run_all_tests. Converts the raw_results to
     a dictionary of the form:
     {
-        test_bin: [
+        "test_bin": [
         {
-            'cmd': "", 
-            'run_time': str,
-            'sequence': str,
-            'fold': str,
+            'cmd': "< command line arguments CDSfold invoked with >", 
+            'run_time': [str, str, str, ...],  # run time for each seq
+            'sequence': [str, str, str, ...],  # each sequence from this file
+            'fold':     [str, str, str, ...],  # each fold pattern
             'lines': []
         },
         {
@@ -120,4 +120,5 @@ def clean_results(raw_results, test_suite):
             test_result["Run time (s)"] = parse_runtime(test_result["lines"][RUNTIME_LINE_NUM]) 
 
             results[key].append(test_result)
+
     return results
