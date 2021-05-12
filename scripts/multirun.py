@@ -76,8 +76,7 @@ if __name__ == "__main__":
             repeat = args.repeat
         run_set = [[args.cds_args, args.faa_path, repeat]]
 
-
     full_run_set = expand_run_set(run_set)                        # expand to full form
     raw_results = util.run_cdsfold_many(full_run_set, test_info)  # run CDSfold
-    results = util.clean_results(raw_results, full_run_set)       # clean the results
+    results = util.clean_results(raw_results, full_run_set, full=False) # clean the results
     print(results)

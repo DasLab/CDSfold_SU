@@ -6,9 +6,10 @@ import sys
 import subprocess
 
 CDS_HOME = os.getenv("CDS_HOME")
-SEQ_LINE_NUM = -5         # line number of sequence
-FOLD_LINE_NUM = -4        # line number of fold
-MFE_LINE_NUM = -3         # line number of output w/ mean free energy
+FOLD_OFFSET = -1          # offsets of the the fold, seq, and aa_seq relative
+SEQ_OFFSET = -2           # to the line w/ MFE
+AA_SEQ_OFFSET = -3
+
 RUNTIME_LINE_NUM = -2     # line number of output w/ run time
 
 def run_cdsfold_many(test_suite, test_info, quiet=False, save=False):
@@ -86,14 +87,14 @@ def parse_runtime(runtime_line):
     
     return float(runtime) * 60 
 
-def clean_results(raw_results, test_suite):
+def clean_results(raw_results, test_suite, full=True):
     '''clean the results from run_all_tests. Converts the raw_results to
     a dictionary of the form:
     {
         "test_bin": [
         {
             'cmd': "< command line arguments CDSfold invoked with >", 
-            'run_time': [str, str, str, ...],  # run time for each seq
+            'run_time': [float, float, float, ...],  # run time for each seq
             'sequence': [str, str, str, ...],  # each sequence from this file
             'fold':     [str, str, str, ...],  # each fold pattern
             'lines': []
@@ -102,7 +103,11 @@ def clean_results(raw_results, test_suite):
             test_1 info...
         }
         ]
-    }'''
+    }
+    inputs: raw_results - results from run_cdsfold_many
+            test_suite - full form list of commands run
+            full (bool) - save the entire cdsfold output to dictionary
+    '''
 
     results = {}
 
@@ -111,14 +116,25 @@ def clean_results(raw_results, test_suite):
         results[key] = []
         # iterate through tests with the same binary
         for i in range(len(test_suite)):
-            test_result = {} 
+            test_result = {"sequences": [], "folds": [], "mfes": [], "aa_seqs": []} 
             test_result["cmd"] = str(test_suite[i])
-            test_result["lines"] = raw_results[key][i].split("\n")
-            test_result["sequence"] = test_result["lines"][SEQ_LINE_NUM]
-            test_result["fold"] = test_result["lines"][FOLD_LINE_NUM]
-            test_result["mfe"] = parse_mfe(test_result["lines"][MFE_LINE_NUM])
-            test_result["Run time (s)"] = parse_runtime(test_result["lines"][RUNTIME_LINE_NUM]) 
-
+            lines = raw_results[key][i].split("\n")
+            
+            if full:
+                # save all the output lines only if specified
+                test_result["lines"] = lines
+            
+            # potentially multiple sequences in same CDSfold run - parse for all the 
+            # sequence specific information
+            for i, line in enumerate(lines):
+                if "MFE:" in line: 
+                    test_result["mfes"].append(parse_mfe(lines[i]))
+                    test_result["folds"].append(lines[i + FOLD_OFFSET])
+                    test_result["sequences"].append(lines[i + SEQ_OFFSET])
+                    test_result["aa_seqs"].append(lines[i + AA_SEQ_OFFSET])
+            
+            # parse the runtime for the entire run 
+            test_result["Run time (s)"] = parse_runtime(lines[RUNTIME_LINE_NUM])
             results[key].append(test_result)
 
     return results
