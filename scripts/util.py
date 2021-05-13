@@ -78,9 +78,29 @@ def parse_mfe(mfe_line):
     mfe = mfe_line.split()[0]
     return float(mfe[4:])
 
+def cmd_to_str(cmd):
+    '''converts a CDSfold command to a descriptive string'''
+    cmd_list = cmd.split()
+    add_codons = False     # whether to add substr as an excluded codon
+    repr_str = ""
+    for i, substr in enumerate(cmd_list):
+        if substr == "-w":
+            add_codons = False
+            repr_str += "|Max base pair distance: {} ".format(cmd_list[i + 1])
+        elif ".faa" in substr:
+            add_codons = False
+            repr_str += "|Amino acid file: {} ".format(substr)
+        elif substr == "-e":
+            add_codons = True
+            repr_str += "|Excluded codons: "
+        elif add_codons:
+            repr_str += "{} ".format(substr)
+
+    return repr_str
+
 def parse_runtime(runtime_line):
     '''parses a line with the runtime and returns the runtime in
-    seconds as a float ''' 
+    seconds as a float '''
     runtime_list = runtime_line.split()
     # runtime is the element before "minutes" 
     runtime = runtime_list[runtime_list.index("minutes") - 1]
@@ -94,10 +114,12 @@ def clean_results(raw_results, test_suite, full=True):
         "test_bin": [
         {
             'cmd': "< command line arguments CDSfold invoked with >", 
-            'run_time': [float, float, float, ...],  # run time for each seq
-            'sequence': [str, str, str, ...],  # each sequence from this file
-            'fold':     [str, str, str, ...],  # each fold pattern
-            'lines': []
+            'run_time':  float,                 # run time for this .faa file
+            'sequences': [str, str, str, ...],  # each sequence from this file
+            'aa_seqs':   [str, str, str, ...],  # each amino acid sequence from this file
+            'fold':      [str, str, str, ...],  # each fold pattern
+            'mfes':      [flt, flt, flt, ...],  # mean free energy of each seq
+            'lines':     []
         },
         {
             test_1 info...
@@ -117,7 +139,7 @@ def clean_results(raw_results, test_suite, full=True):
         # iterate through tests with the same binary
         for i in range(len(test_suite)):
             test_result = {"sequences": [], "folds": [], "mfes": [], "aa_seqs": []} 
-            test_result["cmd"] = str(test_suite[i])
+            test_result["cmd"] = "{} {}".format(test_suite[i][0], test_suite[i][1])
             lines = raw_results[key][i].split("\n")
             
             if full:
