@@ -29,6 +29,18 @@ vienna: CDSFOLD_OBJS+=$(VIENNA_OBJS)
 vienna: compile $(CDSFOLD_OBJS) $(VIENNA_OBJS) link
 	cp CDSfold $(CDSHOME)/test/bin/CDSfoldLatest
 
+############### Jittered Vienna build  ######################
+
+JITTER_FLAGS = -I$(VIENNA) -I$(VIENNA)/include/ -DUSE_JITTER_ENERGY_MODEL 
+JITTER_OBJS = JitteredViennaEnergyModel.o
+JITTER_LD_FLAGS = -L$(VIENNA) -lRNA
+
+jitter: CXXFLAGS+=$(VIENNA_FLAGS)
+jitter: LD_FLAGS+=$(VIENNA_LD_FLAGS)
+jitter: CDSFOLD_OBJS+=$(VIENNA_OBJS)
+jitter: compile $(CDSFOLD_OBJS) $(VIENNA_OBJS) link
+	cp CDSfold $(CDSHOME)/test/bin/CDSfoldLatest
+
 ################# Debug build ##############################
 DEBUG_FLAGS = -DDEBUG -g -fverbose-asm
 
