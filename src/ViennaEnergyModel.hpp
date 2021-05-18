@@ -27,32 +27,14 @@ protected:
     std::unique_ptr<vrna_param_s> energyParams_;
 
 public:
-    /* constructor - initialize the energy parameters by calling a Vienna function*/
-    ViennaEnergyModel() : energyParams_(scale_parameters()) {
-        //std::cout << "Temperature: " << energyParams_->temperature << std::endl;
-        //std::cout << "Temperature: " << energyParams_->model_details.temperature << std::endl;
-        //for (int i = 0; i < 20; i++) {
-        //    std::cout << energyParams_->param_file[i];
-        //}
-        //std::cout << std::endl;
-        //for (int i = 0; i < 20; i++) {
-        //    std::cout << energyParams_->Tetraloop_E[i] << std::endl;
-        //}
-
-        //energyParams_->temperature = 37.0;
-        //energyParams_->model_details.temperature = 37.0;
-        //update_fold_params();
-        //
-        //std::cout << "Temperature: " << energyParams_->temperature << std::endl;
-        //std::cout << "Temperature: " << energyParams_->model_details.temperature << std::endl;
-        //
-        //for (int i = 0; i < 20; i++) {
-        //    std::cout << energyParams_->Tetraloop_E[i] << std::endl;
-        //}
+    /* constructor - initialize the energy parameters with a given temperature
+     * by calling a Vienna function
+     * inputs: temp (float) temperature in Celcius; passed by -C option 
+     */
+    ViennaEnergyModel(float temp)  {
         vrna_md_t md;
-        md.temperature = 37.0;
+        md.temperature = temp;
         energyParams_ = std::unique_ptr<vrna_param_s>(vrna_params(&md));
-
     };
 
    

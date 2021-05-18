@@ -10,6 +10,7 @@
 #pragma once
 
 #include <string>
+#include "constants.hpp"
 
 struct Options {
     unsigned int max_bp_distance = 0;         // -w  max distance between base pairs
@@ -24,4 +25,5 @@ struct Options {
     bool DEPflg = true;
     bool nucleotide_constraints = false;
     bool fixed_seed = false;
+    float temp = DEFAULT_TEMP;                // -C temperature in Celcius
 };
