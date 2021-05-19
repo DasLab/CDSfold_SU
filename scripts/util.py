@@ -43,9 +43,7 @@ def run_cdsfold_many(test_suite, test_info, quiet=False, save=False):
                    os.path.join(CDS_HOME, test[1])]
         else:
             # command line args used
-            cmd = [test_info["bin_path"],
-                   test[0],
-                   os.path.join(CDS_HOME, test[1])]
+            cmd = [test_info["bin_path"]] + test[0].split() + [os.path.join(CDS_HOME, test[1])]
         
         # run command and capture output
         output = subprocess.run(cmd, capture_output=True)

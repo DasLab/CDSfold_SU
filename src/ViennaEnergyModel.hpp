@@ -27,8 +27,16 @@ protected:
     std::unique_ptr<vrna_param_s> energyParams_;
 
 public:
-    /* constructor - initialize the energy parameters by calling a Vienna function*/
-    ViennaEnergyModel() : energyParams_(scale_parameters()) {};
+    /* constructor - initialize the energy parameters with a given temperature
+     * by calling a Vienna function
+     * inputs: temp (float) temperature in Celcius; passed by -C option 
+     */
+    ViennaEnergyModel(float temp)  {
+        vrna_md_t md;
+        md.temperature = temp;
+        energyParams_ = std::unique_ptr<vrna_param_s>(vrna_params(&md));
+    };
+
    
     /* print name of the class*/
     void repr() override {

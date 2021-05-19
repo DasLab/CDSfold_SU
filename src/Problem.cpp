@@ -42,7 +42,7 @@ Problem::Problem(Options const & options, string const & aaseq):
 
 /* select energy model based on preprocessor directives */
 #ifdef USE_VIENNA_ENERGY_MODEL
-    energyModel_ = unique_ptr<ViennaEnergyModel>(new ViennaEnergyModel());
+    energyModel_ = unique_ptr<ViennaEnergyModel>(new ViennaEnergyModel(options_.temp));
 #else 
     energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
 #endif

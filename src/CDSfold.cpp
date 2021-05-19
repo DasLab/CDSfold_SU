@@ -26,7 +26,6 @@ extern "C" {
 #include "Problem.hpp"
 #include "Options.hpp"
 
-//#define MAXLOOP 20
 #define noGUclosure 0
 
 using namespace std;
@@ -38,7 +37,7 @@ auto main(int argc, char *argv[]) -> int {
     // TODO this doesn't need to be in brackets
     {
         int opt;
-        while ((opt = getopt(argc, argv, "w:e:f:t:rMURs")) != -1) {
+        while ((opt = getopt(argc, argv, "w:e:f:t:C:rMURs")) != -1) {
             switch (opt) {
             case 'w':
                 options.max_bp_distance = atoi(optarg);
@@ -68,6 +67,9 @@ auto main(int argc, char *argv[]) -> int {
                 break;
             case 's':
                 options.fixed_seed = true;
+                break;
+            case 'C':
+                options.temp = atof(optarg);
                 break;
             }
         }

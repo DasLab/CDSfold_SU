@@ -27,6 +27,8 @@
 #define TURN 3
 /** The maximum loop length */
 #define MAXLOOP 30
+/** Default temperature */
+#define DEFAULT_TEMP 37.0
 
 #define UNIT 100
 
