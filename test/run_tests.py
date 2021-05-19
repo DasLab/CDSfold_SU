@@ -37,8 +37,6 @@ def diff_output(results, args):
                    "Running time" in ref_result["lines"][j]:
                     continue
                 else:
-                    print(cds_result["lines"][j])
-                    print(ref_result["lines"][j])
                     print("Test {} failed. Command: {}".format(i, cds_result["cmd"]))
                     mismatches += 1
                     break
