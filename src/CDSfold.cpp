@@ -37,7 +37,7 @@ auto main(int argc, char *argv[]) -> int {
     // TODO this doesn't need to be in brackets
     {
         int opt;
-        while ((opt = getopt(argc, argv, "w:e:f:t:C:rMURs")) != -1) {
+        while ((opt = getopt(argc, argv, "w:e:f:j:t:C:rMURs")) != -1) {
             switch (opt) {
             case 'w':
                 options.max_bp_distance = atoi(optarg);
@@ -71,6 +71,9 @@ auto main(int argc, char *argv[]) -> int {
             case 'C':
                 options.temp = atof(optarg);
                 break;
+            case 'j':
+                options.jitter = atof(optarg);
+                break;
             }
         }
     }
@@ -102,6 +105,12 @@ auto main(int argc, char *argv[]) -> int {
             cerr << "The -f value must be smaller than -t value." << endl;
             exit(1);
         }
+    }
+
+    // Check that jitter is in correct range
+    if (options.jitter >= 1.0 or options.jitter < 0.0) {
+        cerr << "The -j option must be between 0 and 1" << endl;
+        exit(1);
     }
 
     fasta all_aaseq(argv[optind]);       // get all sequences

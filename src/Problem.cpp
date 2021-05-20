@@ -45,7 +45,7 @@ Problem::Problem(Options const & options, string const & aaseq):
     energyModel_ = unique_ptr<ViennaEnergyModel>(new ViennaEnergyModel(options_.temp));
 #elif defined USE_JITTER_ENERGY_MODEL
     energyModel_ = unique_ptr<JitteredViennaEnergyModel>(
-        new JitteredViennaEnergyModel(options_.temp, 0.1, options_.fixed_seed)
+        new JitteredViennaEnergyModel(options_.temp, options_.jitter, options_.fixed_seed)
     );
 #else 
     energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
