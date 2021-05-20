@@ -14,6 +14,7 @@ private:
     float jitterRange_;
     std::mt19937 randGenerator_;
     std::uniform_real_distribution<> distribution_;
+    std::map<int, int> jitterCache_;
 
 public:
     /* constructor */
@@ -26,7 +27,7 @@ public:
         }
         else {
             std::random_device r;
-            randGenerator_ = std::mt19937(0); 
+            randGenerator_ = std::mt19937(r()); 
         }
         distribution_ = std::uniform_real_distribution<>(1 - range, 1 + range);
     }
@@ -39,8 +40,17 @@ public:
     /* jitters an integer value by multiplying it with a random, uniformly 
      * distributed float centered around zero */
     int generateJitter(int value) {
+        auto cachedVal = jitterCache_.find(value); 
+        if (cachedVal != jitterCache_.end()) {
+            return cachedVal->second;
+        }
+
+        /* value hasn't been jittered before */
         float jitter = distribution_(randGenerator_);
-        return (int) (jitter * value);
+        int jitteredVal = jitter * value;
+        jitterCache_[value] = jitteredVal;
+        
+        return jitteredVal;
     }
 
     int TermAU(int const &type) {
