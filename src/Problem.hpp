@@ -9,10 +9,9 @@
 #include "AASeqConverter.hpp"
 #include "Options.hpp"
 
-#ifdef USE_VIENNA_ENERGY_MODEL
+#if defined USE_VIENNA_ENERGY_MODEL
 #include "ViennaEnergyModel.hpp"
-#endif
-#ifdef USE_JITTER_ENERGY_MODEL
+#elif defined USE_JITTER_ENERGY_MODEL
 #include "JitteredViennaEnergyModel.hpp"
 #else
 #include "DummyEnergyModel.hpp"
