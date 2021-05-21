@@ -12,25 +12,18 @@ class JitteredViennaEnergyModel: public ViennaEnergyModel {
 
 private:
     float jitterRange_;
+    std::random_device r_;
     std::mt19937 randGenerator_;
     std::uniform_real_distribution<> distribution_;
     std::map<int, int> jitterCache_;
 
 public:
     /* constructor */
-    JitteredViennaEnergyModel(float temp, float range, bool fixedSeed): ViennaEnergyModel(temp) {
-        jitterRange_ = range;
-        std::mt19937 *genp;
-
-        if (fixedSeed) {
-            randGenerator_ = std::mt19937(0); 
-        }
-        else {
-            std::random_device r;
-            randGenerator_ = std::mt19937(r()); 
-        }
-        distribution_ = std::uniform_real_distribution<>(1 - range, 1 + range);
-    }
+    JitteredViennaEnergyModel(float temp, float range, bool fixedSeed): 
+        ViennaEnergyModel(temp),
+        jitterRange_(range),
+        randGenerator_(fixedSeed ? 0 : r_()),
+        distribution_(1 - range, 1 + range) {}
 
     /* repr function */
     void repr() override {
@@ -38,14 +31,16 @@ public:
     }
 
     /* jitters an integer value by multiplying it with a random, uniformly 
-     * distributed float centered around zero */
+     * distributed float centered around one */
     int generateJitter(int value) {
         auto cachedVal = jitterCache_.find(value); 
         if (cachedVal != jitterCache_.end()) {
             return cachedVal->second;
         }
 
-        /* value hasn't been jittered before */
+        /* value hasn't been jittered before - cache it so that the same 
+         * energy parameter always has the same value; backtrace fails if energy 
+         * params change */
         float jitter = distribution_(randGenerator_);
         int jitteredVal = jitter * value;
         jitterCache_[value] = jitteredVal;
