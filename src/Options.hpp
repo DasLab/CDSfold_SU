@@ -26,4 +26,5 @@ struct Options {
     bool nucleotide_constraints = false;
     bool fixed_seed = false;
     float temp = DEFAULT_TEMP;                // -C temperature in Celcius
+    float jitter = 0;                         // -j range (0 to 1)
 };

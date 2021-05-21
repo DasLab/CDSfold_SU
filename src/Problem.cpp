@@ -41,8 +41,12 @@ Problem::Problem(Options const & options, string const & aaseq):
 {
 
 /* select energy model based on preprocessor directives */
-#ifdef USE_VIENNA_ENERGY_MODEL
+#if defined USE_VIENNA_ENERGY_MODEL
     energyModel_ = unique_ptr<ViennaEnergyModel>(new ViennaEnergyModel(options_.temp));
+#elif defined USE_JITTER_ENERGY_MODEL
+    energyModel_ = unique_ptr<JitteredViennaEnergyModel>(
+        new JitteredViennaEnergyModel(options_.temp, options_.jitter, options_.fixed_seed)
+    );
 #else 
     energyModel_ = unique_ptr<DummyEnergyModel>(new DummyEnergyModel());
 #endif
