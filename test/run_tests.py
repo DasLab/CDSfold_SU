@@ -92,17 +92,17 @@ if __name__ == '__main__':
 
     # list of simple tests
     simple_tests = [
-        ['', 'example/mev.faa'],
-        ['-w 20', 'example/mev.faa'],
-        ['-e GGU', 'example/mev.faa'],
-        ['-w 20 -e GGC', 'example/mev.faa'],
-        ['-r', 'example/mev.faa'],
-        ['-r -w 20', 'example/mev.faa'], 
-        ['-r -e CCA', 'example/mev.faa'],
-        ['-r -w 20 -e CCA', 'example/mev.faa'],
-        ['-R -s', 'example/mev.faa'],
-        ['', 'example/random_seq.faa'],
-        ['-w 10', 'example/random_seq.faa'],
+        ['-s ', 'example/mev.faa'],
+        ['-s -w 20', 'example/mev.faa'],
+        ['-s -e GGU', 'example/mev.faa'],
+        ['-s -w 20 -e GGC', 'example/mev.faa'],
+        ['-s -r', 'example/mev.faa'],
+        ['-s -r -w 20', 'example/mev.faa'], 
+        ['-s -r -e CCA', 'example/mev.faa'],
+        ['-s -r -w 20 -e CCA', 'example/mev.faa'],
+        ['-s -R', 'example/mev.faa'],
+        ['-s ', 'example/random_seq.faa'],
+        ['-s -w 10', 'example/random_seq.faa'],
     ]
 
     # list of extra tests
