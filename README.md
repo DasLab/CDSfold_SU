@@ -72,7 +72,19 @@ options:
    secondary structure should be stable or unstabl. See, examples below.
 
 -R
-perform a random traceback
+   perform a random traceback
+
+-C<float>
+   temperature (in Celcius) the Vienna energy parameters are calculated at;
+   default is 37 C.
+
+-j<float>
+   Enable jitter mode and specify the range of variance for Vienna energy
+   parameters. This argument can only be passed when CDSFold is built with 
+   the JitteredViennaEnergyModel using `make clean` followed by 
+   `make jitter`. The argument must be in the range from 0 to 1. 
+   In jitter mode, the energy parameters are multiplied by a random 
+   number in the range [1-n, 1+n] where n is the value passed by the -j argument.
  ```
 
 ## Examples:
