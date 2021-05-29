@@ -72,6 +72,11 @@ auto main(int argc, char *argv[]) -> int {
                 options.temp = atof(optarg);
                 break;
             case 'j':
+                #ifndef USE_JITTER_ENERGY_MODEL
+                    cout << "Warning: jitter mode inactive unless compiled with ";
+                    cout << "USE_JITTER_ENERGY_MODEL flag by running `make jitter`";
+                    cout << endl;
+                #endif
                 options.jitter = atof(optarg);
                 break;
             }
