@@ -1,5 +1,5 @@
-# CDSFold Scripts
-This directory contains several scripts for running and testing CDSFold. The test
+# CDSfold Scripts
+This directory contains several scripts for running and testing CDSfold. The test
 scripts in the ```tests``` directory also import scripts in this directory.
 
 ## multirun.py

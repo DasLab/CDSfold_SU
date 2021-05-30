@@ -72,7 +72,7 @@ def print_summary(args, num_tests):
     inputs: args - args object with the parsed cmd line arguments
             num_tests - number of tests in the test suite'''
 
-    summary_str = "\n=== Starting CDSFold test suite. Running {} tests -".format(num_tests)
+    summary_str = "\n=== Starting CDSfold test suite. Running {} tests -".format(num_tests)
     
     if args.q:
         summary_str += " Quiet mode -"

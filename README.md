@@ -1,5 +1,7 @@
-# CDSFold Update
-This repo is an update the of the CDSFold algorithm to modern C++ while maintaining performance.
+# CDSfold Update
+This repo is an update the of the CDSfold algorithm to modern C++ while maintaining performance.
+
+The original CDSfold codebase is now available [on Github](https://github.com/gterai/CDSfold), but is not, to our understanding, under active development. As a result, we have chosen to implement this update as a separate, detached repository rather than a conventional fork.
 
 ## Install:
 Before compiling the source codes, you need to install 
@@ -18,7 +20,7 @@ where ```BUILD_DIR``` is the directory where ```ViennaRNA-2.4.9``` is located.
 Next, add the following lines to your ```~/.bashrc``` file:
 
 ```bash
-# environment variables for CDSFold
+# environment variables for CDSfold
 export VIENNA_INSTALL="BUILD_DIR/ViennaRNA-2.4.9/src/ViennaRNA"
 export CDS_HOME="CDS_PATH/cdsfold_update"
 ```
@@ -80,7 +82,7 @@ options:
 
 -j<float>
    Enable jitter mode and specify the range of variance for Vienna energy
-   parameters. This argument can only be passed when CDSFold is built with 
+   parameters. This argument can only be passed when CDSfold is built with 
    the JitteredViennaEnergyModel using `make clean` followed by 
    `make jitter`. The argument must be in the range from 0 to 1. 
    In jitter mode, the energy parameters are multiplied by a random 
