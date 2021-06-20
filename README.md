@@ -14,7 +14,7 @@ Next, add the following lines to your ```~/.bashrc``` file:
 
 ```bash
 # environment variables for CDSfold
-export VIENNA_INSTALL="BUILD_DIR/ViennaRNA-2.4.9/src/"
+export VIENNA_INSTALL="BUILD_DIR/ViennaRNA-2.4.9/src/ViennaRNA"
 export CDS_HOME="CDS_PATH/CDSfold_SU"
 ```
 

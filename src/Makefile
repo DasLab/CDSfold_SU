@@ -19,9 +19,9 @@ LD_FLAGS = -fmessage-length=0 -fopenmp
 
 ################### Vienna build  ##########################
 
-VIENNA_FLAGS = -I$(VIENNA) -I$(VIENNA)/ViennaRNA/ -DUSE_VIENNA_ENERGY_MODEL 
+VIENNA_FLAGS = -I$(VIENNA)/../ -I$(VIENNA)/ -DUSE_VIENNA_ENERGY_MODEL 
 VIENNA_OBJS = ViennaEnergyModel.o
-VIENNA_LD_FLAGS = -L$(VIENNA)/ViennaRNA/ -lRNA
+VIENNA_LD_FLAGS = -L$(VIENNA)/ -lRNA
 
 vienna: CXXFLAGS+=$(VIENNA_FLAGS)
 vienna: LD_FLAGS+=$(VIENNA_LD_FLAGS)
@@ -31,9 +31,9 @@ vienna: compile $(CDSFOLD_OBJS) $(VIENNA_OBJS) link
 
 ############### Jittered Vienna build  ######################
 
-JITTER_FLAGS = -I$(VIENNA) -I$(VIENNA)/include/ -DUSE_JITTER_ENERGY_MODEL 
+JITTER_FLAGS = -I$(VIENNA)/../ -I$(VIENNA)/ -DUSE_JITTER_ENERGY_MODEL 
 JITTER_OBJS = ViennaEnergyModel.o
-JITTER_LD_FLAGS = -L$(VIENNA) -lRNA
+JITTER_LD_FLAGS = -L$(VIENNA)/ -lRNA
 
 jitter: CXXFLAGS+=$(JITTER_FLAGS)
 jitter: LD_FLAGS+=$(JITTER_LD_FLAGS)
