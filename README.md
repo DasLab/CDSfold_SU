@@ -1,7 +1,9 @@
-# CDSfold Update
-This repo is an update the of the CDSfold algorithm to modern C++ while maintaining performance.
+# CDSfold SU (Stanford Update)
+This repo is an update the of the CDSfold mRNA design algorithm to modern C++ while maintaining performance.
 
-The original CDSfold codebase is now available [on Github](https://github.com/gterai/CDSfold), but is not, to our understanding, under active development. As a result, we have chosen to implement this update as a separate, detached repository rather than a conventional fork.
+In addition, the repo fixes up some compilation issues with recent versions of ViennaRNA folding and explores use of higher temperature folding and 'jittered' energy functions to increase diversity of mRNA solutions.
+
+The original CDSfold codebase is now available [on Github](https://github.com/gterai/CDSfold), but is not, to our understanding, under active development. As a result, a group of developers based at Stanford has chosen to implement this update as a separate, detached repository rather than a conventional fork.
 
 ## Install:
 Before compiling the source codes, you need to install 
@@ -21,12 +23,12 @@ Next, add the following lines to your ```~/.bashrc``` file:
 
 ```bash
 # environment variables for CDSfold
-export VIENNA_INSTALL="BUILD_DIR/ViennaRNA-2.4.9/src/ViennaRNA"
-export CDS_HOME="CDS_PATH/cdsfold_update"
+export VIENNA_INSTALL="BUILD_DIR/ViennaRNA-2.4.9/src/"
+export CDS_HOME="CDS_PATH/CDSfold_SU"
 ```
 
 where ```BUILD_DIR``` is the same path where ViennaRNA-2.4.9 is located and
-```CDS_PATH``` is the path to where the ```cdsfold_update``` directory is. Both
+```CDS_PATH``` is the path to where the ```CDSfold_SU``` directory is. Both
 of these environment variables should be absolute paths.
 
 Source your ~/.bashrc script:
@@ -37,9 +39,11 @@ source ~/.bashrc
 
 Finally, run the following commands to build CDSfold:
 ``` 
-cd cdsfold_update/src
+cd CDSfold_SU/src
 make
 ```
+
+The executable CDSfold will showup in CDSFold_SU/src.  
 
 ## Usage:
 

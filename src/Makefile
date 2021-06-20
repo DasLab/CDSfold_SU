@@ -19,9 +19,9 @@ LD_FLAGS = -fmessage-length=0 -fopenmp
 
 ################### Vienna build  ##########################
 
-VIENNA_FLAGS = -I$(VIENNA) -I$(VIENNA)/include/ -DUSE_VIENNA_ENERGY_MODEL 
+VIENNA_FLAGS = -I$(VIENNA) -I$(VIENNA)/ViennaRNA/ -DUSE_VIENNA_ENERGY_MODEL 
 VIENNA_OBJS = ViennaEnergyModel.o
-VIENNA_LD_FLAGS = -L$(VIENNA) -lRNA
+VIENNA_LD_FLAGS = -L$(VIENNA)/ViennaRNA/ -lRNA
 
 vienna: CXXFLAGS+=$(VIENNA_FLAGS)
 vienna: LD_FLAGS+=$(VIENNA_LD_FLAGS)
