@@ -10,15 +10,6 @@ Before compiling the source codes, you need to install
 the Vienna RNA package (version 2.4.9), which is available  
 from the [University of Vienna](http://www.tbi.univie.ac.at/RNA/)
 
-As part of installing ViennaRNA, you will run their ```configure``` script.
-During this step you must use the option:
-
-```
-./configure --prefix BUILD_DIR/ViennaRNA-2.4.9/src/ViennaRNA
-```
-
-where ```BUILD_DIR``` is the directory where ```ViennaRNA-2.4.9``` is located.
-
 Next, add the following lines to your ```~/.bashrc``` file:
 
 ```bash
