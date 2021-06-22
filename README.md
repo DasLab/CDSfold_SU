@@ -113,3 +113,9 @@ codon is stable, please try:
 
 ```./src/CDSfold -f 1 -t 10 ./example/test.faa```
 
+## Continuous Integration
+Some basic CI is set up via GitHub, but we're seeing issues due to randomness in running test executables, so the CI is not very useful at the moment. 
+
+Please see [issue #32](https://github.com/eternagame/CDSfold_SU/issues/32), and please file a pull request if you see the fix.
+
+
