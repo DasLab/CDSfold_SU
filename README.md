@@ -36,6 +36,8 @@ make
 
 The executable CDSfold will showup in CDSFold_SU/src.  
 
+Note: above works on Linux; there are some [issues in the Mac build](https://github.com/eternagame/CDSfold_SU/issues/36).
+
 ## Usage:
 
 ```CDSfold [options] seqfile```
